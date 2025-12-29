@@ -1,0 +1,215 @@
+.how-section {
+    padding: 60px 24px;
+    background: linear-gradient(135deg, #e8eef5 0%, #e8e6f5 100%);
+}
+
+.workflow-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+}
+
+.workflow-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 32px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.workflow-tab::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #100c5b, #09065a);
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+}
+
+.workflow-tab:hover::before {
+    width: 80%;
+}
+
+.workflow-tab:hover {
+    border-color: #100c5b;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(16, 12, 91, 0.15);
+}
+
+.workflow-tab.active {
+    background: linear-gradient(135deg, #100c5b 0%, #09065a 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 8px 25px rgba(16, 12, 91, 0.3);
+    animation: glow 2s ease-in-out infinite;
+}
+
+.tab-icon {
+    font-size: 20px;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .steps-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.step-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s ease;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.step-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(16, 12, 91, 0.25);
+    border-color: #100c5b;
+}
+
+.step-number {
+    font-size: 64px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #e8eef5 0%, #dae5f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.step-card:hover .step-number {
+    background: linear-gradient(135deg, #100c5b 0%, #09065a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transform: scale(1.1);
+}
+
+.step-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 12px;
+}
+
+.step-description {
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+/*.step-arrow {*/
+/*    display: none;*/
+/*    position: absolute;*/
+/*    top: 50%;*/
+/*    right: -16px;*/
+/*    transform: translateY(-50%);*/
+/*    font-size: 32px;*/
+/*    color: #100c5b;*/
+/*    animation: pulse 2s ease-in-out infinite;*/
+/*}*/
+
+/*@media (min-width: 768px) {*/
+/*    .step-arrow {*/
+/*        display: block;*/
+/*    }*/
+/*}*/
+
+.step-arrow {
+    display: none;
+    position: absolute;
+    top: 50%;
+    right: -46px; /* Positioned in the middle of the gap */
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    z-index: 5;
+}
+
+@media (min-width: 768px) {
+    .step-arrow {
+        display: block;
+    }
+}
+
+/* Flowing line */
+.step-arrow::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 45px;
+    height: 4px;
+    background: linear-gradient(90deg,
+    transparent 0%,
+    #100c5b 30%,
+    #09065a 70%,
+    transparent 100%
+    );
+    background-size: 200% 100%;
+    transform: translateY(-50%);
+    border-radius: 2px;
+    animation: flowLine 2s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(16, 12, 91, 0.4);
+}
+
+/* Arrow head */
+.step-arrow::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 16px solid #09065a;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    animation: arrowheadPulse 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(16, 12, 91, 0.5));
+}
+
+@keyframes flowLine {
+    0%, 100% {
+        background-position: 0% 0%;
+        opacity: 0.6;
+    }
+    50% {
+        background-position: 100% 0%;
+        opacity: 1;
+    }
+}
+
+@keyframes arrowheadPulse {
+    0%, 100% {
+        transform: translateY(-50%) translateX(0) scale(1);
+        filter: drop-shadow(0 0 8px rgba(16, 12, 91, 0.5));
+    }
+    50% {
+        transform: translateY(-50%) translateX(5px) scale(1.15);
+        filter: drop-shadow(0 0 15px rgba(16, 12, 91, 0.8));
+    }
+}

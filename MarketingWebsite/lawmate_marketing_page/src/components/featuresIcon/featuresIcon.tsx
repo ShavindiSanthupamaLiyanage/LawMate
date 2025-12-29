@@ -1,0 +1,8 @@
+export {default as Analytics} from "../../assets/analytics.png"
+export {default as Books} from "../../assets/books.png"
+export {default as Calendar} from "../../assets/calendar.png"
+export {default as Clipboard} from "../../assets/clipboard.png"
+export {default as Lawyer} from "../../assets/lawyer.png"
+export {default as Notification} from "../../assets/notification.png"
+export {default as Shield} from "../../assets/shield.png"
+export {default as Clock} from "../../assets/clock.png"

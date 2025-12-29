@@ -1,0 +1,20 @@
+# Node / React / React Native
+node_modules/
+dist/
+build/
+
+# Environment files
+.env
+.env.*
+
+# .NET
+bin/
+obj/
+
+# IDEs
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

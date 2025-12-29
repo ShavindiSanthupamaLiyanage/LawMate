@@ -1,0 +1,45 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LawMate.Domain.Common.Enums
+{
+    public enum UserRole
+    {
+        Admin = 0,
+        Lawyer = 1,
+        Clinet = 2
+    }
+
+    public enum State
+    {
+        Inactive = 0,
+        Active = 1,
+    }
+
+    public enum VerificationStatus
+    {
+        Pending = 0,
+        Verified = 1,
+        Rejected = 2
+    }
+
+    public enum BookingStatus
+    {
+        Pending = 0,
+        Accepted = 1,
+        Verified = 2,
+        Rejected = 3,
+        Suspended = 4, 
+    }
+
+    public enum LegalCategory
+    {
+        All = 0,
+        FamilyLaw = 1,
+        CriminalLaw = 2,
+        PropertyLaw = 3,
+    }
+}
