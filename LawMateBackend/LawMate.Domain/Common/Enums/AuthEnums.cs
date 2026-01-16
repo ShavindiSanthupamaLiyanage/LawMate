@@ -42,4 +42,11 @@ namespace LawMate.Domain.Common.Enums
         CriminalLaw = 2,
         PropertyLaw = 3,
     }
+
+    public enum Language
+    {
+        English = 1,
+        Sinhala = 2,
+        Tamil = 3
+    }
 }

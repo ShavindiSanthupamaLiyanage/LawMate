@@ -12,7 +12,8 @@ namespace LawMate.Application.Common.Interfaces
     {
         #region Auth
         DbSet<USER_DETAIL> USER_DETAIL { get; }
-
+        DbSet<CLIENT_DETAILS> CLIENT_DETAILS { get; }
+        DbSet<LAWYER_DETAILS> LAWYER_DETAILS { get; }
         #endregion
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
