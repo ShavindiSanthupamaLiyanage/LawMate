@@ -11,6 +11,9 @@ namespace LawMate.Infrastructure
 
         #region Auth
         public DbSet<USER_DETAIL> USER_DETAIL => Set<USER_DETAIL>();
+        public DbSet<CLIENT_DETAILS> CLIENT_DETAILS => Set<CLIENT_DETAILS>();
+        public DbSet<LAWYER_DETAILS> LAWYER_DETAILS => Set<LAWYER_DETAILS>();
+
 
         #endregion
 
