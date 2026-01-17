@@ -1,4 +1,5 @@
 ﻿using LawMate.Application.Common.Interfaces;
+using LawMate.Infrastructure.Logging;
 using LawMate.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,7 @@ namespace LawMate.Infrastructure
 
             services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
             services.AddScoped<ICurrentUserService, CurrentUserService>();
-
+            services.AddScoped<IAppLogger, AppLogger>();
             return services;
         }
     }
