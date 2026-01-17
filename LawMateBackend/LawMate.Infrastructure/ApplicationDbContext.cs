@@ -14,7 +14,6 @@ namespace LawMate.Infrastructure
         public DbSet<CLIENT_DETAILS> CLIENT_DETAILS => Set<CLIENT_DETAILS>();
         public DbSet<LAWYER_DETAILS> LAWYER_DETAILS => Set<LAWYER_DETAILS>();
 
-
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -3,48 +3,24 @@
   "WorkspaceRootPath": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Migrations\\20260115131238_LawyerAndClientDetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:LawMate.Infrastructure\\Migrations\\20260115131238_LawyerAndClientDetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.infrastructure\\logging\\applogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|solutionrelative:lawmate.infrastructure\\logging\\applogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.domain\\entities\\auth\\client_details.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|solutionrelative:lawmate.domain\\entities\\auth\\client_details.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{36754D7D-26B2-4AD2-9C82-21F248ADB534}|LawMate.Application\\LawMate.Application.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.application\\common\\interfaces\\iapplogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{36754D7D-26B2-4AD2-9C82-21F248ADB534}|LawMate.Application\\LawMate.Application.csproj|solutionrelative:lawmate.application\\common\\interfaces\\iapplogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.domain\\entities\\auth\\lawyer_details.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|solutionrelative:lawmate.domain\\entities\\auth\\lawyer_details.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.infrastructure\\logging\\lawmatelogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|solutionrelative:lawmate.infrastructure\\logging\\lawmatelogger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.domain\\entities\\auth\\user_details.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|solutionrelative:lawmate.domain\\entities\\auth\\user_details.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{36754D7D-26B2-4AD2-9C82-21F248ADB534}|LawMate.Application\\LawMate.Application.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.application\\adminmodule\\adminregistration\\commands\\createadmincommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{36754D7D-26B2-4AD2-9C82-21F248ADB534}|LawMate.Application\\LawMate.Application.csproj|solutionrelative:lawmate.application\\adminmodule\\adminregistration\\commands\\createadmincommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.infrastructure\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|solutionrelative:lawmate.infrastructure\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{36754D7D-26B2-4AD2-9C82-21F248ADB534}|LawMate.Application\\LawMate.Application.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.application\\common\\interfaces\\iapplicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{36754D7D-26B2-4AD2-9C82-21F248ADB534}|LawMate.Application\\LawMate.Application.csproj|solutionrelative:lawmate.application\\common\\interfaces\\iapplicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.domain\\entities\\common\\auditentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|solutionrelative:lawmate.domain\\entities\\common\\auditentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.infrastructure\\configureservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|solutionrelative:lawmate.infrastructure\\configureservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.infrastructure\\services\\currentuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}|LawMate.Infrastructure\\LawMate.Infrastructure.csproj|solutionrelative:lawmate.infrastructure\\services\\currentuserservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.domain\\common\\enums\\authenums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|solutionrelative:lawmate.domain\\common\\enums\\authenums.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8FF6CDF2-E75D-40AD-B04B-536B65662F3F}|LawMate.API\\LawMate.API.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8FF6CDF2-E75D-40AD-B04B-536B65662F3F}|LawMate.API\\LawMate.API.csproj|solutionrelative:lawmate.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|d:\\shavindi\\projects\\lawmate\\lawmatebackend\\lawmate.domain\\dtos\\createadmindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EB4B42B5-B1BD-4074-B30E-2A9A74E9B88F}|LawMate.Domain\\LawMate.Domain.csproj|solutionrelative:lawmate.domain\\dtos\\createadmindto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -54,8 +30,22 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 2,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "LawMateLogger.cs",
+              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Logging\\LawMateLogger.cs",
+              "RelativeDocumentMoniker": "LawMate.Infrastructure\\Logging\\LawMateLogger.cs",
+              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Logging\\LawMateLogger.cs",
+              "RelativeToolTip": "LawMate.Infrastructure\\Logging\\LawMateLogger.cs",
+              "ViewState": "AgIAACQAAAAAAAAAAAAswF8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-17T08:10:34.434Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
@@ -63,144 +53,54 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "20260115131238_LawyerAndClientDetails.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Migrations\\20260115131238_LawyerAndClientDetails.cs",
-              "RelativeDocumentMoniker": "LawMate.Infrastructure\\Migrations\\20260115131238_LawyerAndClientDetails.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Migrations\\20260115131238_LawyerAndClientDetails.cs",
-              "RelativeToolTip": "LawMate.Infrastructure\\Migrations\\20260115131238_LawyerAndClientDetails.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Title": "AppLogger.cs",
+              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Logging\\AppLogger.cs",
+              "RelativeDocumentMoniker": "LawMate.Infrastructure\\Logging\\AppLogger.cs",
+              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Logging\\AppLogger.cs",
+              "RelativeToolTip": "LawMate.Infrastructure\\Logging\\AppLogger.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAIwBwAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-15T13:12:38.823Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "LAWYER_DETAILS.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Entities\\Auth\\LAWYER_DETAILS.cs",
-              "RelativeDocumentMoniker": "LawMate.Domain\\Entities\\Auth\\LAWYER_DETAILS.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Entities\\Auth\\LAWYER_DETAILS.cs",
-              "RelativeToolTip": "LawMate.Domain\\Entities\\Auth\\LAWYER_DETAILS.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAAowA8AAAAIAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-15T12:24:52.033Z",
+              "WhenOpened": "2026-01-17T08:54:31.984Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "CLIENT_DETAILS.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Entities\\Auth\\CLIENT_DETAILS.cs",
-              "RelativeDocumentMoniker": "LawMate.Domain\\Entities\\Auth\\CLIENT_DETAILS.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Entities\\Auth\\CLIENT_DETAILS.cs",
-              "RelativeToolTip": "LawMate.Domain\\Entities\\Auth\\CLIENT_DETAILS.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAAiwAwAAAANAAAAAAAAAA==",
+              "Title": "IAppLogger.cs",
+              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Application\\Common\\Interfaces\\IAppLogger.cs",
+              "RelativeDocumentMoniker": "LawMate.Application\\Common\\Interfaces\\IAppLogger.cs",
+              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Application\\Common\\Interfaces\\IAppLogger.cs",
+              "RelativeToolTip": "LawMate.Application\\Common\\Interfaces\\IAppLogger.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAQwBsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-15T12:19:49.359Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "IApplicationDbContext.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Application\\Common\\Interfaces\\IApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "LawMate.Application\\Common\\Interfaces\\IApplicationDbContext.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Application\\Common\\Interfaces\\IApplicationDbContext.cs",
-              "RelativeToolTip": "LawMate.Application\\Common\\Interfaces\\IApplicationDbContext.cs",
-              "ViewState": "AgIAAA0AAAAAAAAAAAAzwA8AAAAsAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-24T01:11:03.046Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "ApplicationDbContext.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\ApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "LawMate.Infrastructure\\ApplicationDbContext.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\ApplicationDbContext.cs",
-              "RelativeToolTip": "LawMate.Infrastructure\\ApplicationDbContext.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAA2wCUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-24T01:10:11.711Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "ConfigureServices.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\ConfigureServices.cs",
-              "RelativeDocumentMoniker": "LawMate.Infrastructure\\ConfigureServices.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\ConfigureServices.cs",
-              "RelativeToolTip": "LawMate.Infrastructure\\ConfigureServices.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAADwvxoAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-24T01:07:10.558Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "CurrentUserService.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Services\\CurrentUserService.cs",
-              "RelativeDocumentMoniker": "LawMate.Infrastructure\\Services\\CurrentUserService.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Infrastructure\\Services\\CurrentUserService.cs",
-              "RelativeToolTip": "LawMate.Infrastructure\\Services\\CurrentUserService.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAQwAsAAAA5AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-24T01:06:02.941Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "AuditEntity.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Entities\\Common\\AuditEntity.cs",
-              "RelativeDocumentMoniker": "LawMate.Domain\\Entities\\Common\\AuditEntity.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Entities\\Common\\AuditEntity.cs",
-              "RelativeToolTip": "LawMate.Domain\\Entities\\Common\\AuditEntity.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAkAAAApAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-24T01:00:19.363Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "AuthEnums.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Common\\Enums\\AuthEnums.cs",
-              "RelativeDocumentMoniker": "LawMate.Domain\\Common\\Enums\\AuthEnums.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Common\\Enums\\AuthEnums.cs",
-              "RelativeToolTip": "LawMate.Domain\\Common\\Enums\\AuthEnums.cs",
-              "ViewState": "AgIAACEAAAAAAAAAAAAUwCkAAAAYAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T01:59:09.397Z",
+              "WhenOpened": "2026-01-17T08:55:52.693Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "USER_DETAILS.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Entities\\Auth\\USER_DETAILS.cs",
-              "RelativeDocumentMoniker": "LawMate.Domain\\Entities\\Auth\\USER_DETAILS.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\Entities\\Auth\\USER_DETAILS.cs",
-              "RelativeToolTip": "LawMate.Domain\\Entities\\Auth\\USER_DETAILS.cs",
-              "ViewState": "AgIAAAEAAAAAAAAAAAAgwAoAAAAqAAAAAAAAAA==",
+              "Title": "CreateAdminCommand.cs",
+              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Application\\AdminModule\\AdminRegistration\\Commands\\CreateAdminCommand.cs",
+              "RelativeDocumentMoniker": "LawMate.Application\\AdminModule\\AdminRegistration\\Commands\\CreateAdminCommand.cs",
+              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Application\\AdminModule\\AdminRegistration\\Commands\\CreateAdminCommand.cs",
+              "RelativeToolTip": "LawMate.Application\\AdminModule\\AdminRegistration\\Commands\\CreateAdminCommand.cs",
+              "ViewState": "AgIAAEYAAAAAAAAAAAAuwE0AAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T01:58:52.716Z",
+              "WhenOpened": "2026-01-17T08:25:41.098Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.API\\Program.cs",
-              "RelativeDocumentMoniker": "LawMate.API\\Program.cs",
-              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.API\\Program.cs",
-              "RelativeToolTip": "LawMate.API\\Program.cs",
-              "ViewState": "AgIAACwAAAAAAAAAAAAowDcAAAAdAAAAAAAAAA==",
+              "DocumentIndex": 4,
+              "Title": "CreateAdminDto.cs",
+              "DocumentMoniker": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\DTOs\\CreateAdminDto.cs",
+              "RelativeDocumentMoniker": "LawMate.Domain\\DTOs\\CreateAdminDto.cs",
+              "ToolTip": "D:\\Shavindi\\Projects\\LawMate\\LawMateBackend\\LawMate.Domain\\DTOs\\CreateAdminDto.cs",
+              "RelativeToolTip": "LawMate.Domain\\DTOs\\CreateAdminDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-23T01:55:33.282Z"
+              "WhenOpened": "2026-01-17T07:30:00.836Z",
+              "EditorCaption": ""
             }
           ]
         }
