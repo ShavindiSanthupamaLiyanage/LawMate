@@ -1,4 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using LawMate.API.Model.Common;
+using LawMate.Application.Common.Interfaces;
+using LawMate.Application.Common.Utilities;
+using LawMate.Domain.Common.Enums;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -7,28 +13,55 @@ using System.Text;
 namespace LawMate.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly IApplicationDbContext _context;
+        private readonly IAppLogger _logger;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IConfiguration configuration, 
+            IApplicationDbContext context, 
+            IAppLogger logger)
         {
             _configuration = configuration;
+            _context = context;
+            _logger = logger;
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // 🔴 TEMP: Replace with DB validation later
-            if (request.Username != "admin" || request.Password != "admin123")
-                return Unauthorized("Invalid credentials");
+            _logger.Info($"Login attempt | UserId: {request.UserId}");
 
-            var claims = new[]
+            if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.Password))
             {
-                new Claim(JwtRegisteredClaimNames.Sub, request.Username),
+                _logger.Warning("Login failed | Missing credentials");
+                return BadRequest("UserId and Password are required.");
+            }
+
+            //Encrypt input password with the same key (UserId)
+            string encryptedInputPassword = CryptoUtil.Encrypt(request.Password, request.UserId);
+
+            var user = await _context.USER_DETAIL.FirstOrDefaultAsync(x =>
+                    x.UserId == request.UserId &&
+                    x.Password == encryptedInputPassword &&  // compare encrypted
+                    x.RecordStatus == 0); // active check
+
+            if (user == null)
+            {
+                _logger.Warning($"Login failed | Invalid credentials | UserId: {request.UserId}");
+                return Unauthorized("Invalid UserId or Password");
+            }
+
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, "User")
+                new Claim(ClaimTypes.Role, user.UserRole.ToString()),
+                new Claim("UserId", user.UserId!),
+                new Claim("Email", user.Email ?? "")
             };
 
             var key = new SymmetricSecurityKey(
@@ -41,22 +74,24 @@ namespace LawMate.API.Controllers
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(
+                expires: DateTime.Now.AddMinutes(
                     Convert.ToDouble(_configuration["Jwt:ExpireMinutes"])
                 ),
                 signingCredentials: creds
             );
 
+            _logger.Info($"Login successful | UserId: {user.UserId} | Role: {user.UserRole}");
+
+            user.LastLoginDate = DateTime.Now;
+            await _context.SaveChangesAsync(CancellationToken.None);
+
             return Ok(new
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token)
+                accessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                userId = user.UserId,
+                role = user.UserRole
             });
         }
-    }
 
-    public class LoginRequest
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
     }
 }
