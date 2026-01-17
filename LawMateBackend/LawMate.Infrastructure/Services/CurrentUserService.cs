@@ -13,18 +13,19 @@ namespace LawMate.Infrastructure.Services
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        private string _userName = string.Empty;
+        private string _userId = string.Empty;
 
         public CurrentUserService(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string UserName => _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Name)?.Value ?? _userName ?? string.Empty;
+        public string UserId => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? _userId ?? string.Empty;
 
-        public void SetUserName(string userName)
+
+        public void SetUserId(string userId)
         {
-            _userName = userName;
+            _userId = userId;
         }
     }
 }
