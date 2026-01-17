@@ -8,8 +8,8 @@ namespace LawMate.Application.Common.Interfaces
 {
     public interface ICurrentUserService
     {
-        string UserName { get; }
+        string UserId { get; }
 
-        void SetUserName(string userName);
+        void SetUserId(string userId);
     }
 }
