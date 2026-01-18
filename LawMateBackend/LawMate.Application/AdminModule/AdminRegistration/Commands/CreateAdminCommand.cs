@@ -59,6 +59,7 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Commands
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
+                UserName= dto.UserId,
                 UserRole = UserRole.Admin,
                 Email = dto.Email,
                 NIC = dto.NIC,
