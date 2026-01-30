@@ -1,0 +1,14 @@
+// Spacing constants for consistent layout
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  base: 16,
+  md: 20,
+  lg: 24,
+  xl: 32,
+  '2xl': 40,
+  '3xl': 48,
+};
+
+export default spacing;
