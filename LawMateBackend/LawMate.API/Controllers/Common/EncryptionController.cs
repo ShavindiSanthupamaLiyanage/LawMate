@@ -9,7 +9,7 @@ namespace LawMate.API.Controllers.Common
     public class EncryptionController : ControllerBase
     {
         [HttpPost("password-encrypt")]
-        public IActionResult EncryptPassword([FromBody] LoginRequest request)
+        public IActionResult EncryptPassword([FromBody] AuthLoginRequest request)
         {
             if (string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.UserId))
             {
@@ -21,7 +21,7 @@ namespace LawMate.API.Controllers.Common
         }
 
         [HttpPost("password-decrypt")]
-        public IActionResult DecryptPassword([FromBody] LoginRequest request)
+        public IActionResult DecryptPassword([FromBody] AuthLoginRequest request)
         {
             if (string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.UserId))
             {
