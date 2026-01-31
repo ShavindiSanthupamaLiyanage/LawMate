@@ -49,4 +49,77 @@ namespace LawMate.Domain.Common.Enums
         Sinhala = 2,
         Tamil = 3
     }
+
+    public enum Prefix
+    { 
+        Rev = 1,
+        Dr = 2,
+        Mr = 3,
+        Mrs = 4,
+        Ms = 5
+    }
+
+    public enum Gender
+    {
+        Male = 1,
+        Female = 2,
+    }
+
+    public enum Province
+    {
+        Western,
+        Central,
+        Southern,
+        Northern,
+        Eastern,
+        NorthWestern,
+        NorthCentral,
+        Uva,
+        Sabaragamuwa
+    }
+
+    public enum District
+    {
+        Colombo,
+        Gampaha,
+        Kalutara,
+
+        Kandy,
+        Matale,
+        NuwaraEliya,
+
+        Galle,
+        Matara,
+        Hambantota,
+
+        Jaffna,
+        Kilinochchi,
+        Mannar,
+        Mullaitivu,
+        Vavuniya,
+
+        Trincomalee,
+        Batticaloa,
+        Ampara,
+
+        Kurunegala,
+        Puttalam,
+
+        Anuradhapura,
+        Polonnaruwa,
+
+        Badulla,
+        Monaragala,
+
+        Ratnapura,
+        Kegalle
+    }
+
+    public enum AreaOfPractice
+    { 
+        Civil,
+        Criminal,
+        Labour,
+        Commercial
+    }
 }

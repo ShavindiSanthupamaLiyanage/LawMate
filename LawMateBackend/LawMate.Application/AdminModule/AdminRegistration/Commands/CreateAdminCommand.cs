@@ -64,7 +64,7 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Commands
                 Email = dto.Email,
                 NIC = dto.NIC,
                 Password = CryptoUtil.Encrypt(dto.Password ?? "", dto.UserId ?? ""),
-                PhoneNumber = dto.PhoneNumber,
+                ContactNumber = dto.ContactNumber,
                 RecordStatus = dto.RecordStatus,
                 RegistrationDate = DateTime.Now,
                 State = dto.State,
