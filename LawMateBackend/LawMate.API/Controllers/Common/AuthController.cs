@@ -31,7 +31,7 @@ namespace LawMate.API.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] AuthLoginRequest request)
         {
             _logger.Info($"Login attempt | UserId: {request.UserId}");
 
