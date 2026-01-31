@@ -48,7 +48,7 @@ namespace LawMate.API.Controllers.AdminModule
                         Email = request.Email,
                         NIC = request.NIC,
                         Password = request.Password,
-                        PhoneNumber = request.PhoneNumber,
+                        ContactNumber = request.ContactNumber,
                         RecordStatus = request.RecordStatus,
                         State = request.State,
                         ProfileImage = imageBytes
