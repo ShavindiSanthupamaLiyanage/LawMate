@@ -15,8 +15,9 @@ namespace LawMate.Domain.Common.Enums
 
     public enum State
     {
-        Inactive = 0,
+        Pendig = 0,
         Active = 1,
+        Inactive = 2,
     }
 
     public enum VerificationStatus
