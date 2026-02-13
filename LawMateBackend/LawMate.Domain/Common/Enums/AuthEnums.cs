@@ -10,12 +10,12 @@ namespace LawMate.Domain.Common.Enums
     {
         Admin = 0,
         Lawyer = 1,
-        Clinet = 2
+        Client = 2
     }
 
     public enum State
     {
-        Pendig = 0,
+        Pending = 0,
         Active = 1,
         Inactive = 2,
     }

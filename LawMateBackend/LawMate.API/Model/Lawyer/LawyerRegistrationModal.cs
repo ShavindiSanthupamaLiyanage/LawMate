@@ -22,7 +22,7 @@ namespace LawMate.API.Model.Lawyer
         public DateTime? RegistrationDate { get; set; }
         public DateTime? LastLoginDate { get; set; }
         public State State { get; set; }
-        public byte[]? ProfileImage { get; set; }
+        public IFormFile? ProfileImage { get; set; }
 
         // LAWYER_DETAILS
         public string? SCECertificateNo { get; set; }
@@ -36,8 +36,8 @@ namespace LawMate.API.Model.Lawyer
         public string? BarAssociationRegNo { get; set; }
         public string? ProfessionalDesignation { get; set; }
         public string? OfficeContactNumber { get; set; }
-        public byte[]? EnrollmentCertificate { get; set; }
-        public byte[]? NICFrontImage { get; set; }
-        public byte[]? NICBackImage { get; set; }
+        public IFormFile? EnrollmentCertificate { get; set; }
+        public IFormFile? NICFrontImage { get; set; }
+        public IFormFile? NICBackImage { get; set; }
     }
 }

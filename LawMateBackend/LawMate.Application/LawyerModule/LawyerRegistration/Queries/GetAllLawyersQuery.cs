@@ -30,10 +30,21 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Queries
                     FirstName = u.FirstName,
                     LastName = u.LastName,
                     Email = u.Email,
-                    UserRole = u.UserRole,
+                    NIC = u.NIC,
+                    ContactNumber = u.ContactNumber,
+                    RecordStatus = u.RecordStatus,
+                    State = u.State,
+                    RegistrationDate = u.RegistrationDate,
+                    ProfileImage = u.ProfileImage,
+                    IsDualAccount = u.IsDualAccount,
+                    SCECertificateNo = l.SCECertificateNo,
+                    Bio = l.Bio,
+                    YearOfExperience = l.YearOfExperience,
                     WorkingDistrict = l.WorkingDistrict,
                     AreaOfPractice = l.AreaOfPractice,
-                    VerificationStatus = l.VerificationStatus
+                    VerificationStatus = l.VerificationStatus,
+                    BarAssociationRegNo = l.BarAssociationRegNo,
+                    OfficeContactNumber = l.OfficeContactNumber,
                 }
             ).ToListAsync(cancellationToken);
         }

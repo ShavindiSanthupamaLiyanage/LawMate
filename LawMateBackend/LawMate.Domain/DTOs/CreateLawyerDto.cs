@@ -27,6 +27,7 @@ namespace LawMate.Domain.DTOs
         public DateTime? LastLoginDate { get; set; }
         public State State { get; set; }
         public byte[]? ProfileImage { get; set; }
+        public bool IsDualAccount { get; set; }
 
         // LAWYER_DETAILS
         public string? SCECertificateNo { get; set; }
