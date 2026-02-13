@@ -39,14 +39,14 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
                 throw new KeyNotFoundException("Lawyer not found");
 
             // USER_DETAIL updates
-            user.FirstName = dto.FirstName ?? user.FirstName;
-            user.LastName = dto.LastName ?? user.LastName;
             user.ContactNumber = dto.ContactNumber ?? user.ContactNumber;
 
             // LAWYER_DETAILS updates
+            lawyer.Bio = dto.Bio;
             lawyer.YearOfExperience = dto.YearOfExperience;
             lawyer.WorkingDistrict = dto.WorkingDistrict;
             lawyer.AreaOfPractice = dto.AreaOfPractice;
+            lawyer.OfficeContactNumber = dto.OfficeContactNumber;
 
             await _context.SaveChangesAsync(cancellationToken);
 
