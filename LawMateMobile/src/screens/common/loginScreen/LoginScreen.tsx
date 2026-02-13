@@ -10,12 +10,13 @@ import {
     Image
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, fontSize, fontWeight, borderRadius } from '../config/theme';
-import { RootStackParamList, User, AlertState } from '../types';
-import Button from '../components/Button';
-import Alert from '../components/Alert';
-import Input from '../components/Input';
+import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import { RootStackParamList, User } from '../../../types';
+import Button from '../../../components/Button';
+import Input from '../../../components/Input';
 import {AntDesign} from "@expo/vector-icons";
+import {useToast} from "../../../context/ToastContext";
+import WarningCard from "./WarningCard";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -28,6 +29,7 @@ const USERS: Record<string, User> = {
     'lawyer@test.com': { email: 'lawyer@test.com', password: '123456', type: 'lawyer', name: 'John Smith' },
     'client@test.com': { email: 'client@test.com', password: '123456', type: 'client', name: 'Jane Doe' },
     'admin@test.com': { email: 'admin@test.com', password: '123456', type: 'admin', name: 'Admin User' },
+    'dual@test.com': { email: 'dual@test.com', password: '123', type: 'lawyer', name: 'Dual User' },
 };
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
@@ -35,21 +37,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const [password, setPassword] = useState<string>('');
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
-    const [alert, setAlert] = useState<AlertState>({
-        visible: false,
-        title: '',
-        message: '',
-        type: 'info'
-    });
+    const [showWarningCard, setShowWarningCard] = useState<boolean>(false);
+    const [selectedUserType, setSelectedUserType] = useState<'lawyer' | 'client' | null>(null);
+    const {showError, showWarning} = useToast();
 
     const handleLogin = (): void => {
         if (!email || !password) {
-            setAlert({
-                visible: true,
-                title: 'Error',
-                message: 'Please enter email and password',
-                type: 'error'
-            });
+            showWarning('Please enter email and password');
             return;
         }
 
@@ -57,6 +51,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         // Simulate API call
         setTimeout(() => {
+            // Check for dual user
+            if (email.toLowerCase() === 'dual@test.com' && password === '123') {
+                setLoading(false);
+                setShowWarningCard(true);
+                setSelectedUserType(null);
+                return;
+            }
+
             const user = USERS[email.toLowerCase()];
 
             if (user && user.password === password) {
@@ -84,14 +86,31 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 }
             } else {
                 setLoading(false);
-                setAlert({
-                    visible: true,
-                    title: 'Login Failed',
-                    message: 'Invalid email or password',
-                    type: 'error'
-                });
+                showError('Invalid email or password');
             }
         }, 1500);
+    };
+
+    const handleWarningCardLogin = (): void => {
+        if (!selectedUserType) return;
+
+        setShowWarningCard(false);
+        setLoading(true);
+
+        setTimeout(() => {
+            setLoading(false);
+
+            // Navigate based on selected user type
+            if (selectedUserType === 'lawyer') {
+                navigation.replace('LawyerTabs', {
+                    screen: 'Dashboard',
+                });
+            } else {
+                navigation.replace('ClientTabs', {
+                    screen: 'Dashboard',
+                });
+            }
+        }, 500);
     };
 
     return (
@@ -105,7 +124,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     <Text style={styles.subtitle}>Login in securely to continue your journey with LawMate today.</Text>
 
                     <Image
-                        source={require('../../assets/login.png')}
+                        source={require('../../../../assets/login.png')}
                         style={styles.loginImg}
                         resizeMode="contain"
                     />
@@ -162,17 +181,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         <Text style={styles.demoText}>Lawyer: lawyer@test.com / 123456</Text>
                         <Text style={styles.demoText}>Client: client@test.com / 123456</Text>
                         <Text style={styles.demoText}>Admin: admin@test.com / 123456</Text>
+                        <Text style={styles.demoText}>Dual User: dual@test.com / 123</Text>
                     </View>
                 </View>
             </ScrollView>
 
-            <Alert
-                visible={alert.visible}
-                title={alert.title}
-                message={alert.message}
-                type={alert.type}
-                onClose={() => setAlert({ ...alert, visible: false })}
-            />
+            {showWarningCard && (
+                <WarningCard
+                    visible={showWarningCard}
+                    onClose={() => setShowWarningCard(false)}
+                    onSelectLawyer={() => setSelectedUserType('lawyer')}
+                    onSelectClient={() => setSelectedUserType('client')}
+                    selectedType={selectedUserType}
+                    onLogin={handleWarningCardLogin}
+                    loading={loading}
+                />
+            )}
+
         </KeyboardAvoidingView>
     );
 };

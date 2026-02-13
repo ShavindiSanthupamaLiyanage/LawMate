@@ -9,11 +9,12 @@ import {
     Image
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, fontSize, fontWeight } from '../config/theme';
-import { RootStackParamList, AlertState } from '../types';
-import Button from '../components/Button';
-import Alert from '../components/Alert';
-import Input from '../components/Input';
+import { colors, spacing, fontSize, fontWeight } from '../../../config/theme';
+import { RootStackParamList, AlertState } from '../../../types';
+import Button from '../../../components/Button';
+import Alert from '../../../components/Alert';
+import Input from '../../../components/Input';
+import {useToast} from "../../../context/ToastContext";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -30,6 +31,7 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         message: '',
         type: 'info'
     });
+    const { showSuccess} = useToast();
 
     const isValidEmail = (email: string): boolean => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -41,16 +43,10 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         setLoading(true);
 
-        // simulate API call
+        showSuccess('Password reset link has been sent successfully!');
         setTimeout(() => {
-            setLoading(false);
-            setAlert({
-                visible: true,
-                title: 'Email Sent',
-                message: 'Password reset link has been sent to your email.',
-                type: 'success',
-            });
-        }, 1500);
+            navigation.navigate('ResetPassword');
+        }, 500);
     };
 
     return (
@@ -64,7 +60,7 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     <Text style={styles.subtitle}>Enter your email address and we’ll send you a link to reset your password.</Text>
 
                     <Image
-                        source={require('../../assets/forgot-pw.png')}
+                        source={require('../../../../assets/forgot-pw.png')}
                         style={styles.loginImg}
                         resizeMode="contain"
                     />
