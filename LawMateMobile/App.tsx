@@ -12,9 +12,10 @@ import { RootStackParamList, LawyerTabParamList,
 } from './src/types';
 
 // Auth Screens
-import SplashScreen from './src/screens/SplashScreen';
-import WelcomeScreen from './src/screens/WelcomeScreen';
-import LoginScreen from './src/screens/LoginScreen';
+import SplashScreen from './src/screens/common/SplashScreen';
+import WelcomeScreen from './src/screens/common/WelcomeScreen';
+import LoginScreen from './src/screens/common/loginScreen/LoginScreen';
+import ResetPasswordScreen from "./src/screens/common/forgetPasswordScreen/ResetPassword";
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
@@ -30,7 +31,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import TabIcon from "./src/components/TabIcon";
-import ForgotPasswordScreen from "./src/screens/ForgotPassword";
+import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -309,6 +310,12 @@ export default function App() {
                         <Stack.Screen
                             name="ForgotPassword"
                             component={ForgotPasswordScreen}
+                            options={{ headerShown: false }}
+                        />
+
+                        <Stack.Screen
+                            name="ResetPassword"
+                            component={ResetPasswordScreen}
                             options={{ headerShown: false }}
                         />
 

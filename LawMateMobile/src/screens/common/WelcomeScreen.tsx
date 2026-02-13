@@ -1,11 +1,11 @@
 import React from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, fontSize, fontWeight } from '../config/theme';
-import { RootStackParamList } from '../types';
-import Button from '../components/Button';
-import ScreenWrapper from '../components/ScreenWrapper';
-import { useToast } from '../context/ToastContext';
+import { colors, spacing, fontSize, fontWeight } from '../../config/theme';
+import { RootStackParamList } from '../../types';
+import Button from '../../components/Button';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import { useToast } from '../../context/ToastContext';
 
 type WelcomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Welcome'>;
 
@@ -47,7 +47,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             <View style={styles.content}>
                 <View style={styles.illustrationContainer}>
                     <Image
-                        source={require('../../assets/welcome.png')}
+                        source={require('../../../assets/welcome.png')}
                         style={styles.logoImage}
                         resizeMode="contain"
                     />

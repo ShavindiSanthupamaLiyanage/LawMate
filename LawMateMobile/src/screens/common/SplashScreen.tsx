@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, fontSize, fontWeight } from '../config/theme';
-import { RootStackParamList } from '../types';
+import { colors, fontSize, fontWeight } from '../../config/theme';
+import { RootStackParamList } from '../../types';
 import { LinearGradient } from 'expo-linear-gradient';
 
 type SplashScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Splash'>;
@@ -36,7 +36,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
 
         <View style={styles.logoContainer}>
                     <Image
-                        source={require('../../assets/logo.png')}
+                        source={require('../../../assets/logo.png')}
                         style={styles.logoImage}
                         resizeMode="contain"
                     />
