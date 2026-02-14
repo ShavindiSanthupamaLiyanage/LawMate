@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
 {
@@ -34,6 +35,17 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
             _currentUserService = currentUserService;
             _logger = logger;
         }
+        
+        private static async Task<byte[]?> ConvertToByteArrayAsync(IFormFile? file, CancellationToken ct)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            await using var ms = new MemoryStream();
+            await file.CopyToAsync(ms, ct);
+            return ms.ToArray();
+        }
+
 
         public async Task<(USER_DETAIL User, LAWYER_DETAILS Lawyer)> Handle(
             CreateLawyerCommand request,
@@ -105,47 +117,79 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
                 throw new Exception("SCE Certificate Number already exists.");
             }
             
+            var profileImageBytes = await ConvertToByteArrayAsync(dto.ProfileImage, cancellationToken);
+            var enrollmentBytes = await ConvertToByteArrayAsync(dto.EnrollmentCertificate, cancellationToken);
+            var nicFrontBytes = await ConvertToByteArrayAsync(dto.NICFrontImage, cancellationToken);
+            var nicBackBytes = await ConvertToByteArrayAsync(dto.NICBackImage, cancellationToken);
+
+            
+            // Create user first
             var user = new USER_DETAIL
             {
                 Prefix = dto.Prefix,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
-                UserName = dto.UserId,
                 UserRole = UserRole.Lawyer,
                 Email = dto.Email,
                 NIC = dto.NIC,
-                Password = CryptoUtil.Encrypt(dto.Password ?? "", dto.UserId),
+                Password = CryptoUtil.Encrypt(dto.Password ?? "", dto.Email),
                 ContactNumber = dto.ContactNumber,
                 RecordStatus = 0,
                 State = State.Pending,
                 RegistrationDate = DateTime.Now,
-                ProfileImage = dto.ProfileImage,
+                ProfileImage = profileImageBytes,
                 IsDualAccount = isDualAccount,
                 CreatedBy = _currentUserService.UserId,
                 CreatedAt = DateTime.Now
             };
 
-            var lawyer = new LAWYER_DETAILS
+            LAWYER_DETAILS lawyer = null;
+            
+            // Start a transaction
+            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            try
             {
-                UserId = dto.UserId,
-                SCECertificateNo =dto.SCECertificateNo,
-                Bio = dto.Bio,
-                YearOfExperience = dto.YearOfExperience,
-                WorkingDistrict = dto.WorkingDistrict,
-                AreaOfPractice = dto.AreaOfPractice,
-                VerificationStatus = VerificationStatus.Pending,
-                BarAssociationMembership = dto.BarAssociationMembership,
-                BarAssociationRegNo = dto.BarAssociationRegNo,
-                OfficeContactNumber = dto.OfficeContactNumber,
-                EnrollmentCertificate = dto.EnrollmentCertificate,
-                NICFrontImage = dto.NICFrontImage,
-                NICBackImage = dto.NICBackImage
-            };
+                // Add and save USER_DETAIL
+                _context.USER_DETAIL.Add(user);
+                await _context.SaveChangesAsync(cancellationToken);
 
-            _context.USER_DETAIL.Add(user);
-            _context.LAWYER_DETAILS.Add(lawyer);
+                // Reload to get computed UserId
+                await ((DbContext)_context).Entry(user).ReloadAsync(cancellationToken);
+                
+                // Add LAWYER_DETAILS
+                lawyer = new LAWYER_DETAILS
+                {
+                    UserId = user.UserId,   
+                    SCECertificateNo = dto.SCECertificateNo,
+                    Bio = dto.Bio,
+                    YearOfExperience = dto.YearOfExperience,
+                    WorkingDistrict = dto.WorkingDistrict,
+                    AreaOfPractice = dto.AreaOfPractice,
+                    VerificationStatus = VerificationStatus.Pending,
+                    BarAssociationMembership = dto.BarAssociationMembership,
+                    BarAssociationRegNo = dto.BarAssociationRegNo,
+                    OfficeContactNumber = dto.OfficeContactNumber,
+                    EnrollmentCertificate = enrollmentBytes,
+                    NICFrontImage = nicFrontBytes,
+                    NICBackImage = nicBackBytes
+                };
 
-            await _context.SaveChangesAsync(cancellationToken);
+                _context.LAWYER_DETAILS.Add(lawyer);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                // Commit transaction
+                await transaction.CommitAsync(cancellationToken);
+
+                _logger.Info($"Lawyer created | UserId: {user.UserId}");
+            }
+            catch (Exception ex)
+            {
+                // Rollback automatically on exception
+                await transaction.RollbackAsync(cancellationToken);
+                _logger.Error($"Lawyer creation failed", ex);
+                throw;
+            }
 
             _logger.Info($"Lawyer created | UserId: {user.UserId}");
 

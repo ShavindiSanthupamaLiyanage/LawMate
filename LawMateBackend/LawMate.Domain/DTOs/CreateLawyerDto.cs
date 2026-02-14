@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace LawMate.Domain.DTOs
 {
@@ -26,7 +27,8 @@ namespace LawMate.Domain.DTOs
         public DateTime? RegistrationDate { get; set; }
         public DateTime? LastLoginDate { get; set; }
         public State State { get; set; }
-        public byte[]? ProfileImage { get; set; }
+        // public byte[]? ProfileImage { get; set; }
+        public IFormFile? ProfileImage { get; set; }
         public bool IsDualAccount { get; set; }
 
         // LAWYER_DETAILS
@@ -41,8 +43,11 @@ namespace LawMate.Domain.DTOs
         public string? BarAssociationRegNo { get; set; }
         public string? ProfessionalDesignation { get; set; }
         public string? OfficeContactNumber { get; set; }
-        public byte[]? EnrollmentCertificate { get; set; }
-        public byte[]? NICFrontImage { get; set; }
-        public byte[]? NICBackImage { get; set; }
+        public IFormFile? EnrollmentCertificate { get; set; }
+        public IFormFile? NICFrontImage { get; set; }
+        public IFormFile? NICBackImage { get; set; }
+        // public byte[]? EnrollmentCertificate { get; set; }
+        // public byte[]? NICFrontImage { get; set; }
+        // public byte[]? NICBackImage { get; set; }
     }
 }
