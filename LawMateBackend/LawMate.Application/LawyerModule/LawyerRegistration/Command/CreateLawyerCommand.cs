@@ -132,7 +132,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
                 UserRole = UserRole.Lawyer,
                 Email = dto.Email,
                 NIC = dto.NIC,
-                Password = CryptoUtil.Encrypt(dto.Password ?? "", dto.Email),
+                UserName= dto.UserId,
                 ContactNumber = dto.ContactNumber,
                 RecordStatus = 0,
                 State = State.Pending,
@@ -157,6 +157,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
                 // Reload to get computed UserId
                 await ((DbContext)_context).Entry(user).ReloadAsync(cancellationToken);
                 
+                user.Password = CryptoUtil.Encrypt(dto.Password ?? "", user.UserId);
                 // Add LAWYER_DETAILS
                 lawyer = new LAWYER_DETAILS
                 {

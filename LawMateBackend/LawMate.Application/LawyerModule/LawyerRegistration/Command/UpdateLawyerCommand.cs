@@ -1,4 +1,5 @@
 ﻿using LawMate.Application.Common.Interfaces;
+using LawMate.Domain.Common.Enums;
 using LawMate.Domain.DTOs;
 using LawMate.Domain.Entities.Auth;
 using MediatR;
@@ -6,11 +7,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
 {
-    public class UpdateLawyerCommand
+    public class UpdateLawyerCommand 
         : IRequest<(USER_DETAIL User, LAWYER_DETAILS Lawyer)>
     {
-        public GetLawyerDto Data { get; set; }
+        public string UserId { get; set; }
+
+        // USER_DETAIL
+        public string? ContactNumber { get; set; }
+
+        // LAWYER_DETAILS
+        public string? Bio { get; set; }
+        public int YearOfExperience { get; set; }
+        public District WorkingDistrict { get; set; }
+        public AreaOfPractice AreaOfPractice { get; set; }
+        public string? OfficeContactNumber { get; set; }
     }
+
 
     public class UpdateLawyerCommandHandler
         : IRequestHandler<UpdateLawyerCommand, (USER_DETAIL User, LAWYER_DETAILS Lawyer)>
@@ -26,27 +38,24 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
             UpdateLawyerCommand request,
             CancellationToken cancellationToken)
         {
-            var dto = request.Data
-                ?? throw new ArgumentNullException(nameof(request.Data));
-
             var user = await _context.USER_DETAIL
-                .FirstOrDefaultAsync(x => x.UserId == dto.UserId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
 
             var lawyer = await _context.LAWYER_DETAILS
-                .FirstOrDefaultAsync(x => x.UserId == dto.UserId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
 
             if (user == null || lawyer == null)
                 throw new KeyNotFoundException("Lawyer not found");
 
             // USER_DETAIL updates
-            user.ContactNumber = dto.ContactNumber ?? user.ContactNumber;
+            user.ContactNumber = request.ContactNumber ?? user.ContactNumber;
 
             // LAWYER_DETAILS updates
-            lawyer.Bio = dto.Bio;
-            lawyer.YearOfExperience = dto.YearOfExperience;
-            lawyer.WorkingDistrict = dto.WorkingDistrict;
-            lawyer.AreaOfPractice = dto.AreaOfPractice;
-            lawyer.OfficeContactNumber = dto.OfficeContactNumber;
+            lawyer.Bio = request.Bio;
+            lawyer.YearOfExperience = request.YearOfExperience;
+            lawyer.WorkingDistrict = request.WorkingDistrict;
+            lawyer.AreaOfPractice = request.AreaOfPractice;
+            lawyer.OfficeContactNumber = request.OfficeContactNumber;
 
             await _context.SaveChangesAsync(cancellationToken);
 

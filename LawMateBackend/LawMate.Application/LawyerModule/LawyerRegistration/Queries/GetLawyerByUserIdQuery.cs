@@ -28,10 +28,12 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Queries
                 select new GetLawyerDto
                 {
                     UserId = u.UserId!,
+                    Prefix = u.Prefix,
                     FirstName = u.FirstName,
                     LastName = u.LastName,
                     Email = u.Email,
                     NIC = u.NIC,
+                    Gender = u.Gender,
                     ContactNumber = u.ContactNumber,
                     RecordStatus = u.RecordStatus,
                     State = u.State,
@@ -40,12 +42,16 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Queries
                     IsDualAccount = u.IsDualAccount,
                     SCECertificateNo = l.SCECertificateNo,
                     Bio = l.Bio,
+                    AverageRating = l.AverageRating,
                     YearOfExperience = l.YearOfExperience,
                     WorkingDistrict = l.WorkingDistrict,
                     AreaOfPractice = l.AreaOfPractice,
                     VerificationStatus = l.VerificationStatus,
                     BarAssociationRegNo = l.BarAssociationRegNo,
                     OfficeContactNumber = l.OfficeContactNumber,
+                    EnrollmentCertificate = l.EnrollmentCertificate,
+                    NICFrontImage = l.NICFrontImage,
+                    NICBackImage = l.NICBackImage,
                 }
             ).FirstOrDefaultAsync(cancellationToken);
 
