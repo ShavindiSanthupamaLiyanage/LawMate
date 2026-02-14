@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, NativeScrollEvent, NativeSyntheticEvent, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +10,6 @@ interface TopNavbarProps {
     profileImage?: string;
     onNotificationPress?: () => void;
     onProfilePress?: () => void;
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 const TopNavbar: React.FC<TopNavbarProps> = ({
@@ -18,21 +17,9 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     profileImage,
     onNotificationPress,
     onProfilePress,
-    onScroll,
 }) => {
     const navigation = useNavigation<any>();
-    const animatedValue = useRef(new Animated.Value(0)).current;
-    const [notificationCount, setNotificationCount] = useState(3);
-    const lastScrollY = useRef(0);
-    const scrollDirection = useRef<'up' | 'down'>('up');
-
-    const navbarHeight = 80;
-    
-    const translateY = animatedValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, -navbarHeight],
-        extrapolate: 'clamp',
-    });
+    const [notificationCount] = useState(3);
 
     const handleLogout = () => {
         Alert.alert(
@@ -64,44 +51,8 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
         return 'Good evening';
     };
 
-    const handleScroll = React.useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const currentY = event.nativeEvent.contentOffset.y;
-            const diff = currentY - lastScrollY.current;
-
-            if (diff > 10 && scrollDirection.current !== 'down') {
-                // Scrolling down
-                scrollDirection.current = 'down';
-                Animated.timing(animatedValue, {
-                    toValue: 1,
-                    duration: 250,
-                    useNativeDriver: true,
-                }).start();
-            } else if (diff < -10 && scrollDirection.current !== 'up') {
-                // Scrolling up
-                scrollDirection.current = 'up';
-                Animated.timing(animatedValue, {
-                    toValue: 0,
-                    duration: 250,
-                    useNativeDriver: true,
-                }).start();
-            }
-
-            lastScrollY.current = currentY;
-            onScroll?.(event);
-        },
-        [animatedValue, onScroll]
-    );
-
     return (
-        <Animated.View
-            style={[
-                styles.container,
-                {
-                    transform: [{ translateY }],
-                },
-            ]}
-        >
+        <View style={styles.container}>
             <LinearGradient
                 colors={[
                     'rgba(24,114,234,1)',
@@ -181,7 +132,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                 </View>
                 </View>
             </LinearGradient>
-        </Animated.View>
+        </View>
     );
 };
 
