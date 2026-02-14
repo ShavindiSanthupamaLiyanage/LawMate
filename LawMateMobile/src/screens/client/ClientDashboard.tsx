@@ -96,6 +96,46 @@ const ClientDashboard: React.FC = () => {
                     subtitle="Document review"
                     status="Completed"
                 />
+                 <ActivityCard
+                    title="Property Dispute"
+                    subtitle="Meeting with lawyer"
+                    status="Upcoming"
+                />
+                <ActivityCard
+                    title="Divorce Settlement"
+                    subtitle="Document review"
+                    status="Completed"
+                />
+                 <ActivityCard
+                    title="Property Dispute"
+                    subtitle="Meeting with lawyer"
+                    status="Upcoming"
+                />
+                <ActivityCard
+                    title="Divorce Settlement"
+                    subtitle="Document review"
+                    status="Completed"
+                />
+                 <ActivityCard
+                    title="Property Dispute"
+                    subtitle="Meeting with lawyer"
+                    status="Upcoming"
+                />
+                <ActivityCard
+                    title="Divorce Settlement"
+                    subtitle="Document review"
+                    status="Completed"
+                />
+                 <ActivityCard
+                    title="Property Dispute"
+                    subtitle="Meeting with lawyer"
+                    status="Upcoming"
+                />
+                <ActivityCard
+                    title="Divorce Settlement"
+                    subtitle="Document review"
+                    status="Completed"
+                />
             </View>
         </ClientLayout>
     );

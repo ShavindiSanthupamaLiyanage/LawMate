@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ScrollView, StyleSheet, View, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { ScrollView, StyleSheet, View, NativeSyntheticEvent, NativeScrollEvent, Animated } from 'react-native';
 import { colors, spacing } from '../config/theme';
 import ScreenWrapper from './ScreenWrapper';
 import TopNavbar from './TopNavbar';
@@ -20,20 +20,47 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({
     onProfilePress,
 }) => {
     const scrollViewRef = useRef<ScrollView>(null);
+    const animatedValue = useRef(new Animated.Value(0)).current;
+    const lastScrollY = useRef(0);
+    const scrollDirection = useRef<'up' | 'down'>('up');
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        // Scroll event is passed to TopNavbar for collapse/expand behavior
+        const currentY = event.nativeEvent.contentOffset.y;
+        const diff = currentY - lastScrollY.current;
+
+        if (diff > 10 && scrollDirection.current !== 'down') {
+            scrollDirection.current = 'down';
+            Animated.timing(animatedValue, {
+                toValue: 1,
+                duration: 250,
+                useNativeDriver: true,
+            }).start();
+        } else if (diff < -10 && scrollDirection.current !== 'up') {
+            scrollDirection.current = 'up';
+            Animated.timing(animatedValue, {
+                toValue: 0,
+                duration: 250,
+                useNativeDriver: true,
+            }).start();
+        }
+
+        lastScrollY.current = currentY;
     };
 
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
-            <TopNavbar
-                userName={userName}
-                profileImage={profileImage}
-                onNotificationPress={onNotificationPress}
-                onProfilePress={onProfilePress}
-                onScroll={handleScroll}
-            />
+            <Animated.View style={{ transform: [{ translateY: animatedValue.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, -80],
+                extrapolate: 'clamp',
+            }) }] }}>
+                <TopNavbar
+                    userName={userName}
+                    profileImage={profileImage}
+                    onNotificationPress={onNotificationPress}
+                    onProfilePress={onProfilePress}
+                />
+            </Animated.View>
             <ScrollView
                 ref={scrollViewRef}
                 style={styles.container}
