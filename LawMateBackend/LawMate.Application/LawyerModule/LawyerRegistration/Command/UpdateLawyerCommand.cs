@@ -9,7 +9,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
     public class UpdateLawyerCommand
         : IRequest<(USER_DETAIL User, LAWYER_DETAILS Lawyer)>
     {
-        public CreateLawyerDto Data { get; set; }
+        public GetLawyerDto Data { get; set; }
     }
 
     public class UpdateLawyerCommandHandler

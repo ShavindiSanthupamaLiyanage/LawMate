@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LawMate.Application.LawyerModule.LawyerRegistration.Queries
 {
-    public record GetLawyerByUserIdQuery(string UserId) : IRequest<CreateLawyerDto>;
+    public record GetLawyerByUserIdQuery(string UserId) : IRequest<GetLawyerDto>;
 
     public class GetLawyerByUserIdQueryHandler
-        : IRequestHandler<GetLawyerByUserIdQuery, CreateLawyerDto>
+        : IRequestHandler<GetLawyerByUserIdQuery, GetLawyerDto>
     {
         private readonly IApplicationDbContext _context;
 
@@ -17,7 +17,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Queries
             _context = context;
         }
 
-        public async Task<CreateLawyerDto> Handle(
+        public async Task<GetLawyerDto> Handle(
             GetLawyerByUserIdQuery request,
             CancellationToken cancellationToken)
         {
@@ -25,7 +25,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Queries
                 from u in _context.USER_DETAIL
                 join l in _context.LAWYER_DETAILS on u.UserId equals l.UserId
                 where u.UserId == request.UserId
-                select new CreateLawyerDto
+                select new GetLawyerDto
                 {
                     UserId = u.UserId!,
                     FirstName = u.FirstName,

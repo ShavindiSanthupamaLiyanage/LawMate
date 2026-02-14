@@ -1,6 +1,7 @@
 ﻿using LawMate.Application.Common.Interfaces;
 using LawMate.Domain.Entities.Auth;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace LawMate.Application.LawyerModule.LawyerRegistration.Command;
@@ -8,7 +9,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command;
 public class ChangeLawyerProfileImageCommand : IRequest<USER_DETAIL>
 {
     public string UserId { get; set; }
-    public byte[]? ProfileImage { get; set; }
+    public IFormFile ProfileImage { get; set; }
 }
 
 public class ChangeLawyerProfileImageCommandHandler 
@@ -31,7 +32,12 @@ public class ChangeLawyerProfileImageCommandHandler
         if (user == null)
             throw new KeyNotFoundException("User not found");
 
-        user.ProfileImage = request.ProfileImage;
+        if (request.ProfileImage != null)
+        {
+            using var ms = new MemoryStream();
+            await request.ProfileImage.CopyToAsync(ms, cancellationToken);
+            user.ProfileImage = ms.ToArray();
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
