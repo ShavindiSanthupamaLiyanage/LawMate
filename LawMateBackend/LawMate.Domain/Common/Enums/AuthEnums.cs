@@ -10,13 +10,14 @@ namespace LawMate.Domain.Common.Enums
     {
         Admin = 0,
         Lawyer = 1,
-        Clinet = 2
+        Client = 2
     }
 
     public enum State
     {
-        Inactive = 0,
+        Pending = 0,
         Active = 1,
+        Inactive = 2,
     }
 
     public enum VerificationStatus
