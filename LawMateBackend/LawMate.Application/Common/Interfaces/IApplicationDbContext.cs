@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace LawMate.Application.Common.Interfaces
 {
@@ -18,5 +19,6 @@ namespace LawMate.Application.Common.Interfaces
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
         EntityState GetState<T>(T entity) where T : class;
+        DatabaseFacade Database { get; }
     }
 }
