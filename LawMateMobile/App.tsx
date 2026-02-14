@@ -30,7 +30,7 @@ import AdminDashboard from './src/screens/admin/AdminDashboard';
 import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import TabIcon from "./src/components/TabIcon";
+import TabIcon from "./src/components/BottomNavBar";
 import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -68,7 +68,7 @@ function LawyerTabs() {
                 component={HomeScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="calendar-outline" color={color} focused={focused} />
+                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -88,9 +88,9 @@ function LawyerTabs() {
                 component={LawyerDashboard}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="home-outline" color={color} focused={focused} />
+                        <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
-                    tabBarLabel: 'Home',
+                    tabBarLabel: '',
                 }}
             />
 
@@ -109,7 +109,7 @@ function LawyerTabs() {
                 component={ProfileScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="time-outline" color={color} focused={focused} />
+                        <TabIcon iconName="calendar-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -146,7 +146,7 @@ function ClientTabs() {
                 component={HomeScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="calendar-outline" color={color} focused={focused} />
+                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -166,9 +166,9 @@ function ClientTabs() {
                 component={ClientDashboard}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="home-outline" color={color} focused={focused} />
+                        <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
-                    tabBarLabel: 'Home',
+                    tabBarLabel: '',
                 }}
             />
 
@@ -223,7 +223,7 @@ function AdminTabs() {
                 component={ProfileScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="people-outline" color={color} focused={focused} />
+                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -243,9 +243,9 @@ function AdminTabs() {
                 component={AdminDashboard}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="home-outline" color={color} focused={focused} />
+                        <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
-                    tabBarLabel: 'Home',
+                    tabBarLabel: '',
                 }}
             />
 
