@@ -46,7 +46,6 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
             return ms.ToArray();
         }
 
-
         public async Task<(USER_DETAIL User, LAWYER_DETAILS Lawyer)> Handle(
             CreateLawyerCommand request,
             CancellationToken cancellationToken)
@@ -55,6 +54,8 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
 
             var dto = request.Data
                 ?? throw new ArgumentNullException(nameof(request.Data));
+            
+            dto.NIC = NicUtil.ValidateAndNormalize(dto.NIC);
             
             // Check existing accounts with same NIC
             var existingUsers = await _context.USER_DETAIL
@@ -90,15 +91,6 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
                 _logger.Info($"NIC {dto.NIC} now has dual accounts. Updating existing Client to IsDualAccount = true.");
             }
 
-            bool emailExists = await _context.USER_DETAIL
-                .AnyAsync(x => x.Email == dto.Email, cancellationToken);
-
-            if (emailExists)
-            {
-                _logger.Warning($"Lawyer creation failed | Email already exists: {dto.Email}");
-                throw new Exception("Email already exists.");
-            }
-
             bool barRegExists = await _context.LAWYER_DETAILS
                 .AnyAsync(x => x.BarAssociationRegNo == dto.BarAssociationRegNo, cancellationToken);
 
@@ -132,7 +124,6 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
                 UserRole = UserRole.Lawyer,
                 Email = dto.Email,
                 NIC = dto.NIC,
-                UserName= dto.UserId,
                 ContactNumber = dto.ContactNumber,
                 RecordStatus = 0,
                 State = State.Pending,
@@ -150,6 +141,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
 
             try
             {
+                
                 // Add and save USER_DETAIL
                 _context.USER_DETAIL.Add(user);
                 await _context.SaveChangesAsync(cancellationToken);
@@ -158,6 +150,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
                 await ((DbContext)_context).Entry(user).ReloadAsync(cancellationToken);
                 
                 user.Password = CryptoUtil.Encrypt(dto.Password ?? "", user.UserId);
+                user.UserName = dto.UserId;
                 // Add LAWYER_DETAILS
                 lawyer = new LAWYER_DETAILS
                 {
@@ -188,7 +181,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
             {
                 // Rollback automatically on exception
                 await transaction.RollbackAsync(cancellationToken);
-                _logger.Error($"Lawyer creation failed", ex);
+                _logger.Error("Lawyer creation failed", ex);
                 throw;
             }
 

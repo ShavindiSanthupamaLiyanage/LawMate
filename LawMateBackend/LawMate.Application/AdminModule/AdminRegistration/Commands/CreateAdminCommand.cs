@@ -34,10 +34,10 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Commands
             _currentUserService = currentUserService;
             _logger = logger;
         }
-
+        
         public async Task<List<USER_DETAIL>> Handle(CreateAdminCommand request, CancellationToken cancellationToken)
         {
-            _logger.Info($"CreateAdminCommand started");
+            _logger.Info("CreateAdminCommand started");
 
             var dto = request.Data;
             if (dto == null)
@@ -45,16 +45,9 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Commands
                 _logger.Warning("CreateAdminCommand received null DTO");
                 return new List<USER_DETAIL>();
             }
-
-            bool emailExists = await _context.USER_DETAIL
-                .AnyAsync(x => x.Email == dto.Email, cancellationToken);
-
-            if (emailExists)
-            {
-                _logger.Warning($"Admin creation failed | Email already exists: {dto.Email}");
-                throw new Exception("Email already exists.");
-            }
-
+            
+            dto.NIC = NicUtil.ValidateAndNormalize(dto.NIC);
+            
             var entity = new USER_DETAIL
             {
                 FirstName = dto.FirstName,
@@ -63,7 +56,7 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Commands
                 UserRole = UserRole.Admin,
                 Email = dto.Email,
                 NIC = dto.NIC,
-                Password = CryptoUtil.Encrypt(dto.Password ?? "", dto.UserId ?? ""),
+                // Password = CryptoUtil.Encrypt(dto.Password ?? "", dto.UserId ?? ""),
                 ContactNumber = dto.ContactNumber,
                 RecordStatus = dto.RecordStatus,
                 RegistrationDate = DateTime.Now,
@@ -76,6 +69,13 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Commands
             _context.USER_DETAIL.Add(entity);
             await _context.SaveChangesAsync(cancellationToken);
 
+            entity.Password = CryptoUtil.Encrypt(dto.Password ?? "", entity.UserId!);
+            entity.UserName= dto.UserId;
+
+            //Update the record with encrypted password
+            _context.USER_DETAIL.Update(entity);
+            await _context.SaveChangesAsync(cancellationToken);
+            
             _logger.Info($"Admin created | UserId: {entity.UserId}");
             return new List<USER_DETAIL> { entity };
         }
