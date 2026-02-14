@@ -35,35 +35,52 @@ namespace LawMate.API.Controllers.Common
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            _logger.Info($"Login attempt | UserName: {request.UserName}");
+            _logger.Info($"Login attempt | NIC: {request.NIC }");
 
-            if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Password))
+            if (string.IsNullOrEmpty(request.NIC ) || string.IsNullOrEmpty(request.Password))
             {
                 _logger.Warning("Login failed | Missing credentials");
-                return BadRequest("UserName and Password are required.");
+                return BadRequest("NIC and Password are required.");
+            }
+            
+            // Normalize NIC (V/X to uppercase)
+            string normalizedNic;
+            try
+            {
+                normalizedNic = NicUtil.ValidateAndNormalize(request.NIC);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
 
-            //Encrypt input password with the same key (UserId)
-            string encryptedInputPassword = CryptoUtil.Encrypt(request.Password, request.UserName);
-
-            var user = await _context.USER_DETAIL.FirstOrDefaultAsync(x =>
-                    x.UserName == request.UserName &&
-                    x.Password == encryptedInputPassword &&  // compare encrypted
-                    x.RecordStatus == 0); // active check
-
-            if (user == null)
+            var users = await _context.USER_DETAIL
+                .Where(x => x.NIC == normalizedNic && x.RecordStatus == 0)
+                .ToListAsync();
+            
+            if (users == null)
             {
-                _logger.Warning($"Login failed | Invalid credentials | UserId: {request.UserName}");
+                _logger.Warning($"Login failed | Invalid credentials | NIC: {request.NIC }");
                 return Unauthorized("Invalid UserId or Password");
+            }
+            
+            // Match password against any account
+            var matchedUser = users
+                .FirstOrDefault(u => u.Password == CryptoUtil.Encrypt(request.Password, u.UserId));
+
+            if (matchedUser == null)
+            {
+                _logger.Warning($"Login failed | Incorrect password | NIC: {normalizedNic}");
+                return Unauthorized("Invalid NIC or Password");
             }
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserId!),
+                new Claim(JwtRegisteredClaimNames.Sub, matchedUser.UserId!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, user.UserRole.ToString()),
-                new Claim("UserId", user.UserId!),
-                new Claim("Email", user.Email ?? "")
+                new Claim(ClaimTypes.Role, matchedUser.UserRole.ToString()),
+                new Claim("UserId", matchedUser.UserId!),
+                new Claim("Email", matchedUser.Email ?? "")
             };
 
             var key = new SymmetricSecurityKey(
@@ -82,18 +99,37 @@ namespace LawMate.API.Controllers.Common
                 signingCredentials: creds
             );
 
-            _logger.Info($"Login successful | UserId: {user.UserId} | Role: {user.UserRole}");
+            _logger.Info($"Login successful | NIC: {matchedUser.NIC} | Role: {matchedUser.UserRole}");
 
-            user.LastLoginDate = DateTime.Now;
+            matchedUser.LastLoginDate = DateTime.Now;
             await _context.SaveChangesAsync(CancellationToken.None);
 
             return Ok(new
             {
                 accessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                userId = user.UserId,
-                role = user.UserRole
+                userId = matchedUser.UserId,
+                role = matchedUser.UserRole,
+                isDualAccount = matchedUser.IsDualAccount
             });
         }
+
+        // private static string ValidateAndNormalizeNic(string? nic)
+        // {
+        //     if (string.IsNullOrWhiteSpace(nic))
+        //         throw new Exception("NIC cannot be blank.");
+        //
+        //     nic = nic.Trim().ToUpper(); // convert to uppercase
+        //
+        //     // 12 digit NIC
+        //     if (System.Text.RegularExpressions.Regex.IsMatch(nic, @"^\d{12}$"))
+        //         return nic;
+        //
+        //     // 9 digits + V or X
+        //     if (System.Text.RegularExpressions.Regex.IsMatch(nic, @"^\d{9}[VX]$"))
+        //         return nic;
+        //
+        //     throw new Exception("Invalid NIC format. NIC must be 12 digits OR 9 digits followed by V or X.");
+        // }
 
         [AllowAnonymous]
         [HttpPost("reset-password")]
