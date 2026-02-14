@@ -62,7 +62,7 @@ namespace LawMate.API.Controllers.LawyerModule
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpDelete("{userId}")]
         public async Task<IActionResult> Delete(string userId)
         {
@@ -70,15 +70,18 @@ namespace LawMate.API.Controllers.LawyerModule
             return NoContent();
         }
 
-        // [Authorize]
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] UpdateLawyerCommand command)
+        [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateLawyerCommand command)
         {
+            if (id != command.UserId)
+                return BadRequest("Mismatched UserId");
+
             var result = await _mediator.Send(command);
             return Ok(result);
         }
         
-        // [Authorize]
+        [Authorize]
         [HttpPut("{userId}/profile-image")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> ChangeProfileImage(

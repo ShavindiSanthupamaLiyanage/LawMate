@@ -46,8 +46,5 @@ namespace LawMate.Domain.DTOs
         public IFormFile? EnrollmentCertificate { get; set; }
         public IFormFile? NICFrontImage { get; set; }
         public IFormFile? NICBackImage { get; set; }
-        // public byte[]? EnrollmentCertificate { get; set; }
-        // public byte[]? NICFrontImage { get; set; }
-        // public byte[]? NICBackImage { get; set; }
     }
 }
