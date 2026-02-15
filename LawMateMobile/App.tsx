@@ -33,6 +33,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import TabIcon from "./src/components/BottomNavBar";
 import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
+import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVerificationScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -221,7 +222,7 @@ function AdminTabs() {
         }}>
             <AdminTab.Screen
                 name="Bookings"
-                component={ProfileScreen}
+                component={UserVerificationScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
