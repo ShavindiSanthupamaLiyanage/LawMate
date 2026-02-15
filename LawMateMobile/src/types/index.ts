@@ -7,6 +7,8 @@ export type RootStackParamList = {
     Login: undefined;
     Register: { userType: 'lawyer' | 'client' };
     ForgotPassword: undefined;
+    LawyerSignUp: undefined;
+    VerificationPending: undefined;
     ResetPassword: undefined;
     // LawyerTabs: undefined;
     // ClientTabs: undefined;

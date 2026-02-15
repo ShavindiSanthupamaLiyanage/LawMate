@@ -15,12 +15,11 @@ interface WelcomeScreenProps {
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
-    const { showSuccess, showError} = useToast();
+    const { showError} = useToast();
 
     const handleLawyerSignup = () => {
-        showSuccess('Redirecting to Lawyer Registration...');
         setTimeout(() => {
-            navigation.navigate('Register', { userType: 'lawyer' });
+            navigation.navigate('LawyerSignUp');
         }, 500);
     };
 

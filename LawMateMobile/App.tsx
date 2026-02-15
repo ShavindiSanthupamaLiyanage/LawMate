@@ -7,6 +7,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ToastProvider } from './src/context/ToastContext';
 import { colors } from './src/config/theme';
+
 import { RootStackParamList, LawyerTabParamList,
     ClientTabParamList, AdminTabParamList
 } from './src/types';
@@ -19,6 +20,7 @@ import ResetPasswordScreen from "./src/screens/common/forgetPasswordScreen/Reset
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
+import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpScreen';
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
@@ -30,6 +32,8 @@ import AdminDashboard from './src/screens/admin/AdminDashboard';
 import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+// import TabIcon from "./src/components/TabIcon";
+import VerificationPending from "./src/screens/lawyer/lawyerSignUp/verificationPending";
 import TabIcon from "./src/components/BottomNavBar";
 import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
@@ -315,6 +319,11 @@ export default function App() {
                             component={ForgotPasswordScreen}
                             options={{ headerShown: false }}
                         />
+                        <Stack.Screen
+                            name="LawyerSignUp"
+                            component={LawyerSignUpScreen}
+                            options={{ headerShown: false }}
+                        />
 
                         <Stack.Screen
                             name="ResetPassword"
@@ -338,6 +347,11 @@ export default function App() {
                             component={AdminTabs}
                             options={{ headerShown: false }}
                         />
+                        <Stack.Screen
+                            name="VerificationPending"
+                            component={VerificationPending}
+                        />
+
                     </Stack.Navigator>
                 </NavigationContainer>
             </ToastProvider>
