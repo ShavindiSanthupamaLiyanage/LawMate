@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
-import { colors, spacing, fontSize, fontFamily } from "../../config/theme";
+import {colors, spacing, fontSize, fontWeight} from "../../../config/theme";
 
 export default function VerificationPending() {
     return (
@@ -13,7 +13,7 @@ export default function VerificationPending() {
 
             {/* Illustration */}
             <Image
-                source={require("../../../assets/verification.png")}
+                source={require("../../../../assets/verification.png")}
                 style={styles.image}
                 resizeMode="contain"
             />
@@ -39,22 +39,22 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 32,
-        fontFamily: fontFamily.bold,
+        fontSize: fontSize.xxl,
+        fontWeight: fontWeight.bold,
         color: colors.textPrimary,
         textAlign: "center",
         marginBottom: spacing.xl,
     },
 
     image: {
-        width: 260,
-        height: 260,
+        width: 300,
+        height: 300,
         marginBottom: spacing.xl,
     },
 
     description: {
         fontSize: fontSize.md,
-        fontFamily: fontFamily.medium,
+        fontWeight: fontWeight.medium,
         color: colors.textSecondary,
         textAlign: "center",
         lineHeight: 22,

@@ -27,10 +27,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-<<<<<<< HEAD
       "expo-font",
-=======
->>>>>>> development
       "@react-native-community/datetimepicker"
     ]
   }

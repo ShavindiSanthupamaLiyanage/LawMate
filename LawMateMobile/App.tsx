@@ -20,7 +20,7 @@ import ResetPasswordScreen from "./src/screens/common/forgetPasswordScreen/Reset
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
-import LawyerSignUp from './src/screens/lawyer/LawyerSignUp';
+import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpScreen';
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
@@ -32,17 +32,13 @@ import AdminDashboard from './src/screens/admin/AdminDashboard';
 import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-<<<<<<< HEAD
-import TabIcon from "./src/components/TabIcon";
-import ForgotPasswordScreen from "./src/screens/ForgotPassword";
-import VerificationPending from "./src/screens/lawyer/verificationPending";
-=======
+// import TabIcon from "./src/components/TabIcon";
+import VerificationPending from "./src/screens/lawyer/lawyerSignUp/verificationPending";
 import TabIcon from "./src/components/BottomNavBar";
 import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
 import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVerificationScreen";
 import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
->>>>>>> development
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -325,7 +321,7 @@ export default function App() {
                         />
                         <Stack.Screen
                             name="LawyerSignUp"
-                            component={LawyerSignUp}
+                            component={LawyerSignUpScreen}
                             options={{ headerShown: false }}
                         />
 

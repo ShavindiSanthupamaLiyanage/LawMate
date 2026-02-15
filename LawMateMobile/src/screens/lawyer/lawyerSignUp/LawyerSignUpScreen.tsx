@@ -8,21 +8,21 @@ import {
     Platform,
 } from "react-native";
 
-import { colors, fontFamily, spacing } from "../../config/theme";
+import {colors, fontWeight, spacing} from "../../../config/theme";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../types";
+import { RootStackParamList } from "../../../types";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import PersonalDetailsScreen from "./LawyerSignUp/PersonalDetails";
-import ProfessionalDetailsScreen from "./LawyerSignUp/ProfessionalDetails";
-import GradientHeader from "../../components/Common/GradientHeader";
-import Button from "../../components/Button";
-import SuccessBanner from "../../components/SuccessBanner";
+import PersonalDetailsScreen from "./PersonalDetails";
+import ProfessionalDetailsScreen from "./ProfessionalDetails";
+import GradientHeader from "../../../components/Common/GradientHeader";
+import Button from "../../../components/Button";
+import {useToast} from "../../../context/ToastContext";
 
 type TabKey = "Personal Details" | "Professional Details";
 
-export default function LawyerSignUp() {
+export default function LawyerSignUpScreen() {
     const navigation =
         useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -31,25 +31,17 @@ export default function LawyerSignUp() {
     const [activeTab, setActiveTab] =
         useState<TabKey>("Personal Details");
 
-    const [showSuccess, setShowSuccess] = useState(false);
+    const {showSuccess} = useToast();
 
     const handleSubmit = () => {
-        // Add validation here later if needed
-        setShowSuccess(true);
+        showSuccess('Verification request submitted successfully.');
+        setTimeout(() => {
+            navigation.replace("VerificationPending");
+        }, 2000);
     };
 
     return (
         <View style={styles.container}>
-
-            {/* ✅ SUCCESS MODAL */}
-            <SuccessBanner
-                visible={showSuccess}
-                message="Verification request submitted successfully."
-                onClose={() => {
-                    setShowSuccess(false);
-                    navigation.replace("VerificationPending");
-                }}
-            />
             <GradientHeader
                 title="Create your account"
                 onBack={() => navigation.goBack()}
@@ -164,13 +156,13 @@ const styles = StyleSheet.create({
     },
 
     tabText: {
-        fontFamily: fontFamily.medium,
+        fontWeight: fontWeight.medium,
         fontSize: 14,
         color: colors.textSecondary,
     },
 
     tabTextActive: {
-        fontFamily: fontFamily.semibold,
+        fontWeight: fontWeight.semibold,
         color: colors.textPrimary,
     },
 

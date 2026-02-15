@@ -16,8 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import {
     spacing,
     colors,
-    fontSize,
-    fontFamily,
+    fontSize, fontWeight,
 } from "../../../config/theme";
 
 export default function ProfessionalDetailsScreen() {
@@ -169,7 +168,7 @@ const styles = StyleSheet.create({
 
     bankText: {
         fontSize: fontSize.sm,
-        fontFamily: fontFamily.medium,
+        fontWeight: fontWeight.medium,
         color: colors.textSecondary,
         marginBottom: spacing.md,
         lineHeight: 18,
@@ -177,7 +176,7 @@ const styles = StyleSheet.create({
 
     bankDetails: {
         fontSize: fontSize.sm,
-        fontFamily: fontFamily.semibold,
+        fontWeight: fontWeight.semibold,
         color: colors.textPrimary,
         lineHeight: 20,
     },
@@ -217,7 +216,7 @@ const styles = StyleSheet.create({
     checkboxText: {
         flex: 1,
         fontSize: fontSize.sm,
-        fontFamily: fontFamily.medium,
+        fontWeight: fontWeight.medium,
         color: colors.textPrimary,
     },
 });
