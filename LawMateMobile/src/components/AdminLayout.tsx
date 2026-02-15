@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ScrollView, StyleSheet, View, NativeSyntheticEvent, NativeScrollEvent, Animated } from 'react-native';
+import { ScrollView, StyleSheet, NativeSyntheticEvent, NativeScrollEvent, Animated } from 'react-native';
 import { colors, spacing } from '../config/theme';
 import ScreenWrapper from './ScreenWrapper';
 import TopNavbar from './TopNavbar';
