@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
-import ScreenWrapper from "../../components/ScreenWrapper";
+import ClientLayout from "../../components/ClientLayout";
 
 interface LegendItemProps {
     color: string;
@@ -52,28 +52,15 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ title, subtitle, status }) 
 
 const ClientDashboard: React.FC = () => {
     return (
-        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.headerTop}>
-                    <View>
-                        <Text style={styles.greeting}>Good Morning</Text>
-                        <Text style={styles.name}>Kavindi Dilhara</Text>
-                    </View>
-                    <TouchableOpacity style={styles.notificationButton}>
-                        <Text style={styles.notificationIcon}>🔔</Text>
-                    </TouchableOpacity>
+        <ClientLayout userName="Kavindi Dilhara">
+            <View style={styles.statsContainer}>
+                <View style={styles.statCard}>
+                    <Text style={styles.statValue}>1234</Text>
+                    <Text style={styles.statLabel}>Active Cases</Text>
                 </View>
-
-                <View style={styles.statsContainer}>
-                    <View style={styles.statCard}>
-                        <Text style={styles.statValue}>1234</Text>
-                        <Text style={styles.statLabel}>Active Cases</Text>
-                    </View>
-                    <View style={styles.statCard}>
-                        <Text style={styles.statValue}>5,678</Text>
-                        <Text style={styles.statLabel}>Total Appointments</Text>
-                    </View>
+                <View style={styles.statCard}>
+                    <Text style={styles.statValue}>5,678</Text>
+                    <Text style={styles.statLabel}>Total Appointments</Text>
                 </View>
             </View>
 
@@ -109,69 +96,80 @@ const ClientDashboard: React.FC = () => {
                     subtitle="Document review"
                     status="Completed"
                 />
+                 <ActivityCard
+                    title="Property Dispute"
+                    subtitle="Meeting with lawyer"
+                    status="Upcoming"
+                />
+                <ActivityCard
+                    title="Divorce Settlement"
+                    subtitle="Document review"
+                    status="Completed"
+                />
+                 <ActivityCard
+                    title="Property Dispute"
+                    subtitle="Meeting with lawyer"
+                    status="Upcoming"
+                />
+                <ActivityCard
+                    title="Divorce Settlement"
+                    subtitle="Document review"
+                    status="Completed"
+                />
+                 <ActivityCard
+                    title="Property Dispute"
+                    subtitle="Meeting with lawyer"
+                    status="Upcoming"
+                />
+                <ActivityCard
+                    title="Divorce Settlement"
+                    subtitle="Document review"
+                    status="Completed"
+                />
+                 <ActivityCard
+                    title="Property Dispute"
+                    subtitle="Meeting with lawyer"
+                    status="Upcoming"
+                />
+                <ActivityCard
+                    title="Divorce Settlement"
+                    subtitle="Document review"
+                    status="Completed"
+                />
             </View>
-        </ScrollView>
-        </ScreenWrapper>
+        </ClientLayout>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    header: {
-        backgroundColor: colors.primary,
-        borderBottomLeftRadius: borderRadius.xl,
-        borderBottomRightRadius: borderRadius.xl,
-        padding: spacing.lg,
-        paddingTop: spacing.xl,
-    },
-    headerTop: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: spacing.lg,
-    },
-    greeting: {
-        fontSize: fontSize.sm,
-        color: 'rgba(255, 255, 255, 0.8)',
-    },
-    name: {
-        fontSize: fontSize.xl,
-        fontWeight: fontWeight.bold,
-        color: colors.white,
-    },
-    notificationButton: {
-        width: 40,
-        height: 40,
-        borderRadius: borderRadius.full,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    notificationIcon: {
-        fontSize: 20,
-    },
     statsContainer: {
         flexDirection: 'row',
         gap: spacing.md,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.lg,
     },
     statCard: {
         flex: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        backgroundColor: colors.white,
         padding: spacing.md,
         borderRadius: borderRadius.md,
+        borderLeftWidth: 4,
+        borderLeftColor: colors.primary,
+        elevation: 2,
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     statValue: {
         fontSize: fontSize.xl,
         fontWeight: fontWeight.bold,
-        color: colors.white,
+        color: colors.primary,
         marginBottom: spacing.xs,
     },
     statLabel: {
         fontSize: fontSize.sm,
-        color: 'rgba(255, 255, 255, 0.8)',
+        color: colors.textSecondary,
     },
     section: {
         padding: spacing.lg,

@@ -1,16 +1,15 @@
-﻿using LawMate.API.Model.Common;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using LawMate.API.Model.Common;
 using LawMate.Application.Common.Interfaces;
 using LawMate.Application.Common.Utilities;
-using LawMate.Domain.Common.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
-namespace LawMate.API.Controllers
+namespace LawMate.API.Controllers.Common
 {
     [ApiController]
     [Route("api/auth")]
