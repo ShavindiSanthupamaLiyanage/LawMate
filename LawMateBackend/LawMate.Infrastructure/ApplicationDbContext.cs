@@ -1,6 +1,7 @@
 ﻿using LawMate.Application.Common.Interfaces;
 using LawMate.Domain.Entities.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace LawMate.Infrastructure
 {
@@ -39,6 +40,8 @@ namespace LawMate.Infrastructure
             });
         }
 
+        public DatabaseFacade Database => base.Database;
+        
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return await base.SaveChangesAsync(cancellationToken);

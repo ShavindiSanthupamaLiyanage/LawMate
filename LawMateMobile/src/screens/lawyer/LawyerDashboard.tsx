@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
-import ScreenWrapper from "../../components/ScreenWrapper";
+import LawyerLayout from '../../components/LawyerLayout';
 
 interface ActivityItemProps {
     name: string;
@@ -38,29 +38,15 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ name, time, status }) => {
 
 const LawyerDashboard: React.FC = () => {
     return (
-        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.headerTop}>
-                    <View>
-                        <Text style={styles.greeting}>Hello</Text>
-                        <Text style={styles.name}>Kavindi Dilhara</Text>
-                    </View>
-                    <TouchableOpacity style={styles.notificationButton}>
-                        <Text style={styles.notificationIcon}>🔔</Text>
-                        <View style={styles.badge} />
-                    </TouchableOpacity>
+        <LawyerLayout userName="Kavindi Dilhara">
+            <View style={styles.statsContainer}>
+                <View style={styles.statCard}>
+                    <Text style={styles.statValue}>1234</Text>
+                    <Text style={styles.statLabel}>Total Cases</Text>
                 </View>
-
-                <View style={styles.statsContainer}>
-                    <View style={styles.statCard}>
-                        <Text style={styles.statValue}>1234</Text>
-                        <Text style={styles.statLabel}>Total Cases</Text>
-                    </View>
-                    <View style={styles.statCard}>
-                        <Text style={styles.statValue}>5,678</Text>
-                        <Text style={styles.statLabel}>Total Clients</Text>
-                    </View>
+                <View style={styles.statCard}>
+                    <Text style={styles.statValue}>5,678</Text>
+                    <Text style={styles.statLabel}>Total Clients</Text>
                 </View>
             </View>
 
@@ -112,62 +98,16 @@ const LawyerDashboard: React.FC = () => {
                     status="Completed"
                 />
             </View>
-        </ScrollView>
-        </ScreenWrapper>
+        </LawyerLayout>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    header: {
-        backgroundColor: colors.primary,
-        borderBottomLeftRadius: borderRadius.xl,
-        borderBottomRightRadius: borderRadius.xl,
-        padding: spacing.lg,
-        paddingTop: spacing.xl,
-    },
-    headerTop: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: spacing.lg,
-    },
-    greeting: {
-        fontSize: fontSize.sm,
-        color: 'rgba(255, 255, 255, 0.8)',
-    },
-    name: {
-        fontSize: fontSize.xl,
-        fontWeight: fontWeight.bold,
-        color: colors.white,
-    },
-    notificationButton: {
-        position: 'relative',
-        width: 40,
-        height: 40,
-        borderRadius: borderRadius.full,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    notificationIcon: {
-        fontSize: 20,
-    },
-    badge: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: colors.error,
-    },
     statsContainer: {
         flexDirection: 'row',
         gap: spacing.md,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.lg,
     },
     statCard: {
         flex: 1,
