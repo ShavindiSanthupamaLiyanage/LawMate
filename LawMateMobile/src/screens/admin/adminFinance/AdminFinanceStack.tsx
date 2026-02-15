@@ -1,9 +1,8 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import FinanceListScreen from "./AllFinanceListScreen";
-// import FinanceViewScreen from "./ViewFinanceDetailScreen";
+import FinanceListScreen from "../adminFinance/AllFinanceListScreen";
 import { colors } from "../../../config/theme";
-import ViewFinanceDetailScreen from "./ViewFinanceDetailScreen";
+import ViewFinanceDetailScreen from "../adminFinance/ViewFinanceDetailScreen";
 
 export interface FinanceItem {
     id: string;
@@ -54,8 +53,8 @@ const AdminFinanceStack = () => {
                 name="FinanceView"
                 component={ViewFinanceDetailScreen}
                 options={{
-                    title: "Finance Details",
-                    headerBackTitle: "Back",
+                    // title: "Finance Details",
+                    headerShown: false,
                 }}
             />
         </Stack.Navigator>
