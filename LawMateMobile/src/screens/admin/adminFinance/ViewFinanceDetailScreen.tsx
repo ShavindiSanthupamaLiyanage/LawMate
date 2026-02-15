@@ -19,8 +19,8 @@ import Input from "../../../components/Input";
 import Button from "../../../components/Button";
 import Alert from "../../../components/Alert";
 import Toast from "../../../components/Toast";
-import ScreenWrapper from "../../../components/ScreenWrapper";
 import { AdminFinanceStackParamList } from "./AdminFinanceStack";
+import AdminLayout from "../../../components/AdminLayout";
 
 type Props = {
   route: RouteProp<AdminFinanceStackParamList, "FinanceView">;
@@ -113,7 +113,8 @@ export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
   );
 
   return (
-      <ScreenWrapper backgroundColor={colors.background} edges={["bottom"]}>
+      // <ScreenWrapper backgroundColor={colors.background} edges={["bottom"]}>
+      <AdminLayout userName="Finanace Managenent">
         <ScrollView
             style={styles.container}
             showsVerticalScrollIndicator={false}
@@ -291,7 +292,7 @@ export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
             duration={3000}
             onDismiss={() => setShowSuccessToast(false)}
         />
-      </ScreenWrapper>
+      </AdminLayout>
   );
 }
 

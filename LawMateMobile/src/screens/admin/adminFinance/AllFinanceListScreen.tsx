@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  TextInput,
 } from "react-native";
 import {
   colors,
@@ -16,7 +15,8 @@ import {
 } from "../../../config/theme";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AdminFinanceStackParamList } from "./AdminFinanceStack";
-import ScreenWrapper from "../../../components/ScreenWrapper";
+import AdminLayout from '../../../components/AdminLayout';
+import SearchBar from '../../../components/SearchBar';
 
 type Props = {
   navigation: NativeStackNavigationProp<
@@ -117,7 +117,7 @@ function FinanceCard({
   onPress: () => void;
 }) {
   return (
-      <TouchableOpacity onPress={onPress} style={styles.card} activeOpacity={0.7}>
+      <TouchableOpacity onPress={onPress} style={styles.card} activeOpacity={0.8}>
         <View style={styles.cardLeft}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
@@ -181,23 +181,25 @@ export default function FinanceListScreen({ navigation }: Props) {
       />
   );
 
-  return (
-      <ScreenWrapper backgroundColor={colors.background} edges={["bottom"]}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Finance Management</Text>
-          </View>
+  const handleSearch = () => {
+    console.log('Searching for:', searchQuery);
+  };
 
+  const handleClear = () => {
+    console.log('Search cleared');
+  };
+
+  return (
+      <AdminLayout userName="Finanace Managenent">
+        <View style={styles.container}>
           {/* Search Bar */}
           <View style={styles.searchContainer}>
-            <Text style={styles.searchIcon}>🔍</Text>
-            <TextInput
-                placeholder="Search here..."
-                placeholderTextColor={colors.textSecondary}
-                style={styles.searchInput}
+            <SearchBar
                 value={searchQuery}
                 onChangeText={setSearchQuery}
+                placeholder="Search name..."
+                onSearch={handleSearch}
+                onClear={handleClear}
             />
           </View>
 
@@ -238,8 +240,10 @@ export default function FinanceListScreen({ navigation }: Props) {
                 </View>
               }
           />
+      {/*  </View>*/}
+      {/*</ScreenWrapper>*/}
         </View>
-      </ScreenWrapper>
+      </AdminLayout>
   );
 }
 
@@ -262,16 +266,9 @@ const styles = StyleSheet.create({
   },
 
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    height: 50,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
 
   searchIcon: {
