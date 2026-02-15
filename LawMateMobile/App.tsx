@@ -32,6 +32,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import TabIcon from "./src/components/TabIcon";
 import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
+import FinanceListScreen from "./src/screens/admin/AdminFinance/AllFinanceListScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -230,7 +231,7 @@ function AdminTabs() {
 
             <AdminTab.Screen
                 name="Finance"
-                component={SettingsScreen}
+                component={FinanceListScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
