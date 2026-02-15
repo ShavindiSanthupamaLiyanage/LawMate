@@ -13,9 +13,10 @@ import { RootStackParamList, LawyerTabParamList,
 } from './src/types';
 
 // Auth Screens
-import SplashScreen from './src/screens/SplashScreen';
-import WelcomeScreen from './src/screens/WelcomeScreen';
-import LoginScreen from './src/screens/LoginScreen';
+import SplashScreen from './src/screens/common/SplashScreen';
+import WelcomeScreen from './src/screens/common/WelcomeScreen';
+import LoginScreen from './src/screens/common/loginScreen/LoginScreen';
+import ResetPasswordScreen from "./src/screens/common/forgetPasswordScreen/ResetPassword";
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
@@ -31,9 +32,17 @@ import AdminDashboard from './src/screens/admin/AdminDashboard';
 import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+<<<<<<< HEAD
 import TabIcon from "./src/components/TabIcon";
 import ForgotPasswordScreen from "./src/screens/ForgotPassword";
 import VerificationPending from "./src/screens/lawyer/verificationPending";
+=======
+import TabIcon from "./src/components/BottomNavBar";
+import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
+import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
+import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVerificationScreen";
+import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
+>>>>>>> development
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -70,7 +79,7 @@ function LawyerTabs() {
                 component={HomeScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="calendar-outline" color={color} focused={focused} />
+                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -90,9 +99,9 @@ function LawyerTabs() {
                 component={LawyerDashboard}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="home-outline" color={color} focused={focused} />
+                        <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
-                    tabBarLabel: 'Home',
+                    tabBarLabel: '',
                 }}
             />
 
@@ -111,7 +120,7 @@ function LawyerTabs() {
                 component={ProfileScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="time-outline" color={color} focused={focused} />
+                        <TabIcon iconName="calendar-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -148,7 +157,7 @@ function ClientTabs() {
                 component={HomeScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="calendar-outline" color={color} focused={focused} />
+                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -168,9 +177,9 @@ function ClientTabs() {
                 component={ClientDashboard}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="home-outline" color={color} focused={focused} />
+                        <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
-                    tabBarLabel: 'Home',
+                    tabBarLabel: '',
                 }}
             />
 
@@ -222,17 +231,17 @@ function AdminTabs() {
         }}>
             <AdminTab.Screen
                 name="Bookings"
-                component={ProfileScreen}
+                component={UserVerificationScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="people-outline" color={color} focused={focused} />
+                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
             />
 
             <AdminTab.Screen
                 name="Finance"
-                component={SettingsScreen}
+                component={AdminFinanceStack}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
@@ -245,9 +254,9 @@ function AdminTabs() {
                 component={AdminDashboard}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="home-outline" color={color} focused={focused} />
+                        <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
-                    tabBarLabel: 'Home',
+                    tabBarLabel: '',
                 }}
             />
 
@@ -263,10 +272,10 @@ function AdminTabs() {
 
             <AdminTab.Screen
                 name="Reports"
-                component={SettingsScreen}
+                component={ReportsScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="card-outline" color={color} focused={focused} />
+                        <TabIcon iconName="document-text-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -317,6 +326,12 @@ export default function App() {
                         <Stack.Screen
                             name="LawyerSignUp"
                             component={LawyerSignUp}
+                            options={{ headerShown: false }}
+                        />
+
+                        <Stack.Screen
+                            name="ResetPassword"
+                            component={ResetPasswordScreen}
                             options={{ headerShown: false }}
                         />
 

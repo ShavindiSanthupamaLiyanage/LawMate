@@ -3,31 +3,16 @@ import {
     View,
     Text,
     StyleSheet,
-    ScrollView,
-    TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
-import ScreenWrapper from '../../components/ScreenWrapper';
-
-interface StatCardProps {
-    number: string;
-    label: string;
-    backgroundColor: string;
-}
+import AdminLayout from '../../components/AdminLayout';
 
 interface ActivityItemProps {
     name: string;
     action: string;
     time: string;
 }
-
-const StatCard: React.FC<StatCardProps> = ({ number, label, backgroundColor }) => (
-    <View style={[styles.statCard, { backgroundColor }]}>
-        <Text style={styles.statNumber}>{number}</Text>
-        <Text style={styles.statLabel}>{label}</Text>
-    </View>
-);
 
 const ActivityItem: React.FC<ActivityItemProps> = ({ name, action, time }) => (
     <View style={styles.activityItem}>
@@ -63,41 +48,8 @@ const AdminDashboard: React.FC = () => {
     ];
 
     return (
-        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                {/* Header Card */}
-                <LinearGradient
-                    colors={['#4E73FF', '#3B5EDB']}
-                    style={styles.headerCard}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                >
-                    <View style={styles.headerTop}>
-                        <View>
-                            <View style={styles.menuIcon}>
-                                <View style={styles.menuLine} />
-                                <View style={styles.menuLine} />
-                                <View style={styles.menuLine} />
-                            </View>
-                        </View>
-                        <View style={styles.headerRight}>
-                            <TouchableOpacity style={styles.notificationIcon}>
-                                <Text style={styles.bellIcon}>🔔</Text>
-                            </TouchableOpacity>
-                            <View style={styles.profilePic}>
-                                <Text style={styles.profileText}>KG</Text>
-                            </View>
-                        </View>
-                    </View>
-
-                    <Text style={styles.greeting}>Good Morning</Text>
-                    <Text style={styles.userName}>Kavindu Gimsara</Text>
-
-                    <View style={styles.statsContainer}>
-                        <StatCard number="1234" label="Total Lawyers" backgroundColor="#B8C5FF" />
-                        <StatCard number="5,678" label="Total Clients" backgroundColor="#A8E6CF" />
-                    </View>
-                </LinearGradient>
+        <AdminLayout userName="Kavindu Gimsara">
+            <View>
 
                 {/* Total Lawyers Pie Chart */}
                 <View style={styles.card}>
@@ -188,11 +140,8 @@ const AdminDashboard: React.FC = () => {
                         />
                     ))}
                 </View>
-
-                {/* Bottom spacing for navigation bar - removed as SafeArea handles it */}
-                <View style={styles.bottomSpacer} />
-            </ScrollView>
-        </ScreenWrapper>
+            </View>
+        </AdminLayout>
     );
 };
 

@@ -18,7 +18,6 @@ namespace LawMate.Domain.Entities.Auth
         public string? Bio { get; set; }
         public bool? BarAssociationMembership { get; set; }
         public string? BarAssociationRegNo { get; set; }
-
         public string? ProfessionalDesignation { get; set; }
         public int YearOfExperience { get; set; }
         public District WorkingDistrict { get; set; }
