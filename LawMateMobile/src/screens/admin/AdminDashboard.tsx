@@ -3,30 +3,16 @@ import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
 import AdminLayout from '../../components/AdminLayout';
-
-interface StatCardProps {
-    number: string;
-    label: string;
-    backgroundColor: string;
-}
 
 interface ActivityItemProps {
     name: string;
     action: string;
     time: string;
 }
-
-const StatCard: React.FC<StatCardProps> = ({ number, label, backgroundColor }) => (
-    <View style={[styles.statCard, { backgroundColor }]}>
-        <Text style={styles.statNumber}>{number}</Text>
-        <Text style={styles.statLabel}>{label}</Text>
-    </View>
-);
 
 const ActivityItem: React.FC<ActivityItemProps> = ({ name, action, time }) => (
     <View style={styles.activityItem}>
@@ -63,7 +49,7 @@ const AdminDashboard: React.FC = () => {
 
     return (
         <AdminLayout userName="Kavindu Gimsara">
-            <View style={styles.contentContainer}>
+            <View>
 
                 {/* Total Lawyers Pie Chart */}
                 <View style={styles.card}>
