@@ -7,6 +7,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ToastProvider } from './src/context/ToastContext';
 import { colors } from './src/config/theme';
+
 import { RootStackParamList, LawyerTabParamList,
     ClientTabParamList, AdminTabParamList
 } from './src/types';
@@ -18,6 +19,7 @@ import LoginScreen from './src/screens/LoginScreen';
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
+import LawyerSignUp from './src/screens/lawyer/LawyerSignUp';
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
@@ -31,6 +33,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import TabIcon from "./src/components/TabIcon";
 import ForgotPasswordScreen from "./src/screens/ForgotPassword";
+import VerificationPending from "./src/screens/lawyer/verificationPending";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -311,6 +314,11 @@ export default function App() {
                             component={ForgotPasswordScreen}
                             options={{ headerShown: false }}
                         />
+                        <Stack.Screen
+                            name="LawyerSignUp"
+                            component={LawyerSignUp}
+                            options={{ headerShown: false }}
+                        />
 
                         {/* User Type Specific Tabs */}
                         <Stack.Screen
@@ -328,6 +336,11 @@ export default function App() {
                             component={AdminTabs}
                             options={{ headerShown: false }}
                         />
+                        <Stack.Screen
+                            name="VerificationPending"
+                            component={VerificationPending}
+                        />
+
                     </Stack.Navigator>
                 </NavigationContainer>
             </ToastProvider>
