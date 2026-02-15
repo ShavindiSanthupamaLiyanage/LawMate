@@ -92,6 +92,13 @@ export const colors: Colors = {
     // Shadow
     shadow: 'rgba(78, 96, 255, 0.1)',
 };
+export const fontFamily = {
+    regular: 'Poppins_400Regular',
+    medium: 'Poppins_500Medium',
+    semibold: 'Poppins_600SemiBold',
+    bold: 'Poppins_700Bold',
+};
+
 
 export const spacing: Spacing = {
     xs: 4,
