@@ -1,9 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import {colors, spacing, fontSize, fontWeight} from "../../../config/theme";
+import ScreenWrapper from "../../../components/ScreenWrapper";
 
 export default function VerificationPending() {
     return (
+        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
         <View style={styles.container}>
 
             {/* Title */}
@@ -26,6 +28,7 @@ export default function VerificationPending() {
             </Text>
 
         </View>
+        </ScreenWrapper>
     );
 }
 

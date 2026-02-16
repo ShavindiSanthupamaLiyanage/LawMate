@@ -6,7 +6,7 @@ import {
     StyleSheet,
     TextInputProps,
 } from "react-native";
-import { colors, spacing, fontSize, borderRadius, fontFamily } from "../config/theme";
+import {colors, spacing, fontSize, borderRadius, fontWeight} from "../config/theme";
 
 interface FloatingInputProps extends TextInputProps {
     label: string;
@@ -43,7 +43,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
             outputRange: [fontSize.md, fontSize.sm],
         }),
         color: focused ? colors.primary : colors.textLight,
-        fontFamily: fontFamily.medium,
+        fontWeight: fontWeight.medium,
         backgroundColor: colors.white,
         paddingHorizontal: 4,
     };
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
         height: "100%",
         paddingHorizontal: spacing.md,
         fontSize: fontSize.md,
-        fontFamily: fontFamily.medium,
+        fontWeight: fontWeight.medium,
         color: colors.textPrimary,
         textAlignVertical: "center",
     },
