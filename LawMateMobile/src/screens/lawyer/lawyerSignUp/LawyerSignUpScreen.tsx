@@ -16,9 +16,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PersonalDetailsScreen from "./PersonalDetails";
 import ProfessionalDetailsScreen from "./ProfessionalDetails";
-import GradientHeader from "../../../components/Common/GradientHeader";
+import InitialTopNavbar from "../../../components/InitialTopNavbar";
 import Button from "../../../components/Button";
 import {useToast} from "../../../context/ToastContext";
+import ScreenWrapper from "../../../components/ScreenWrapper";
 
 type TabKey = "Personal Details" | "Professional Details";
 
@@ -41,8 +42,9 @@ export default function LawyerSignUpScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <GradientHeader
+        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+            <View style={styles.container}>
+            <InitialTopNavbar
                 title="Create your account"
                 onBack={() => navigation.goBack()}
             />
@@ -131,6 +133,7 @@ export default function LawyerSignUpScreen() {
                 </View>
             </KeyboardAvoidingView>
         </View>
+        </ScreenWrapper>
     );
 }
 

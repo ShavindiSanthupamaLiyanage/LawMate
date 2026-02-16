@@ -13,8 +13,7 @@ import {
     colors,
     spacing,
     fontSize,
-    borderRadius,
-    fontFamily,
+    borderRadius, fontWeight,
 } from "../config/theme";
 
 interface SelectInputProps {
@@ -61,7 +60,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
                                 outputRange: [fontSize.md, fontSize.sm],
                             }),
                             color: focused ? colors.primary : colors.textLight,
-                            fontFamily: fontFamily.medium,
+                            fontWeight: fontWeight.medium,
                             backgroundColor: colors.white,
                             paddingHorizontal: 4,
                         }}
@@ -80,7 +79,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
                         <Text
                             style={{
                                 fontSize: fontSize.md,
-                                fontFamily: fontFamily.medium,
+                                fontWeight: fontWeight.medium,
                                 color: value ? colors.textPrimary : colors.textLight,
                             }}
                         >
@@ -174,7 +173,7 @@ const styles = StyleSheet.create({
 
     optionText: {
         fontSize: fontSize.md,
-        fontFamily: fontFamily.medium,
+        fontWeight: fontWeight.medium,
         color: colors.textPrimary,
     },
 });

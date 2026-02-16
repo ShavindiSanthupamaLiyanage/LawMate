@@ -33,7 +33,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 // import TabIcon from "./src/components/TabIcon";
-import VerificationPending from "./src/screens/lawyer/lawyerSignUp/verificationPending";
+import VerificationPending from "./src/screens/lawyer/lawyerSignUp/VerificationPending";
 import TabIcon from "./src/components/BottomNavBar";
 import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";

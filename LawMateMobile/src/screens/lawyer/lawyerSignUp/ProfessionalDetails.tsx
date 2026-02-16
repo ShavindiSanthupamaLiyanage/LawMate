@@ -168,14 +168,16 @@ const styles = StyleSheet.create({
 
     bankText: {
         fontSize: fontSize.sm,
-        fontWeight: fontWeight.medium,
+        // fontFamily: fontFamily.medium,
         color: colors.textSecondary,
+        fontWeight: fontWeight.medium,
         marginBottom: spacing.md,
         lineHeight: 18,
     },
 
     bankDetails: {
         fontSize: fontSize.sm,
+        // fontFamily: fontFamily.semibold,
         fontWeight: fontWeight.semibold,
         color: colors.textPrimary,
         lineHeight: 20,
@@ -216,7 +218,7 @@ const styles = StyleSheet.create({
     checkboxText: {
         flex: 1,
         fontSize: fontSize.sm,
-        fontWeight: fontWeight.medium,
         color: colors.textPrimary,
+        fontWeight: fontWeight.medium,
     },
 });
