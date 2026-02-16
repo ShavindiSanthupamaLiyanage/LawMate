@@ -13,7 +13,7 @@ import {
     spacing,
     fontSize,
     borderRadius,
-    fontFamily,
+    fontWeight,
 } from "../config/theme";
 
 interface DateInputProps {
@@ -70,7 +70,7 @@ const DateInput: React.FC<DateInputProps> = ({
                             outputRange: [fontSize.md, fontSize.sm],
                         }),
                         color: focused ? colors.primary : colors.textLight,
-                        fontFamily: fontFamily.medium,
+                        fontWeight: fontWeight.medium,
                         backgroundColor: colors.white,
                         paddingHorizontal: 4,
                     }}
@@ -89,7 +89,7 @@ const DateInput: React.FC<DateInputProps> = ({
                     <Text
                         style={{
                             fontSize: fontSize.md,
-                            fontFamily: fontFamily.medium,
+                            fontWeight: fontWeight.medium,
                             color: value ? colors.textPrimary : colors.textLight,
                         }}
                     >
