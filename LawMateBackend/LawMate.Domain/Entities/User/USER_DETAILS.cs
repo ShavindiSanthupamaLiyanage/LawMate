@@ -10,7 +10,7 @@ namespace LawMate.Domain.Entities.Auth
 {
     public class USER_DETAIL : AuditEntity
     {
-        public string UserId { get; private set; }
+        public string? UserId { get; private set; }
         public Prefix Prefix { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
