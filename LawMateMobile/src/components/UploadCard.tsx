@@ -5,8 +5,7 @@ import {
     colors,
     spacing,
     borderRadius,
-    fontSize,
-    fontFamily,
+    fontSize, fontWeight,
 } from "../config/theme";
 
 interface UploadCardProps {
@@ -77,7 +76,7 @@ const styles = StyleSheet.create({
 
     title: {
         fontSize: fontSize.sm,
-        fontFamily: fontFamily.medium,
+        fontWeight: fontWeight.medium,
         color: colors.textPrimary,
         textAlign: "center",
     },
