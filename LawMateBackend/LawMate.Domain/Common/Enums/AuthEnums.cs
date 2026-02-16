@@ -123,4 +123,21 @@ namespace LawMate.Domain.Common.Enums
         Labour,
         Commercial
     }
+
+    public enum PaymentStatus
+    {
+        Pending,
+        Paid,
+        Refunded,
+        Failed
+    }
+    
+    public enum ConsultationStatus
+    {
+        Scheduled,
+        InProgress,
+        Completed,
+        Cancelled,
+        NoShow
+    }
 }
