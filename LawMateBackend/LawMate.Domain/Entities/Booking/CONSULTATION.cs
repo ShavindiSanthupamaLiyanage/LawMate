@@ -6,8 +6,6 @@ namespace LawMate.Domain.Entities.Booking;
 
 public class CONSULTATION : AuditEntity
 {
-    [Key]
-    public int Id { get; set; }
     [Required]
     public int BookingId { get; set; }
 

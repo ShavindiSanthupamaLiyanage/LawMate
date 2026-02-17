@@ -113,24 +113,6 @@ namespace LawMate.API.Controllers.Common
             });
         }
 
-        // private static string ValidateAndNormalizeNic(string? nic)
-        // {
-        //     if (string.IsNullOrWhiteSpace(nic))
-        //         throw new Exception("NIC cannot be blank.");
-        //
-        //     nic = nic.Trim().ToUpper(); // convert to uppercase
-        //
-        //     // 12 digit NIC
-        //     if (System.Text.RegularExpressions.Regex.IsMatch(nic, @"^\d{12}$"))
-        //         return nic;
-        //
-        //     // 9 digits + V or X
-        //     if (System.Text.RegularExpressions.Regex.IsMatch(nic, @"^\d{9}[VX]$"))
-        //         return nic;
-        //
-        //     throw new Exception("Invalid NIC format. NIC must be 12 digits OR 9 digits followed by V or X.");
-        // }
-
         [AllowAnonymous]
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)

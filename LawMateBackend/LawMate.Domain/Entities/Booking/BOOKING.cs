@@ -6,16 +6,16 @@ using LawMate.Domain.Entities.Common;
 
 namespace LawMate.Domain.Entities.Booking;
 
-public class BOOKING : AuditEntity
+public class BOOKING
 {
     [Key]
     public int BookingId { get; set; }
 
     [Required]
-    public int ClientId { get; set; }
+    public string ClientId { get; set; }
 
     [Required]
-    public int LawyerId { get; set; }
+    public string LawyerId { get; set; }
 
     [Required]
     public int TimeSlotId { get; set; }
@@ -27,7 +27,7 @@ public class BOOKING : AuditEntity
     public int Duration { get; set; } // in minutes
 
     [MaxLength(1000)]
-    public string IssueDescription { get; set; }
+    public string? IssueDescription { get; set; }
 
     [Required]
     public BookingStatus BookingStatus { get; set; }
@@ -37,4 +37,14 @@ public class BOOKING : AuditEntity
 
     [Required]
     public PaymentStatus PaymentStatus { get; set; }
+    
+    [MaxLength(150)]
+    public string? CreatedBy { get; set; }
+    
+    public DateTime? CreatedAt { get; set; }
+
+    [MaxLength(150)]
+    public string? ModifiedBy { get; set; }
+    
+    public DateTime? ModifiedAt { get; set; }
 }
