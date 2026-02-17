@@ -5,7 +5,6 @@ import { colors, spacing, fontSize, fontWeight } from '../../config/theme';
 import { RootStackParamList } from '../../types';
 import Button from '../../components/Button';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { useToast } from '../../context/ToastContext';
 
 type WelcomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Welcome'>;
 
@@ -15,28 +14,16 @@ interface WelcomeScreenProps {
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
-    const { showError} = useToast();
-
     const handleLawyerSignup = () => {
         setTimeout(() => {
             navigation.navigate('LawyerSignUp');
         }, 500);
     };
 
-    // const handleLogin = () => {
-    //     showInfo('Please enter your credentials to continue.');
-    //     setTimeout(() => {
-    //         navigation.navigate('Login');
-    //     }, 500);
-    // };
-
     const handleClientSignup = () => {
-        showError('Client registration is currently unavailable.');
-        // Or if you want to show it and still navigate:
-        // showError('Please complete the registration form carefully.');
-        // setTimeout(() => {
-        //     navigation.navigate('Register', { userType: 'client' });
-        // }, 500);
+        setTimeout(() => {
+            navigation.navigate('ClientSignUp');
+        }, 500);
     };
 
 
@@ -69,7 +56,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
                     title="SIGN UP AS A CLIENT"
                     onPress={handleClientSignup}
                     // onPress={() => navigation.navigate('Register', { userType: 'client' })}
-                    variant="secondary"
+                    variant="primary"
                     style={styles.button}
                 />
 
