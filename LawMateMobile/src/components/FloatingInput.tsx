@@ -5,6 +5,7 @@ import {
     Animated,
     StyleSheet,
     TextInputProps,
+    TouchableOpacity,  // add this
 } from "react-native";
 import {colors, spacing, fontSize, borderRadius, fontWeight} from "../config/theme";
 
@@ -12,12 +13,16 @@ interface FloatingInputProps extends TextInputProps {
     label: string;
     value: string;
     onChangeText: (text: string) => void;
+    rightIcon?: React.ReactNode;
+    onRightIconPress?: () => void;
 }
 
 const FloatingInput: React.FC<FloatingInputProps> = ({
                                                          label,
                                                          value,
                                                          onChangeText,
+                                                         rightIcon,
+                                                         onRightIconPress,
                                                          ...props
                                                      }) => {
     const [focused, setFocused] = useState(false);
@@ -56,11 +61,22 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                 <TextInput
                     value={value}
                     onChangeText={onChangeText}
-                    style={styles.input}
+                    style={[styles.input, rightIcon ? styles.inputWithIcon : null]}
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
                     {...props}
                 />
+
+                {/* add this block */}
+                {rightIcon && (
+                    <TouchableOpacity
+                        style={styles.rightIconContainer}
+                        onPress={onRightIconPress}
+                        activeOpacity={0.7}
+                    >
+                        {rightIcon}
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );
@@ -79,15 +95,24 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.md,
         backgroundColor: colors.white,
         justifyContent: "center",
+        flexDirection: "row",
+        alignItems: "center",
     },
-
     input: {
-        height: "100%",
+        flex: 1,
         paddingHorizontal: spacing.md,
         fontSize: fontSize.md,
         fontWeight: fontWeight.medium,
         color: colors.textPrimary,
         textAlignVertical: "center",
     },
-
+    inputWithIcon: {
+        paddingRight: 0,
+    },
+    rightIconContainer: {
+        paddingHorizontal: spacing.md,
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

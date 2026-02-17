@@ -24,6 +24,7 @@ import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpSc
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
+import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
@@ -322,6 +323,11 @@ export default function App() {
                         <Stack.Screen
                             name="LawyerSignUp"
                             component={LawyerSignUpScreen}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="ClientSignUp"
+                            component={ClientSignUpScreen}
                             options={{ headerShown: false }}
                         />
 

@@ -8,11 +8,9 @@ export type RootStackParamList = {
     Register: { userType: 'lawyer' | 'client' };
     ForgotPassword: undefined;
     LawyerSignUp: undefined;
+    ClientSignUp: undefined;
     VerificationPending: undefined;
     ResetPassword: undefined;
-    // LawyerTabs: undefined;
-    // ClientTabs: undefined;
-    // AdminTabs: undefined;
     LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
     ClientTabs: NavigatorScreenParams<ClientTabParamList>;
     AdminTabs: NavigatorScreenParams<AdminTabParamList>;
