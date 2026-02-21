@@ -17,6 +17,7 @@ import SplashScreen from './src/screens/common/SplashScreen';
 import WelcomeScreen from './src/screens/common/WelcomeScreen';
 import LoginScreen from './src/screens/common/loginScreen/LoginScreen';
 import ResetPasswordScreen from "./src/screens/common/forgetPasswordScreen/ResetPassword";
+import PaymentVerificationStack from "./src/screens/admin/paymentVerification/PaymentVerificationStack";
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
@@ -227,7 +228,7 @@ function AdminTabs() {
             headerShown: false,
         }}>
             <AdminTab.Screen
-                name="Bookings"
+                name="Verifications"
                 component={UserVerificationScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
@@ -259,7 +260,7 @@ function AdminTabs() {
 
             <AdminTab.Screen
                 name="Payment"
-                component={HomeScreen}
+                component={PaymentVerificationStack}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="person-outline" color={color} focused={focused} />
