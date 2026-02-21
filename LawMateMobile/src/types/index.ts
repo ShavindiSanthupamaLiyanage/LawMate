@@ -10,6 +10,8 @@ export type RootStackParamList = {
     LawyerSignUp: undefined;
     VerificationPending: undefined;
     ResetPassword: undefined;
+    PaymentSubmission:undefined;
+    PaymentVerification:undefined;
     // LawyerTabs: undefined;
     // ClientTabs: undefined;
     // AdminTabs: undefined;

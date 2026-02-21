@@ -5,19 +5,27 @@ import {
     Animated,
     StyleSheet,
     TextInputProps,
+    TouchableOpacity,
+    TextStyle,
 } from "react-native";
-import {colors, spacing, fontSize, borderRadius, fontWeight} from "../config/theme";
+import { colors, spacing, fontSize, borderRadius, fontWeight } from "../config/theme";
 
 interface FloatingInputProps extends TextInputProps {
     label: string;
     value: string;
     onChangeText: (text: string) => void;
+    rightIcon?: React.ReactNode;
+    onRightIconPress?: () => void;
 }
 
 const FloatingInput: React.FC<FloatingInputProps> = ({
                                                          label,
                                                          value,
                                                          onChangeText,
+                                                         rightIcon,
+                                                         onRightIconPress,
+                                                         secureTextEntry,
+                                                         style,
                                                          ...props
                                                      }) => {
     const [focused, setFocused] = useState(false);
@@ -29,7 +37,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
             duration: 200,
             useNativeDriver: false,
         }).start();
-    }, [focused, value]);
+    }, [focused, value, animatedValue]);
 
     const labelStyle = {
         position: "absolute" as const,
@@ -48,6 +56,8 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
         paddingHorizontal: 4,
     };
 
+    const inputStyle: TextStyle = rightIcon ? { paddingRight: 40 } : {};
+
     return (
         <View style={styles.container}>
             <View style={styles.inputContainer}>
@@ -56,11 +66,22 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                 <TextInput
                     value={value}
                     onChangeText={onChangeText}
-                    style={styles.input}
+                    style={[styles.input, inputStyle, style]}
+                    secureTextEntry={secureTextEntry}
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
                     {...props}
                 />
+
+                {rightIcon && (
+                    <TouchableOpacity
+                        onPress={onRightIconPress}
+                        style={styles.icon}
+                        activeOpacity={0.7}
+                    >
+                        {rightIcon}
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );
@@ -80,7 +101,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.white,
         justifyContent: "center",
     },
-
     input: {
         height: "100%",
         paddingHorizontal: spacing.md,
@@ -89,5 +109,11 @@ const styles = StyleSheet.create({
         color: colors.textPrimary,
         textAlignVertical: "center",
     },
-
+    icon: {
+        position: "absolute",
+        right: spacing.md,
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });
