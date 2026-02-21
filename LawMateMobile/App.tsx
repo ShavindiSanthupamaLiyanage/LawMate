@@ -39,6 +39,8 @@ import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/Forg
 import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
 import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVerificationScreen";
 import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
+import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
+import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -350,6 +352,17 @@ export default function App() {
                         <Stack.Screen
                             name="VerificationPending"
                             component={VerificationPending}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="PaymentSubmission"
+                            component={PaymentSubmission}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="PaymentVerification"
+                            component={PaymentVerification}
+                            options={{ headerShown: false }}
                         />
 
                     </Stack.Navigator>

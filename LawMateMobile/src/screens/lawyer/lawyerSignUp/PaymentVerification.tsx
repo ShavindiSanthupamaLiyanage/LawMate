@@ -2,60 +2,50 @@ import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
 import ScreenWrapper from "../../../components/ScreenWrapper";
-import Button from "../../../components/Button";
 import InitialTopNavbar from "../../../components/InitialTopNavbar";
 
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../types";
 
-export default function VerificationPending() {
+export default function PaymentVerification() {
     const navigation =
         useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-    const handleGoToPaymentSubmission = () => {
-        navigation.navigate("PaymentSubmission");
+    const handleBackToWelcome = () => {
+        // Back arrow should take user to Welcome screen
+        navigation.replace("Welcome");
+        // If you want user to be able to go back instead:
+        // navigation.navigate("Welcome");
     };
 
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
             <View style={styles.page}>
-                {/* ✅ Same header component */}
+                {/* ✅ Header with back arrow */}
                 <InitialTopNavbar
-                    title="Verification"
-                    onBack={() => navigation.goBack()}
+                    title="Payment Verification"
+                    onBack={handleBackToWelcome}
                     showLogo={true}
                 />
 
+                {/* ✅ Body */}
                 <View style={styles.container}>
-                    {/* Title */}
                     <Text style={styles.title}>
-                        Request{"\n"}Received
+                        Payment{"\n"}Request{"\n"}Received
                     </Text>
 
-                    {/* Illustration */}
                     <Image
                         source={require("../../../../assets/verification.png")}
                         style={styles.image}
                         resizeMode="contain"
                     />
 
-                    {/* Description */}
                     <Text style={styles.description}>
-                        We've received it and our team is currently reviewing the details.
-                        You’ll receive an email after the review is completed.
-                        Once verified, you can continue with LawMate.
+                        We've received it and our team is currently reviewing the payment
+                        details. You’ll receive an email after the review is completed. Once
+                        verified, you can continue with LawMate.
                     </Text>
-
-                    {/* ✅ TEMP BUTTON FOR TESTING */}
-                    {__DEV__ && (
-                        <Button
-                            title="PROCEED TO PAYMENT (TEST)"
-                            variant="primary"
-                            onPress={handleGoToPaymentSubmission}
-                            style={styles.button}
-                        />
-                    )}
                 </View>
             </View>
         </ScreenWrapper>
@@ -96,10 +86,5 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
         textAlign: "center",
         lineHeight: 22,
-    },
-
-    button: {
-        marginTop: spacing.xl,
-        alignSelf: "stretch",
     },
 });
