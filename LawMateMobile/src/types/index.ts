@@ -41,7 +41,7 @@ export type AdminTabParamList = {
     Users: undefined;
     Reports: undefined;
     Settings: undefined;
-    Bookings: undefined;
+    Verifications: undefined;
     Finance: undefined;
     Payment: undefined;
 };
