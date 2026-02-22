@@ -21,6 +21,12 @@ export type LawyerTabParamList = {
     Cases: undefined;
     Calendar: undefined;
     Profile: undefined;
+    LawyerProfile: undefined;
+    LawyerPersonalDetails: undefined;
+    LawyerProfessionalDetails: undefined;
+    Availability: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
     Bookings: undefined;
     Finance: undefined;
     Knowledge: undefined;
@@ -31,6 +37,10 @@ export type ClientTabParamList = {
     Lawly: undefined;
     Requests: undefined;
     Profile: undefined;
+    ClientProfile: undefined;
+    ClientPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
     Bookings: undefined;
     Lawyers: undefined;
     Knowledge: undefined;
@@ -41,6 +51,10 @@ export type AdminTabParamList = {
     Users: undefined;
     Reports: undefined;
     Settings: undefined;
+    AdminProfile: undefined;
+    AdminPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
     Bookings: undefined;
     Finance: undefined;
     Payment: undefined;
