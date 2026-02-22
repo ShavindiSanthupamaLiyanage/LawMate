@@ -5,9 +5,9 @@ import {
     Animated,
     StyleSheet,
     TextInputProps,
-    TouchableOpacity,  // add this
+    TouchableOpacity,
 } from "react-native";
-import {colors, spacing, fontSize, borderRadius, fontWeight} from "../config/theme";
+import { colors, spacing, fontSize, borderRadius, fontWeight } from "../config/theme";
 
 interface FloatingInputProps extends TextInputProps {
     label: string;
@@ -23,6 +23,8 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                                                          onChangeText,
                                                          rightIcon,
                                                          onRightIconPress,
+                                                         secureTextEntry,
+                                                         style,
                                                          ...props
                                                      }) => {
     const [focused, setFocused] = useState(false);
@@ -34,7 +36,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
             duration: 200,
             useNativeDriver: false,
         }).start();
-    }, [focused, value]);
+    }, [focused, value, animatedValue]);
 
     const labelStyle = {
         position: "absolute" as const,
@@ -62,12 +64,12 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                     value={value}
                     onChangeText={onChangeText}
                     style={[styles.input, rightIcon ? styles.inputWithIcon : null]}
+                    secureTextEntry={secureTextEntry}
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
                     {...props}
                 />
 
-                {/* add this block */}
                 {rightIcon && (
                     <TouchableOpacity
                         style={styles.rightIconContainer}
@@ -98,6 +100,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
     },
+
     input: {
         flex: 1,
         paddingHorizontal: spacing.md,
@@ -114,5 +117,5 @@ const styles = StyleSheet.create({
         height: "100%",
         justifyContent: "center",
         alignItems: "center",
-    },
+    }
 });
