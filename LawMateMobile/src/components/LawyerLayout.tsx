@@ -6,6 +6,7 @@ import TopNavbar from './TopNavbar';
 
 interface LawyerLayoutProps {
     children: React.ReactNode;
+    title?: string;  // optional screen title
     userName?: string;
     profileImage?: string;
     onNotificationPress?: () => void;
@@ -14,7 +15,8 @@ interface LawyerLayoutProps {
 
 const LawyerLayout: React.FC<LawyerLayoutProps> = ({
     children,
-    userName = 'Kavindi Dilhara',
+    title,
+    userName,
     profileImage,
     onNotificationPress,
     onProfilePress,
@@ -49,18 +51,21 @@ const LawyerLayout: React.FC<LawyerLayoutProps> = ({
 
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+            {/* Pass title as prop to TopNavbar */}
             <Animated.View style={{ transform: [{ translateY: animatedValue.interpolate({
                 inputRange: [0, 1],
                 outputRange: [0, -80],
                 extrapolate: 'clamp',
             }) }] }}>
                 <TopNavbar
+                    title={title}   // <--- reactive title
                     userName={userName}
                     profileImage={profileImage}
                     onNotificationPress={onNotificationPress}
                     onProfilePress={onProfilePress}
                 />
             </Animated.View>
+
             <ScrollView
                 ref={scrollViewRef}
                 style={styles.container}
@@ -76,13 +81,8 @@ const LawyerLayout: React.FC<LawyerLayoutProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    contentContainer: {
-        paddingBottom: spacing.lg,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
+    contentContainer: { paddingBottom: spacing.lg },
 });
 
 export default LawyerLayout;

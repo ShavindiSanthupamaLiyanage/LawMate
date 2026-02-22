@@ -22,6 +22,7 @@ import PaymentVerificationStack from "./src/screens/admin/paymentVerification/Pa
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
 import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpScreen';
+import LawyerRequests from './src/screens/lawyer/LawyerRequests';
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
@@ -75,11 +76,11 @@ function LawyerTabs() {
             }}
         >
             <LawyerTab.Screen
-                name="Bookings"
-                component={HomeScreen}
+                name="Requests"
+                component={LawyerRequests}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
+                        <TabIcon iconName="mail-outline" color={color} focused={focused} />
                     ),
                 }}
             />
