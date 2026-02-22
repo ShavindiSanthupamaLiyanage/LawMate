@@ -43,6 +43,7 @@ import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVer
 import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
+import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -86,7 +87,7 @@ function LawyerTabs() {
 
             <LawyerTab.Screen
                 name="Finance"
-                component={ProfileScreen}
+                component={FinanceMain}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
