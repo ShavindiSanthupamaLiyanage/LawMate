@@ -6,7 +6,6 @@ import {
     StyleSheet,
     TextInputProps,
     TouchableOpacity,
-    TextStyle,
 } from "react-native";
 import { colors, spacing, fontSize, borderRadius, fontWeight } from "../config/theme";
 
@@ -22,6 +21,10 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                                                          label,
                                                          value,
                                                          onChangeText,
+                                                         rightIcon,
+                                                         onRightIconPress,
+                                                         secureTextEntry,
+                                                         style,
                                                          ...props
                                                      }) => {
     const [focused, setFocused] = useState(false);
@@ -52,8 +55,6 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
         paddingHorizontal: 4,
     };
 
-    const inputStyle: TextStyle = rightIcon ? { paddingRight: 40 } : {};
-
     return (
         <View style={styles.container}>
             <View style={styles.inputContainer}>
@@ -62,7 +63,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                 <TextInput
                     value={value}
                     onChangeText={onChangeText}
-                    style={[styles.input, inputStyle, style]}
+                    style={[styles.input, rightIcon ? styles.inputWithIcon : null]}
                     secureTextEntry={secureTextEntry}
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}
@@ -71,8 +72,8 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
 
                 {rightIcon && (
                     <TouchableOpacity
+                        style={styles.rightIconContainer}
                         onPress={onRightIconPress}
-                        style={styles.icon}
                         activeOpacity={0.7}
                     >
                         {rightIcon}
@@ -116,12 +117,5 @@ const styles = StyleSheet.create({
         height: "100%",
         justifyContent: "center",
         alignItems: "center",
-    },
-    icon: {
-        position: "absolute",
-        right: spacing.md,
-        height: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-    },
+    }
 });
