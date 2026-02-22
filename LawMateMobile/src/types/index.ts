@@ -11,6 +11,8 @@ export type RootStackParamList = {
     ClientSignUp: undefined;
     VerificationPending: undefined;
     ResetPassword: undefined;
+    PaymentSubmission:undefined;
+    PaymentVerification:undefined;
     LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
     ClientTabs: NavigatorScreenParams<ClientTabParamList>;
     AdminTabs: NavigatorScreenParams<AdminTabParamList>;
@@ -42,7 +44,7 @@ export type AdminTabParamList = {
     Users: undefined;
     Reports: undefined;
     Settings: undefined;
-    Bookings: undefined;
+    Verifications: undefined;
     Finance: undefined;
     Payment: undefined;
 };
