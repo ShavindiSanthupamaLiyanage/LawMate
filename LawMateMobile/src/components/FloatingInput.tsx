@@ -22,10 +22,6 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
                                                          label,
                                                          value,
                                                          onChangeText,
-                                                         rightIcon,
-                                                         onRightIconPress,
-                                                         secureTextEntry,
-                                                         style,
                                                          ...props
                                                      }) => {
     const [focused, setFocused] = useState(false);
@@ -100,14 +96,26 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.md,
         backgroundColor: colors.white,
         justifyContent: "center",
+        flexDirection: "row",
+        alignItems: "center",
     },
+
     input: {
-        height: "100%",
+        flex: 1,
         paddingHorizontal: spacing.md,
         fontSize: fontSize.md,
         fontWeight: fontWeight.medium,
         color: colors.textPrimary,
         textAlignVertical: "center",
+    },
+    inputWithIcon: {
+        paddingRight: 0,
+    },
+    rightIconContainer: {
+        paddingHorizontal: spacing.md,
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
     },
     icon: {
         position: "absolute",
