@@ -24,6 +24,7 @@ export type LawyerTabParamList = {
     Bookings: undefined;
     Finance: undefined;
     Knowledge: undefined;
+    Requests: undefined;
 };
 
 export type ClientTabParamList = {
