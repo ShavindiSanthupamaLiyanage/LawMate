@@ -182,6 +182,7 @@ export default function PaymentVerificationViewScreen({
                 animationType="slide"
                 onRequestClose={() => setShowRejectSheet(false)}
             >
+                <View style={{ flex: 1, justifyContent: "flex-end" }}>
                 <TouchableOpacity
                     style={styles.overlay}
                     activeOpacity={1}
@@ -246,6 +247,7 @@ export default function PaymentVerificationViewScreen({
                             multiline
                         />
                     )}
+                </View>
                 </View>
             </Modal>
 
@@ -373,7 +375,8 @@ const styles = StyleSheet.create({
     },
     // Bottom Sheet
     overlay: {
-        flex: 1,
+        ...StyleSheet.absoluteFillObject,
+        // flex: 1,
         backgroundColor: "rgba(0,0,0,0.4)",
     },
     sheet: {
