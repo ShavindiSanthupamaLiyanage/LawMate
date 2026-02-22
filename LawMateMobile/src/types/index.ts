@@ -8,6 +8,7 @@ export type RootStackParamList = {
     Register: { userType: 'lawyer' | 'client' };
     ForgotPassword: undefined;
     LawyerSignUp: undefined;
+    ClientSignUp: undefined;
     VerificationPending: undefined;
     ResetPassword: undefined;
     PaymentSubmission:undefined;
@@ -45,7 +46,7 @@ export type AdminTabParamList = {
     Users: undefined;
     Reports: undefined;
     Settings: undefined;
-    Bookings: undefined;
+    Verifications: undefined;
     Finance: undefined;
     Payment: undefined;
 };

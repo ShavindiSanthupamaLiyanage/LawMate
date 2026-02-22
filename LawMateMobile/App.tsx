@@ -17,6 +17,7 @@ import SplashScreen from './src/screens/common/SplashScreen';
 import WelcomeScreen from './src/screens/common/WelcomeScreen';
 import LoginScreen from './src/screens/common/loginScreen/LoginScreen';
 import ResetPasswordScreen from "./src/screens/common/forgetPasswordScreen/ResetPassword";
+import PaymentVerificationStack from "./src/screens/admin/paymentVerification/PaymentVerificationStack";
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
@@ -24,6 +25,7 @@ import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpSc
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
+import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
@@ -228,7 +230,7 @@ function AdminTabs() {
             headerShown: false,
         }}>
             <AdminTab.Screen
-                name="Bookings"
+                name="Verifications"
                 component={UserVerificationScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
@@ -260,7 +262,7 @@ function AdminTabs() {
 
             <AdminTab.Screen
                 name="Payment"
-                component={HomeScreen}
+                component={PaymentVerificationStack}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="person-outline" color={color} focused={focused} />
@@ -324,6 +326,11 @@ export default function App() {
                         <Stack.Screen
                             name="LawyerSignUp"
                             component={LawyerSignUpScreen}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="ClientSignUp"
+                            component={ClientSignUpScreen}
                             options={{ headerShown: false }}
                         />
 
