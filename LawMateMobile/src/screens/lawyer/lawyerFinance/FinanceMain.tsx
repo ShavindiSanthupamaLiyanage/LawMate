@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import LawyerLayout from "../../../components/LawyerLayout";
 import Button from "../../../components/Button";
 import { colors, spacing, fontSize, fontWeight, borderRadius } from "../../../config/theme";
 
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../../types";
+
+import TransactionDetailsSheet, { TransactionDetails } from "../../../components/TransactionDetailsSheet";
+
 type TxStatus = "Verified Payment" | "Pending Verification";
 
-const transactions = [
+const transactions: TransactionDetails[] = [
     { id: "1", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
     { id: "2", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Pending Verification" as TxStatus, amount: 5000 },
     { id: "3", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
@@ -17,12 +23,22 @@ const formatLKR = (value: number) => `LKR ${value.toFixed(2)}`;
 
 const getStatusChipStyle = (status: TxStatus) => {
     if (status === "Verified Payment") {
-        return { bg: "#E7F8EE", text: "#16794C" }; // soft green
+        return { bg: "#E7F8EE", text: "#16794C" };
     }
-    return { bg: "#FFF4D6", text: "#8A5A00" }; // soft orange
+    return { bg: "#FFF4D6", text: "#8A5A00" };
 };
 
-export default function  FinanceMain() {
+export default function FinanceMain() {
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+    const [sheetOpen, setSheetOpen] = useState(false);
+    const [selectedTx, setSelectedTx] = useState<TransactionDetails | null>(null);
+
+    const openSheet = (tx: TransactionDetails) => {
+        setSelectedTx(tx);
+        setSheetOpen(true);
+    };
+
     return (
         <LawyerLayout userName="Kavindi Dilhara">
             <View style={styles.wrapper}>
@@ -53,8 +69,7 @@ export default function  FinanceMain() {
                     <Button
                         title="VIEW REPORTS"
                         variant="primary"
-                        onPress={() => {
-                        }}
+                        onPress={() => {}}
                         style={styles.primaryBtn}
                     />
                 </View>
@@ -68,7 +83,11 @@ export default function  FinanceMain() {
                     const chip = getStatusChipStyle(tx.status);
 
                     return (
-                        <View key={tx.id} style={styles.txCard}>
+                        <Pressable
+                            key={tx.id}
+                            style={styles.txCard}
+                            onPress={() => openSheet(tx)}
+                        >
                             <View style={styles.txTopRow}>
                                 <Text style={styles.txTitle}>{tx.title}</Text>
                                 <Text style={styles.txDate}>{tx.date}</Text>
@@ -81,18 +100,24 @@ export default function  FinanceMain() {
 
                                 <Text style={styles.txAmount}>{`LKR ${tx.amount.toLocaleString()}.00`}</Text>
                             </View>
-                        </View>
+                        </Pressable>
                     );
                 })}
 
                 {/* View All */}
                 <Pressable
-                    onPress={() => {
-                    }}
+                    onPress={() => navigation.navigate("ViewTransactions")}
                     style={styles.viewAllWrap}
                 >
                     <Text style={styles.viewAllText}>VIEW ALL</Text>
                 </Pressable>
+
+                {/* ✅ Bottom Sheet */}
+                <TransactionDetailsSheet
+                    visible={sheetOpen}
+                    item={selectedTx}
+                    onClose={() => setSheetOpen(false)}
+                />
             </View>
         </LawyerLayout>
     );
@@ -150,7 +175,7 @@ const styles = StyleSheet.create({
 
     sectionHeader: {
         marginTop: spacing.md,
-        marginBottom: spacing.sm
+        marginBottom: spacing.sm,
     },
 
     sectionTitle: {
@@ -165,7 +190,6 @@ const styles = StyleSheet.create({
         padding: spacing.md,
         borderWidth: 1,
         borderColor: colors.borderLight ?? colors.border,
-
         marginBottom: spacing.md,
     },
 
@@ -210,7 +234,7 @@ const styles = StyleSheet.create({
     txAmount: {
         fontSize: fontSize.sm,
         fontWeight: fontWeight.semibold,
-        color: "#16A34A", // green amount
+        color: "#16A34A",
     },
 
     viewAllWrap: {

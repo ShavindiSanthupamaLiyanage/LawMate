@@ -44,6 +44,7 @@ import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStac
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
+import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -370,6 +371,11 @@ export default function App() {
                         <Stack.Screen
                             name="PaymentVerification"
                             component={PaymentVerification}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="ViewTransactions"
+                            component={ViewTransactions}
                             options={{ headerShown: false }}
                         />
 
