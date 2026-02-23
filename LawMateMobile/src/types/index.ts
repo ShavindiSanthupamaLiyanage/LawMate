@@ -13,6 +13,7 @@ export type RootStackParamList = {
     ResetPassword: undefined;
     PaymentSubmission:undefined;
     PaymentVerification:undefined;
+    ViewTransactions: undefined;
     LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
     ClientTabs: NavigatorScreenParams<ClientTabParamList>;
     AdminTabs: NavigatorScreenParams<AdminTabParamList>;
