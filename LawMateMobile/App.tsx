@@ -55,6 +55,7 @@ import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVer
 import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
+import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -139,6 +140,7 @@ function LawyerTabNavigator() {
                     ),
                 }}
             />
+
         </LawyerTab.Navigator>
     );
 }
@@ -213,21 +215,21 @@ function ClientTabNavigator() {
             />
 
             <ClientTab.Screen
-                name="Lawly"
-                component={SettingsScreen}
+                name="Knowledge"
+                component={ProfileScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-                        <TabIcon iconName="sparkles-outline" color={color} focused={focused} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabIcon iconName="book-outline" color={color} focused={focused} />
                     ),
                 }}
             />
 
             <ClientTab.Screen
-                name="Knowledge"
-                component={ProfileScreen}
+                name="Contacts"
+                component={ContactsScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-                        <TabIcon iconName="book-outline" color={color} focused={focused} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabIcon iconName="chatbubble-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -295,7 +297,7 @@ function AdminTabNavigator() {
                 name="Dashboard"
                 component={AdminDashboard}
                 options={{
-                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
                     tabBarLabel: '',
@@ -306,7 +308,7 @@ function AdminTabNavigator() {
                 name="Payment"
                 component={PaymentVerificationStack}
                 options={{
-                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="person-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -316,7 +318,7 @@ function AdminTabNavigator() {
                 name="Reports"
                 component={ReportsScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="document-text-outline" color={color} focused={focused} />
                     ),
                 }}
