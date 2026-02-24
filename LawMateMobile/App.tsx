@@ -61,6 +61,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
 const ClientTab = createBottomTabNavigator<ClientTabParamList>();
 const AdminTab = createBottomTabNavigator<AdminTabParamList>();
+
 const LawyerStack = createNativeStackNavigator();
 const ClientStack = createNativeStackNavigator();
 const AdminStack = createNativeStackNavigator();
@@ -218,7 +219,7 @@ function ClientTabNavigator() {
                 name="Knowledge"
                 component={ProfileScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -228,7 +229,7 @@ function ClientTabNavigator() {
                 name="Contacts"
                 component={ContactsScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="chatbubble-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -297,7 +298,7 @@ function AdminTabNavigator() {
                 name="Dashboard"
                 component={AdminDashboard}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
                     tabBarLabel: '',
@@ -308,7 +309,7 @@ function AdminTabNavigator() {
                 name="Payment"
                 component={PaymentVerificationStack}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="person-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -318,7 +319,7 @@ function AdminTabNavigator() {
                 name="Reports"
                 component={ReportsScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="document-text-outline" color={color} focused={focused} />
                     ),
                 }}
