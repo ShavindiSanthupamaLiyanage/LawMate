@@ -53,6 +53,9 @@ export type AdminTabParamList = {
     Users: undefined;
     Reports: undefined;
     Settings: undefined;
+    Verifications: undefined;
+    Finance: undefined;
+    Payment: undefined;
     AdminProfile: undefined;
     AdminPersonalDetails: undefined;
     SettingsPreferences: undefined;
