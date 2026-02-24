@@ -43,6 +43,7 @@ import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVer
 import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
+import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -184,21 +185,21 @@ function ClientTabs() {
             />
 
             <ClientTab.Screen
-                name="Lawly"
-                component={SettingsScreen}
-                options={{
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="sparkles-outline" color={color} focused={focused} />
-                    ),
-                }}
-            />
-
-            <ClientTab.Screen
                 name="Knowledge"
                 component={ProfileScreen}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
+                    ),
+                }}
+            />
+
+            <ClientTab.Screen
+                name="Contacts"
+                component={ContactsScreen}
+                options={{
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabIcon iconName="chatbubble-outline" color={color} focused={focused} />
                     ),
                 }}
             />
