@@ -36,7 +36,7 @@ export type LawyerTabParamList = {
 
 export type ClientTabParamList = {
     Dashboard: undefined;
-    Lawly: undefined;
+    Contacts: undefined;
     Requests: undefined;
     Profile: undefined;
     ClientProfile: undefined;
