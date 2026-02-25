@@ -14,15 +14,18 @@ type Request = {
   mode: string;
   status: 'Pending' | 'Confirmed' | 'Rejected';
   reason?: string;
+  profilePic?: string;
 };
 
 const REQUEST_DATA: Request[] = [
-  { id: '1', name: 'Alex Morter', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending' },
-  { id: '2', name: 'Alex Morter', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending' },
-  { id: '3', name: 'Alex Morter', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending' },
+  { id: '1', name: 'Alex Morter', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending',profilePic:'https://i.pravatar.cc/150?img=3' },
+  { id: '2', name: 'Alex Morter', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending',profilePic:'https://i.pravatar.cc/150?img=4' },
+  { id: '3', name: 'Alex Morter', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending',profilePic:'https://i.pravatar.cc/150?img=5' },
   { id: '4', name: 'Alex Morter', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending' },
-  { id: '5', name: 'Alex Morter', caseType: 'Criminal Law', phone: '+94 77 123 4567', date: '12 Nov 2025', mode: 'Online', status: 'Confirmed' },
-  { id: '6', name: 'Alex Morter', caseType: 'Family Law', phone: '+94 77 123 4567', date: '15 Nov 2025', mode: 'Online', status: 'Rejected', reason: 'Schedule Conflict' },
+  { id: '5', name: 'Alex Morter', caseType: 'Criminal Law', phone: '+94 77 123 4567', date: '12 Nov 2025', mode: 'Online', status: 'Confirmed',profilePic:'https://i.pravatar.cc/150?img=28' },
+  { id: '6', name: 'Alex Morter', caseType: 'Criminal Law', phone: '+94 77 123 4567', date: '12 Nov 2025', mode: 'Online', status: 'Confirmed' },
+  { id: '7', name: 'Alex Morter', caseType: 'Family Law', phone: '+94 77 123 4567', date: '15 Nov 2025', mode: 'Online', status: 'Rejected', reason: 'Schedule Conflict',profilePic:'https://i.pravatar.cc/150?img=70' },
+  { id: '8', name: 'Alex Morter', caseType: 'Family Law', phone: '+94 77 123 4567', date: '15 Nov 2025', mode: 'Online', status: 'Rejected', reason: 'Schedule Conflict' },
 ];
 
 const LawyerRequests: React.FC = () => {

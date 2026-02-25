@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { colors, spacing, fontWeight } from '../../config/theme';
-
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../types'; // adjust path if needed
+import { useNavigation } from '@react-navigation/native';
 interface Props {
   request: {
     name: string;
@@ -15,9 +16,14 @@ interface Props {
     profilePic?: string; // optional
   };
 }
+type NavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'AppointmentView'
+>;
 
 const RequestCard: React.FC<Props> = ({ request }) => {
-  // Map status to display text & badge style
+  const navigation = useNavigation<NavigationProp>(); // <-- Add this
+
   const statusMap: Record<
     Props['request']['status'],
     { text: string; style: any }
@@ -29,7 +35,12 @@ const RequestCard: React.FC<Props> = ({ request }) => {
 
   const { text: badgeText, style: badgeStyle } = statusMap[request.status];
 
+  const handlePress = () => {
+    navigation.navigate('AppointmentView', { request });
+  };
+
 return (
+  <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
   <View style={styles.card}>
     {/* Top Row */}
     <View style={styles.headerRow}>
@@ -71,18 +82,14 @@ return (
       </View>
     </View>
 
-    {request.status === 'Pending' && (
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.rejectBtn}>
-          <Text style={styles.rejectText}>REJECT</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.acceptBtn}>
-          <Text style={styles.acceptText}>ACCEPT</Text>
-        </TouchableOpacity>
+    {request.status==='Rejected' &&(
+      <View style={styles.detailRow}>
+        <Text style={styles.label}>Reason</Text>
+        <Text style={styles.value}>{request.reason}</Text>
       </View>
     )}
   </View>
+  </TouchableOpacity>
 );
 };
 
