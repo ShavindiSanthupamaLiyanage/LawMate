@@ -14,10 +14,7 @@ export type RootStackParamList = {
     PaymentSubmission:undefined;
     PaymentVerification:undefined;
     ViewTransactions: undefined;
-<<<<<<< HEAD
     EarningsReport: undefined;
-=======
->>>>>>> 1f6eed6c43b6ffd05efd145f410552e804be1e33
     LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
     ClientTabs: NavigatorScreenParams<ClientTabParamList>;
     AdminTabs: NavigatorScreenParams<AdminTabParamList>;
