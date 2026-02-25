@@ -22,13 +22,25 @@ import PaymentVerificationStack from "./src/screens/admin/paymentVerification/Pa
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
 import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpScreen';
+import LawyerProfileScreen from './src/screens/lawyer/lawyerProfile/LawyerProfileScreen';
+import LawyerPersonalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerPersonalDetailsScreen';
+import LawyerProfessionalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerProfessionalDetailsScreen';
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
 import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
+import ClientProfileScreen from './src/screens/client/clientProfile/ClientProfileScreen';
+import ClientPersonalDetailsScreen from './src/screens/client/clientProfile/ClientPersonalDetailsScreen';
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
+import AdminProfileScreen from './src/screens/admin/adminProfile/AdminProfileScreen';
+import AdminPersonalDetailsScreen from './src/screens/admin/adminProfile/AdminPersonalDetailsScreen';
+
+// Shared Screens
+import AvailabilityScreen from './src/screens/common/AvailabilityScreen';
+import SettingsPreferencesScreen from './src/screens/common/SettingsPreferencesScreen';
+import HelpScreen from './src/screens/common/HelpScreen';
 
 // Placeholder Screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -43,20 +55,24 @@ import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVer
 import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
+import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
 import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
 import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
-<<<<<<< HEAD
+
 import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
-=======
->>>>>>> 1f6eed6c43b6ffd05efd145f410552e804be1e33
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
 const ClientTab = createBottomTabNavigator<ClientTabParamList>();
 const AdminTab = createBottomTabNavigator<AdminTabParamList>();
 
-// Lawyer Bottom Tabs
-function LawyerTabs() {
+const LawyerStack = createNativeStackNavigator();
+const ClientStack = createNativeStackNavigator();
+const AdminStack = createNativeStackNavigator();
+
+// Lawyer Bottom Tabs (Only visible tabs)
+function LawyerTabNavigator() {
     const insets = useSafeAreaInsets();
 
     return (
@@ -84,7 +100,7 @@ function LawyerTabs() {
                 name="Bookings"
                 component={HomeScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -92,9 +108,9 @@ function LawyerTabs() {
 
             <LawyerTab.Screen
                 name="Finance"
-                component={FinanceMain}
+                component={ProfileScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -104,7 +120,7 @@ function LawyerTabs() {
                 name="Dashboard"
                 component={LawyerDashboard}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
                     tabBarLabel: '',
@@ -115,7 +131,7 @@ function LawyerTabs() {
                 name="Knowledge"
                 component={SettingsScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -125,7 +141,7 @@ function LawyerTabs() {
                 name="Calendar"
                 component={ProfileScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="calendar-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -135,8 +151,23 @@ function LawyerTabs() {
     );
 }
 
-// Client Bottom Tabs
-function ClientTabs() {
+// Lawyer Stack (includes tabs + profile screens)
+function LawyerTabs() {
+    return (
+        <LawyerStack.Navigator screenOptions={{ headerShown: false }}>
+            <LawyerStack.Screen name="LawyerTabNavigator" component={LawyerTabNavigator} />
+            <LawyerStack.Screen name="LawyerProfile" component={LawyerProfileScreen} />
+            <LawyerStack.Screen name="LawyerPersonalDetails" component={LawyerPersonalDetailsScreen} />
+            <LawyerStack.Screen name="LawyerProfessionalDetails" component={LawyerProfessionalDetailsScreen} />
+            <LawyerStack.Screen name="Availability" component={AvailabilityScreen} />
+            <LawyerStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
+            <LawyerStack.Screen name="Help" component={HelpScreen} />
+        </LawyerStack.Navigator>
+    );
+}
+
+// Client Bottom Tabs (Only visible tabs)
+function ClientTabNavigator() {
     const insets = useSafeAreaInsets();
 
     return (
@@ -162,7 +193,7 @@ function ClientTabs() {
                 name="Bookings"
                 component={HomeScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -172,7 +203,7 @@ function ClientTabs() {
                 name="Lawyers"
                 component={ProfileScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="search-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -182,7 +213,7 @@ function ClientTabs() {
                 name="Dashboard"
                 component={ClientDashboard}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
                     tabBarLabel: '',
@@ -203,8 +234,18 @@ function ClientTabs() {
                 name="Knowledge"
                 component={ProfileScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
+                    ),
+                }}
+            />
+
+            <ClientTab.Screen
+                name="Contacts"
+                component={ContactsScreen}
+                options={{
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+                        <TabIcon iconName="chatbubble-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -212,8 +253,21 @@ function ClientTabs() {
     );
 }
 
-// Admin Bottom Tabs
-function AdminTabs() {
+// Client Stack (includes tabs + profile screens)
+function ClientTabs() {
+    return (
+        <ClientStack.Navigator screenOptions={{ headerShown: false }}>
+            <ClientStack.Screen name="ClientTabNavigator" component={ClientTabNavigator} />
+            <ClientStack.Screen name="ClientProfile" component={ClientProfileScreen} />
+            <ClientStack.Screen name="ClientPersonalDetails" component={ClientPersonalDetailsScreen} />
+            <ClientStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
+            <ClientStack.Screen name="Help" component={HelpScreen} />
+        </ClientStack.Navigator>
+    );
+}
+
+// Admin Bottom Tabs (Only visible tabs)
+function AdminTabNavigator() {
     const insets = useSafeAreaInsets();
 
     return (
@@ -239,7 +293,7 @@ function AdminTabs() {
                 name="Verifications"
                 component={UserVerificationScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -249,7 +303,7 @@ function AdminTabs() {
                 name="Finance"
                 component={AdminFinanceStack}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -259,7 +313,7 @@ function AdminTabs() {
                 name="Dashboard"
                 component={AdminDashboard}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
                     tabBarLabel: '',
@@ -270,7 +324,7 @@ function AdminTabs() {
                 name="Payment"
                 component={PaymentVerificationStack}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="person-outline" color={color} focused={focused} />
                     ),
                 }}
@@ -280,12 +334,25 @@ function AdminTabs() {
                 name="Reports"
                 component={ReportsScreen}
                 options={{
-                    tabBarIcon: ({ color, focused }) => (
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="document-text-outline" color={color} focused={focused} />
                     ),
                 }}
             />
         </AdminTab.Navigator>
+    );
+}
+
+// Admin Stack (includes tabs + profile screens)
+function AdminTabs() {
+    return (
+        <AdminStack.Navigator screenOptions={{ headerShown: false }}>
+            <AdminStack.Screen name="AdminTabNavigator" component={AdminTabNavigator} />
+            <AdminStack.Screen name="AdminProfile" component={AdminProfileScreen} />
+            <AdminStack.Screen name="AdminPersonalDetails" component={AdminPersonalDetailsScreen} />
+            <AdminStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
+            <AdminStack.Screen name="Help" component={HelpScreen} />
+        </AdminStack.Navigator>
     );
 }
 
