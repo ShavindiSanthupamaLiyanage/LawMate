@@ -39,7 +39,7 @@ import VerificationPending from "./src/screens/lawyer/lawyerSignUp/VerificationP
 import TabIcon from "./src/components/BottomNavBar";
 import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
-import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVerificationScreen";
+import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserManagementScreen";
 import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
