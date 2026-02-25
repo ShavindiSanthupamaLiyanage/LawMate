@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { spacing, borderRadius, colors, fontWeight } from '../../config/theme';
 
 interface Props {
   activeTab: 'Pending' | 'Confirmed' | 'Rejected';
