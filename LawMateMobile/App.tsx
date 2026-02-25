@@ -23,6 +23,7 @@ import PaymentVerificationStack from "./src/screens/admin/paymentVerification/Pa
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
 import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpScreen';
 import LawyerRequests from './src/screens/lawyer/LawyerRequests';
+import AppointmentView from './src/screens/lawyer/AppointmentView';
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
@@ -370,6 +371,11 @@ export default function App() {
                         <Stack.Screen
                             name="PaymentVerification"
                             component={PaymentVerification}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="AppointmentView"
+                            component={AppointmentView}
                             options={{ headerShown: false }}
                         />
 
