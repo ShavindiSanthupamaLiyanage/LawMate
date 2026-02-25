@@ -69,11 +69,7 @@ export default function FinanceMain() {
                     <Button
                         title="VIEW REPORTS"
                         variant="primary"
-<<<<<<< HEAD
                         onPress={() => navigation.navigate("EarningsReport")}
-=======
-                        onPress={() => {}}
->>>>>>> 1f6eed6c43b6ffd05efd145f410552e804be1e33
                         style={styles.primaryBtn}
                     />
                 </View>

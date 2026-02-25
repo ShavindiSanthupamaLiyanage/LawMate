@@ -58,7 +58,6 @@ import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerifi
 import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
 import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
 import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
-
 import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
 
 
@@ -108,7 +107,7 @@ function LawyerTabNavigator() {
 
             <LawyerTab.Screen
                 name="Finance"
-                component={ProfileScreen}
+                component={FinanceMain}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
@@ -217,16 +216,6 @@ function ClientTabNavigator() {
                         <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
                     ),
                     tabBarLabel: '',
-                }}
-            />
-
-            <ClientTab.Screen
-                name="Lawly"
-                component={SettingsScreen}
-                options={{
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabIcon iconName="sparkles-outline" color={color} focused={focused} />
-                    ),
                 }}
             />
 
@@ -449,14 +438,12 @@ export default function App() {
                             component={ViewTransactions}
                             options={{ headerShown: false }}
                         />
-<<<<<<< HEAD
+
                         <Stack.Screen
                             name="EarningsReport"
                             component={EarningsReport}
                             options={{ headerShown: false }}
                         />
-=======
->>>>>>> 1f6eed6c43b6ffd05efd145f410552e804be1e33
 
                     </Stack.Navigator>
                 </NavigationContainer>
