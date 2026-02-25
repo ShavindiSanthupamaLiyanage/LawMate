@@ -56,6 +56,10 @@ import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStac
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
+import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
+import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
+import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -103,7 +107,7 @@ function LawyerTabNavigator() {
 
             <LawyerTab.Screen
                 name="Finance"
-                component={ProfileScreen}
+                component={FinanceMain}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
@@ -427,6 +431,17 @@ export default function App() {
                         <Stack.Screen
                             name="PaymentVerification"
                             component={PaymentVerification}
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="ViewTransactions"
+                            component={ViewTransactions}
+                            options={{ headerShown: false }}
+                        />
+
+                        <Stack.Screen
+                            name="EarningsReport"
+                            component={EarningsReport}
                             options={{ headerShown: false }}
                         />
 
