@@ -1,22 +1,55 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
+
 import LawyerLayout from "../../../components/LawyerLayout";
 import Button from "../../../components/Button";
-import { colors, spacing, fontSize, fontWeight, borderRadius } from "../../../config/theme";
+import TransactionDetailsSheet, {
+    TransactionDetails,
+} from "../../../components/TransactionDetailsSheet";
+
+import {
+    colors,
+    spacing,
+    fontSize,
+    fontWeight,
+    borderRadius,
+} from "../../../config/theme";
 
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../../types";
-
-import TransactionDetailsSheet, { TransactionDetails } from "../../../components/TransactionDetailsSheet";
+import { LawyerFinanceStackParamList } from "./LawyerFinanceStack";
 
 type TxStatus = "Verified Payment" | "Pending Verification";
 
 const transactions: TransactionDetails[] = [
-    { id: "1", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
-    { id: "2", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Pending Verification" as TxStatus, amount: 5000 },
-    { id: "3", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
-    { id: "4", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
+    {
+        id: "1",
+        title: "John Silva | APT-0500",
+        date: "12 Nov 2025",
+        status: "Verified Payment" as TxStatus,
+        amount: 5000,
+    },
+    {
+        id: "2",
+        title: "John Silva | APT-0500",
+        date: "12 Nov 2025",
+        status: "Pending Verification" as TxStatus,
+        amount: 5000,
+    },
+    {
+        id: "3",
+        title: "John Silva | APT-0500",
+        date: "12 Nov 2025",
+        status: "Verified Payment" as TxStatus,
+        amount: 5000,
+    },
+    {
+        id: "4",
+        title: "John Silva | APT-0500",
+        date: "12 Nov 2025",
+        status: "Verified Payment" as TxStatus,
+        amount: 5000,
+    },
 ];
 
 const formatLKR = (value: number) => `LKR ${value.toFixed(2)}`;
@@ -29,7 +62,9 @@ const getStatusChipStyle = (status: TxStatus) => {
 };
 
 export default function FinanceMain() {
-    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    // ✅ MUST use LawyerFinanceStackParamList (NOT RootStackParamList)
+    const navigation =
+        useNavigation<NativeStackNavigationProp<LawyerFinanceStackParamList>>();
 
     const [sheetOpen, setSheetOpen] = useState(false);
     const [selectedTx, setSelectedTx] = useState<TransactionDetails | null>(null);
@@ -95,10 +130,14 @@ export default function FinanceMain() {
 
                             <View style={styles.txBottomRow}>
                                 <View style={[styles.chip, { backgroundColor: chip.bg }]}>
-                                    <Text style={[styles.chipText, { color: chip.text }]}>{tx.status}</Text>
+                                    <Text style={[styles.chipText, { color: chip.text }]}>
+                                        {tx.status}
+                                    </Text>
                                 </View>
 
-                                <Text style={styles.txAmount}>{`LKR ${tx.amount.toLocaleString()}.00`}</Text>
+                                <Text style={styles.txAmount}>
+                                    {`LKR ${tx.amount.toLocaleString()}.00`}
+                                </Text>
                             </View>
                         </Pressable>
                     );
@@ -112,7 +151,7 @@ export default function FinanceMain() {
                     <Text style={styles.viewAllText}>VIEW ALL</Text>
                 </Pressable>
 
-                {/* ✅ Bottom Sheet */}
+                {/* Bottom Sheet */}
                 <TransactionDetailsSheet
                     visible={sheetOpen}
                     item={selectedTx}
@@ -134,7 +173,7 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.lg,
         padding: spacing.lg,
         borderWidth: 1,
-        borderColor: colors.borderLight ?? colors.border,
+        borderColor: (colors as any).borderLight ?? colors.border,
         width: "100%",
     },
 
@@ -189,7 +228,7 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.lg,
         padding: spacing.md,
         borderWidth: 1,
-        borderColor: colors.borderLight ?? colors.border,
+        borderColor: (colors as any).borderLight ?? colors.border,
         marginBottom: spacing.md,
     },
 
