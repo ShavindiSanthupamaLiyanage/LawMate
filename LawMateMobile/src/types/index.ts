@@ -16,6 +16,7 @@ export type RootStackParamList = {
     LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
     ClientTabs: NavigatorScreenParams<ClientTabParamList>;
     AdminTabs: NavigatorScreenParams<AdminTabParamList>;
+    AppointmentView:{ request: any };
 };
 
 export type LawyerTabParamList = {
