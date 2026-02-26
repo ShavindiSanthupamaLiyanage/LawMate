@@ -59,8 +59,8 @@ import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
 import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
 import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
 import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
-import LawyerRequests from './src/screens/lawyer/LawyerRequests';
-import AppointmentView from './src/screens/lawyer/AppointmentView';
+import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
+import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -163,6 +163,7 @@ function LawyerTabs() {
             <LawyerStack.Screen name="Availability" component={AvailabilityScreen} />
             <LawyerStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
             <LawyerStack.Screen name="Help" component={HelpScreen} />
+            <LawyerStack.Screen name="AppointmentView" component={AppointmentView}/>
         </LawyerStack.Navigator>
     );
 }
@@ -433,11 +434,6 @@ export default function App() {
                         <Stack.Screen
                             name="PaymentVerification"
                             component={PaymentVerification}
-                            options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                            name="AppointmentView"
-                            component={AppointmentView}
                             options={{ headerShown: false }}
                         />
 
