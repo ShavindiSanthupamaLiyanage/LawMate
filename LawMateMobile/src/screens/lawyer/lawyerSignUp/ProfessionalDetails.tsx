@@ -29,6 +29,7 @@ export default function ProfessionalDetailsScreen() {
     const [certificateFile, setCertificateFile] = useState<string>();
     const [nicFile, setNicFile] = useState<string>();
     const [slipFile, setSlipFile] = useState<string>();
+    const [photoFile, setPhotoFile] = useState<string>();
 
     const [confirmed, setConfirmed] = useState(false);
 
@@ -90,23 +91,6 @@ export default function ProfessionalDetailsScreen() {
                 onChangeText={setBarNumber}
             />
 
-            {/* Bank Section */}
-            <View style={styles.bankSection}>
-                <Text style={styles.bankText}>
-                    To complete the registration please make the payment for
-                    the following bank account for the membership fee and
-                    upload the slip.
-                </Text>
-
-                <Text style={styles.bankDetails}>
-                    Bank - Bank of Ceylon{"\n"}
-                    Branch - Borella{"\n"}
-                    Account No - 10002020332{"\n"}
-                    Account Holder - M.A.Perera{"\n"}
-                    Amount - Rs.15,000.00
-                </Text>
-            </View>
-
             {/* Upload Section */}
             <View style={styles.uploadSection}>
                 <View style={styles.uploadRow}>
@@ -117,17 +101,26 @@ export default function ProfessionalDetailsScreen() {
                     />
 
                     <UploadCard
-                        title="National Identity Card (Back/Front)"
+                        title="National Identity (Front)"
                         fileName={nicFile}
                         onPress={() => pickFile(setNicFile)}
                     />
                 </View>
 
-                <UploadCard
-                    title="Membership Fee Pay Slip"
-                    fileName={slipFile}
-                    onPress={() => pickFile(setSlipFile)}
-                />
+                <View style={styles.uploadRow}>
+                    <UploadCard
+                        title="National Identity (Back)"
+                        fileName={slipFile}
+                        onPress={() => pickFile(setSlipFile)}
+                    />
+
+                    <UploadCard
+                        title="Profile Photo"
+                        fileName={photoFile}
+                        onPress={() => pickFile(setPhotoFile)}
+                    />
+                </View>
+
             </View>
 
             {/* Confirmation */}

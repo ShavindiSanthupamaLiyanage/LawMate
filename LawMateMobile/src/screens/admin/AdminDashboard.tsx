@@ -4,6 +4,7 @@ import {
     Text,
     StyleSheet,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
 import AdminLayout from '../../components/AdminLayout';
@@ -32,6 +33,8 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ name, action, time }) => (
 );
 
 const AdminDashboard: React.FC = () => {
+    const navigation = useNavigation<any>();
+    
     // Sample data for charts
     const lawyerCategories = [
         { label: 'Criminal', percentage: 30, color: '#A78BFA' },
@@ -48,7 +51,10 @@ const AdminDashboard: React.FC = () => {
     ];
 
     return (
-        <AdminLayout userName="Kavindu Gimsara">
+        <AdminLayout 
+            userName="Kavindu Gimsara"
+            onProfilePress={() => navigation.navigate('AdminProfile')}
+        >
             <View>
 
                 {/* Total Lawyers Pie Chart */}

@@ -11,6 +11,10 @@ export type RootStackParamList = {
     ClientSignUp: undefined;
     VerificationPending: undefined;
     ResetPassword: undefined;
+    PaymentSubmission:undefined;
+    PaymentVerification:undefined;
+    ViewTransactions: undefined;
+    EarningsReport: undefined;
     LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
     ClientTabs: NavigatorScreenParams<ClientTabParamList>;
     AdminTabs: NavigatorScreenParams<AdminTabParamList>;
@@ -21,6 +25,12 @@ export type LawyerTabParamList = {
     Cases: undefined;
     Calendar: undefined;
     Profile: undefined;
+    LawyerProfile: undefined;
+    LawyerPersonalDetails: undefined;
+    LawyerProfessionalDetails: undefined;
+    Availability: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
     Bookings: undefined;
     Finance: undefined;
     Knowledge: undefined;
@@ -28,9 +38,13 @@ export type LawyerTabParamList = {
 
 export type ClientTabParamList = {
     Dashboard: undefined;
-    Lawly: undefined;
+    Contacts: undefined;
     Requests: undefined;
     Profile: undefined;
+    ClientProfile: undefined;
+    ClientPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
     Bookings: undefined;
     Lawyers: undefined;
     Knowledge: undefined;
@@ -41,9 +55,15 @@ export type AdminTabParamList = {
     Users: undefined;
     Reports: undefined;
     Settings: undefined;
-    Bookings: undefined;
+    Verifications: undefined;
     Finance: undefined;
     Payment: undefined;
+    AdminProfile: undefined;
+    AdminPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
+    Bookings: undefined;
+    
 };
 
 
