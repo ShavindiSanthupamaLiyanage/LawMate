@@ -32,7 +32,7 @@ import ClientDashboard from './src/screens/client/ClientDashboard';
 import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
 import ClientProfileScreen from './src/screens/client/clientProfile/ClientProfileScreen';
 import ClientPersonalDetailsScreen from './src/screens/client/clientProfile/ClientPersonalDetailsScreen';
-import ClientKnowledgeHub from "./src/screens/client/ClientKnowledgeHub";
+import ClientKnowledgeHub from "./src/screens/clientKnowledgeHub/ClientKnowledgeHub";
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';

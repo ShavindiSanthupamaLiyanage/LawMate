@@ -68,19 +68,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 switch (user.type) {
                     case 'lawyer':
                         navigation.replace('LawyerTabs', {
-                            screen: 'Dashboard',
+                            screen: 'LawyerTabNavigator',
+                            params: { screen: 'Dashboard' }
                         });
                         break;
 
                     case 'client':
                         navigation.replace('ClientTabs', {
-                            screen: 'Dashboard',
+                            screen: 'ClientTabNavigator',
+                            params: { screen: 'Dashboard' }
                         });
                         break;
 
                     case 'admin':
                         navigation.replace('AdminTabs', {
-                            screen: 'Dashboard',
+                            screen: 'AdminTabNavigator',
+                            params: { screen: 'Dashboard' }
                         });
                         break;
                 }
@@ -103,11 +106,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             // Navigate based on selected user type
             if (selectedUserType === 'lawyer') {
                 navigation.replace('LawyerTabs', {
-                    screen: 'Dashboard',
+                    screen: 'LawyerTabNavigator',
+                    params: { screen: 'Dashboard' }
                 });
             } else {
                 navigation.replace('ClientTabs', {
-                    screen: 'Dashboard',
+                    screen: 'ClientTabNavigator',
+                    params: { screen: 'Dashboard' }
                 });
             }
         }, 500);
