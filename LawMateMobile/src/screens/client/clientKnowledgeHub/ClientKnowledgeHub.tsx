@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
-import SearchBar from '../../components/SearchBar';
-import ClientLayout from '../../components/ClientLayout';
+import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import SearchBar from '../../../components/SearchBar';
+import ClientLayout from '../../../components/ClientLayout';
+import {useNavigation} from "@react-navigation/native";
 
 interface Article {
   id: string;
@@ -68,6 +69,8 @@ const KnowledgeHub: React.FC = () => {
     { id: '4', header: 'Law category Identification', author: 'John Doe', date: 'Oct 4, 2024', content: "Contract law forms the foundation of business and personal agreements by ensuring that promises made between parties are legally enforceable. A valid contract requires offer, acceptance, consideration, and mutual intent. Written agreements help prevent misunderstandings and provide clarity regarding obligations, deadlines, and penalties for breach. When disputes arise, legal remedies such as compensation or contract enforcement may be pursued. Understanding contract terms before signing helps individuals avoid costly legal complications.", isLiked: false, likeCount: 3 }
   ]);
 
+  const navigation = useNavigation<any>();
+
   const toggleLike = (id: string) => {
     setArticles(prev =>
       prev.map(art => {
@@ -86,7 +89,9 @@ const KnowledgeHub: React.FC = () => {
   );
 
   return (
-    <ClientLayout userName="Knowledge Hub">
+    <ClientLayout userName="Knowledge Hub"
+                  onProfilePress={() => navigation.navigate('ClientProfile')}
+    >
       <View style={styles.contentWrapper}>
         <View style={styles.searchContainer}>
           <SearchBar
