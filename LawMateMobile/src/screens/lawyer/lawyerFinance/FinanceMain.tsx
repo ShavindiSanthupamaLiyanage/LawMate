@@ -18,6 +18,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LawyerFinanceStackParamList } from "./LawyerFinanceStack";
+import {LawyerStackParamList} from "../../../types";
 
 type TxStatus = "Verified Payment" | "Pending Verification";
 
@@ -66,6 +67,9 @@ export default function FinanceMain() {
     const navigation =
         useNavigation<NativeStackNavigationProp<LawyerFinanceStackParamList>>();
 
+    const parentNavigation =
+        useNavigation<NativeStackNavigationProp<LawyerStackParamList>>();
+
     const [sheetOpen, setSheetOpen] = useState(false);
     const [selectedTx, setSelectedTx] = useState<TransactionDetails | null>(null);
 
@@ -75,7 +79,9 @@ export default function FinanceMain() {
     };
 
     return (
-        <LawyerLayout userName="Kavindi Dilhara">
+        <LawyerLayout userName="Kavindi Dilhara"
+                      onProfilePress={() => parentNavigation.navigate('LawyerProfile')}
+        >
             <View style={styles.wrapper}>
                 {/* Earning Summary Card */}
                 <View style={styles.card}>
