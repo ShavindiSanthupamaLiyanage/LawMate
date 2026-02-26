@@ -12,6 +12,7 @@ import AdminLayout from '../../../components/AdminLayout';
 import ReportCard from './ReportCard';
 import YearMonthPicker from '../../../components/YearMonthPicker';
 import { useToast } from '../../../context/ToastContext';
+import {useNavigation} from "@react-navigation/native";
 
 interface Report {
     id: string;
@@ -24,6 +25,7 @@ const ReportsScreen: React.FC = () => {
     const [selectedYear, setSelectedYear] = useState<number | null>(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const { showToast } = useToast();
+    const navigation = useNavigation<any>();
 
     const reports: Report[] = [
         {
@@ -91,7 +93,9 @@ const ReportsScreen: React.FC = () => {
     };
 
     return (
-        <AdminLayout userName="Kavindu Gimsara">
+        <AdminLayout userName="Kavindu Gimsara"
+                     onProfilePress={() => navigation.navigate('AdminProfile')}
+        >
             <View style={styles.container}>
                 {/* Date Filter */}
                 <View style={styles.dateFilterContainer}>

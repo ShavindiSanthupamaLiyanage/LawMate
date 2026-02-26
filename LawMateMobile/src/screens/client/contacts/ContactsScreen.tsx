@@ -14,6 +14,7 @@ import {
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import ClientLayout from '../../../components/ClientLayout';
 import Button from '../../../components/Button';
+import {useNavigation} from "@react-navigation/native";
 
 interface FormValues {
     fullName: string;
@@ -83,7 +84,7 @@ const ContactsScreen: React.FC = () => {
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const navigation = useNavigation<any>();
     const handleChange = (field: keyof FormValues) => (text: string) => {
         setValues(prev => ({ ...prev, [field]: text }));
         setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -123,7 +124,9 @@ const ContactsScreen: React.FC = () => {
     };
 
     return (
-        <ClientLayout userName="Contact Us">
+        <ClientLayout userName="Contact Us"
+                      onProfilePress={() => navigation.navigate('ClientProfile')}
+        >
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{ flex: 1 }}
