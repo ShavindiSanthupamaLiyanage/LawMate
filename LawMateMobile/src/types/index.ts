@@ -36,6 +36,7 @@ export type LawyerTabParamList = {
     Finance: undefined;
     Knowledge: undefined;
     Requests: undefined;
+    AppointmentView: undefined;
 };
 
 export type ClientTabParamList = {
