@@ -3,7 +3,6 @@ import {
     View,
     Text,
     StyleSheet,
-    FlatList,
     TouchableOpacity,
 } from "react-native";
 import {
@@ -20,6 +19,8 @@ import PaymentVerificationCard, {
     PaymentVerificationItem,
     PaymentStatus,
 } from "../paymentVerification/PaymentVerificationCard";
+import {AdminTabParamList} from "../../../types";
+import {useNavigation} from "@react-navigation/native";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -115,7 +116,8 @@ const TABS: Array<"All" | PaymentStatus> = [
 export default function PaymentVerificationListScreen({ navigation }: Props) {
     const [selectedTab, setSelectedTab] = useState<"All" | PaymentStatus>("All");
     const [searchQuery, setSearchQuery] = useState("");
-
+    const parentNavigation =
+        useNavigation<NativeStackNavigationProp<AdminTabParamList>>();
     const filteredData = dummyData.filter((item) => {
         const matchesTab =
             selectedTab === "All" ? true : item.status === selectedTab;
@@ -126,15 +128,10 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
         return matchesTab && matchesSearch;
     });
 
-    const renderItem = ({ item }: { item: PaymentVerificationItem }) => (
-        <PaymentVerificationCard
-            item={item}
-            onPress={() => navigation.navigate("PaymentVerificationView", { item })}
-        />
-    );
-
     return (
-        <AdminLayout userName="Payment Verification">
+        <AdminLayout userName="Payment Verification"
+                     onProfilePress={() => parentNavigation.navigate('AdminProfile')}
+        >
             <View style={styles.container}>
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
@@ -171,19 +168,21 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
                     ))}
                 </View>
 
-                {/* List */}
-                <FlatList
-                    data={filteredData}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.listContent}
-                    showsVerticalScrollIndicator={false}
-                    ListEmptyComponent={
+                <View style={styles.listContent}>
+                    {filteredData.length === 0 ? (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>No payment records found</Text>
                         </View>
-                    }
-                />
+                    ) : (
+                        filteredData.map((item) => (
+                            <PaymentVerificationCard
+                                key={item.id}
+                                item={item}
+                                onPress={() => navigation.navigate("PaymentVerificationView", { item })}
+                            />
+                        ))
+                    )}
+                </View>
             </View>
         </AdminLayout>
     );
