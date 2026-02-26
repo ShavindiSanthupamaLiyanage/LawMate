@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../config/theme';
 
 interface TopNavbarProps {
@@ -18,31 +17,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
     onNotificationPress,
     onProfilePress,
 }) => {
-    const navigation = useNavigation<any>();
     const [notificationCount] = useState(3);
-
-    const handleLogout = () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
-            [
-                {
-                    text: 'Cancel',
-                    onPress: () => {},
-                    style: 'cancel',
-                },
-                {
-                    text: 'Logout',
-                    onPress: () => {
-                        // Perform logout logic here (clear auth tokens, etc.)
-                        navigation.navigate('Login');
-                    },
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: false }
-        );
-    };
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -95,19 +70,6 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                         )}
                     </TouchableOpacity>
 
-                    {/* Logout Button */}
-                    <TouchableOpacity
-                        style={styles.logoutButton}
-                        onPress={handleLogout}
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons
-                            name="power"
-                            size={20}
-                            color={colors.white}
-                        />
-                    </TouchableOpacity>
-
                     {/* Profile Avatar */}
                     <TouchableOpacity
                         style={styles.profileButton}
@@ -121,7 +83,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                             />
                         ) : (
                             <View style={styles.defaultAvatar}>
-                                <Ionicons
+                                <Ionicons 
                                     name="person"
                                     size={18}
                                     color={colors.primary}
@@ -180,14 +142,6 @@ const styles = StyleSheet.create({
         gap: spacing.md,
     },
     notificationButton: {
-        width: 40,
-        height: 40,
-        borderRadius: borderRadius.full,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    logoutButton: {
         width: 40,
         height: 40,
         borderRadius: borderRadius.full,

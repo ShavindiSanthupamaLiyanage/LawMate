@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
 import LawyerLayout from '../../components/LawyerLayout';
 
@@ -37,8 +38,13 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ name, time, status }) => {
 };
 
 const LawyerDashboard: React.FC = () => {
+    const navigation = useNavigation<any>();
+    
     return (
-        <LawyerLayout userName="Kavindi Dilhara">
+        <LawyerLayout 
+            userName="Kavindi Dilhara"
+            onProfilePress={() => navigation.navigate('LawyerProfile')}
+        >
             <View style={styles.statsContainer}>
                 <View style={styles.statCard}>
                     <Text style={styles.statValue}>1234</Text>
