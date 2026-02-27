@@ -58,6 +58,11 @@ import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStac
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
+import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
+import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
+import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
+import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
+import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
 
 
@@ -96,11 +101,11 @@ function LawyerTabNavigator() {
             }}
         >
             <LawyerTab.Screen
-                name="Bookings"
-                component={HomeScreen}
+                name="Requests"
+                component={LawyerRequests}
                 options={{
-                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabIcon iconName="mail-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -161,6 +166,7 @@ function LawyerTabs() {
             <LawyerStack.Screen name="Availability" component={AvailabilityScreen} />
             <LawyerStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
             <LawyerStack.Screen name="Help" component={HelpScreen} />
+            <LawyerStack.Screen name="AppointmentView" component={AppointmentView}/>
         </LawyerStack.Navigator>
     );
 }
