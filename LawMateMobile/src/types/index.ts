@@ -1,6 +1,32 @@
 // Navigation Types
 import {NavigatorScreenParams} from "@react-navigation/core";
 
+export type LawyerStackParamList = {
+    LawyerTabNavigator: NavigatorScreenParams<LawyerTabParamList> | undefined;
+    LawyerProfile: undefined;
+    LawyerPersonalDetails: undefined;
+    LawyerProfessionalDetails: undefined;
+    Availability: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
+};
+
+export type ClientStackParamList = {
+    ClientTabNavigator: NavigatorScreenParams<ClientTabParamList> | undefined;
+    ClientProfile: undefined;
+    ClientPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
+};
+
+export type AdminStackParamList = {
+    AdminTabNavigator: NavigatorScreenParams<AdminTabParamList> | undefined;
+    AdminProfile: undefined;
+    AdminPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
+};
+
 export type RootStackParamList = {
     Splash: undefined;
     Welcome: undefined;
@@ -15,10 +41,16 @@ export type RootStackParamList = {
     PaymentVerification:undefined;
     ViewTransactions: undefined;
     EarningsReport: undefined;
-    LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
-    ClientTabs: NavigatorScreenParams<ClientTabParamList>;
-    AdminTabs: NavigatorScreenParams<AdminTabParamList>;
+    // LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
+    // ClientTabs: NavigatorScreenParams<ClientTabParamList>;
+    // AdminTabs: NavigatorScreenParams<AdminTabParamList>;
     AppointmentView:{ request: any };
+    // LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
+    // ClientTabs: NavigatorScreenParams<ClientTabParamList>;
+    // AdminTabs: NavigatorScreenParams<AdminTabParamList>;
+    LawyerTabs: NavigatorScreenParams<LawyerStackParamList>;
+    ClientTabs: NavigatorScreenParams<ClientStackParamList>;
+    AdminTabs: NavigatorScreenParams<AdminStackParamList>;
 };
 
 export type LawyerTabParamList = {

@@ -24,6 +24,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		global.json = global.json
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LawMate.Tests", "LawMate.Tests\LawMate.Tests.csproj", "{D02E7928-44C4-4ACE-AB70-2A632B083897}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9079B00E-4691-4F7B-80A0-5A5BEDF591C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D02E7928-44C4-4ACE-AB70-2A632B083897}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D02E7928-44C4-4ACE-AB70-2A632B083897}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D02E7928-44C4-4ACE-AB70-2A632B083897}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D02E7928-44C4-4ACE-AB70-2A632B083897}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

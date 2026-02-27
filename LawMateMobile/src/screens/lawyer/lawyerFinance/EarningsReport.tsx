@@ -1,20 +1,21 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 
 import ScreenWrapper from "../../../components/ScreenWrapper";
 import InitialTopNavbar from "../../../components/InitialTopNavbar";
 
 import { colors, spacing, fontSize, fontWeight, borderRadius } from "../../../config/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FilterMode = "THIS_MONTH" | "CUSTOM";
 
 export default function EarningsReport({ navigation }: any) {
     const [mode, setMode] = useState<FilterMode>("THIS_MONTH");
+    const insets = useSafeAreaInsets();
 
     // TEMP dummy data (later replace with API results)
     const report = useMemo(() => {
-        // You can switch data based on mode
         if (mode === "CUSTOM") {
             return {
                 overviewBars: [
@@ -60,16 +61,24 @@ export default function EarningsReport({ navigation }: any) {
 
     const maxBar = Math.max(...report.overviewBars.map((b) => b.value));
 
+
+    const TAB_BAR_HEIGHT = -20;
+    const bottomSpace = spacing.xxl + insets.bottom + TAB_BAR_HEIGHT + 20;
+
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
             <View style={styles.page}>
                 <InitialTopNavbar
                     title="Earnings Report"
-                    onBack={() => navigation.goBack()}   // ✅ back to FinanceMain
+                    onBack={() => navigation.goBack()}
                     showLogo={false}
                 />
 
-                <View style={styles.content}>
+                {/* ✅ SCROLL + ✅ bottom padding space */}
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={[styles.content, { paddingBottom: bottomSpace }]}
+                >
                     {/* Filter row */}
                     <View style={styles.filterRow}>
                         <Pressable
@@ -139,7 +148,7 @@ export default function EarningsReport({ navigation }: any) {
                             </View>
                         ))}
                     </View>
-                </View>
+                </ScrollView>
             </View>
         </ScreenWrapper>
     );
