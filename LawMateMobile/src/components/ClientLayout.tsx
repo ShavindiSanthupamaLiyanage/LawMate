@@ -10,23 +10,35 @@ interface ClientLayoutProps {
     profileImage?: string;
     onNotificationPress?: () => void;
     onProfilePress?: () => void;
+    title:string;
+    showBackButton?: boolean;
+    onBackPress?: () => void;
+    hideRightSection?: boolean; 
 }
 
 const ClientLayout: React.FC<ClientLayoutProps> = ({
+    title,
     children,
     userName = 'Client User',
     profileImage,
     onNotificationPress,
     onProfilePress,
+    showBackButton,
+    onBackPress,
+    hideRightSection,
 }) => {
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
             <View>
                 <TopNavbar
+                    title={title}  
                     userName={userName}
                     profileImage={profileImage}
                     onNotificationPress={onNotificationPress}
                     onProfilePress={onProfilePress}
+                    showBackButton={showBackButton}     
+                    onBackPress={onBackPress}           
+                    hideRightSection={hideRightSection}
                 />
             </View>
             <ScrollView
