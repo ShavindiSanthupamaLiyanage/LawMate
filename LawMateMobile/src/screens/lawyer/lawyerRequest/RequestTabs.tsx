@@ -1,13 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
+export type TabType = 'Pending' | 'Confirmed' | 'Accepted' | 'Rejected';
 interface Props {
-  activeTab: 'Pending' | 'Confirmed' | 'Rejected';
-  setActiveTab: (tab: 'Pending' | 'Confirmed' | 'Rejected') => void;
+  activeTab: TabType;
+  setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
 }
 
-const RequestTabs: React.FC<Props> = ({ activeTab, setActiveTab }) => {
-  const tabs: Props['activeTab'][] = ['Pending', 'Confirmed', 'Rejected'];
+const ClientRequestTabs: React.FC<Props> = ({
+  activeTab,
+  setActiveTab,
+}) => {
+  const tabs: TabType[] = ['Pending', 'Confirmed', 'Rejected'];
 
   return (
     <View style={styles.container}>
@@ -17,7 +21,12 @@ const RequestTabs: React.FC<Props> = ({ activeTab, setActiveTab }) => {
           style={[styles.tab, activeTab === tab && styles.activeTab]}
           onPress={() => setActiveTab(tab)}
         >
-          <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === tab && styles.activeTabText,
+            ]}
+          >
             {tab}
           </Text>
         </TouchableOpacity>
@@ -25,6 +34,8 @@ const RequestTabs: React.FC<Props> = ({ activeTab, setActiveTab }) => {
     </View>
   );
 };
+
+export default ClientRequestTabs;
 
 const styles = StyleSheet.create({
   container: {
@@ -38,16 +49,12 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 10,
     borderRadius: 10,
   },
   activeTab: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
     elevation: 2,
   },
   tabText: {
@@ -60,5 +67,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-
-export default RequestTabs;
