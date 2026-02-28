@@ -11,6 +11,9 @@ interface TopNavbarProps {
   onNotificationPress?: () => void;
   onProfilePress?: () => void;
   onLogoutPress?: () => void;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
+  hideRightSection?: boolean;
 }
 
 const TopNavbar: React.FC<TopNavbarProps> = ({
@@ -20,6 +23,9 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
   onNotificationPress,
   onProfilePress,
   onLogoutPress,
+  showBackButton = false,
+  onBackPress,
+  hideRightSection = false,
 }) => {
   const [notificationCount] = useState(3);
 
@@ -46,68 +52,84 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
         <View style={styles.content}>
           
           {/* Left Section */}
-          <View style={styles.leftSection}>
+          <View
+            style={[
+              styles.leftSection,
+              showBackButton && styles.leftSectionRow,
+            ]}
+          >
+            {showBackButton && (
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={onBackPress}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="arrow-back" size={22} color={colors.white} />
+              </TouchableOpacity>
+            )}
+
             {title ? (
               <Text style={styles.title}>{title}</Text>
             ) : (
-              <>
+              <View>
                 <Text style={styles.greeting}>{getGreeting()}</Text>
                 <Text style={styles.userName} numberOfLines={1}>
                   {userName}
                 </Text>
-              </>
+              </View>
             )}
           </View>
 
           {/* Right Section */}
-          <View style={styles.rightSection}>
-
-            {/* Notification Button */}
-            <TouchableOpacity
-              style={styles.notificationButton}
-              onPress={onNotificationPress}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="notifications" size={20} color={colors.white} />
-              {notificationCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.badgeText}>
-                    {notificationCount > 9 ? '9+' : notificationCount}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {/* Logout Button */}
-            {onLogoutPress && (
+          {!hideRightSection && (
+            <View style={styles.rightSection}>
+              
+              {/* Notification */}
               <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={onLogoutPress}
+                style={styles.notificationButton}
+                onPress={onNotificationPress}
                 activeOpacity={0.7}
               >
-                <Ionicons name="power" size={20} color={colors.white} />
+                <Ionicons name="notifications" size={20} color={colors.white} />
+                {notificationCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.badgeText}>
+                      {notificationCount > 9 ? '9+' : notificationCount}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
-            )}
 
-            {/* Profile Avatar */}
-            <TouchableOpacity
-              style={styles.profileButton}
-              onPress={onProfilePress}
-              activeOpacity={0.7}
-            >
-              {profileImage ? (
-                <Image
-                  source={{ uri: profileImage }}
-                  style={styles.profileImage}
-                />
-              ) : (
-                <View style={styles.defaultAvatar}>
-                  <Ionicons name="person" size={18} color={colors.primary} />
-                </View>
+              {/* Logout */}
+              {onLogoutPress && (
+                <TouchableOpacity
+                  style={styles.logoutButton}
+                  onPress={onLogoutPress}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="power" size={20} color={colors.white} />
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
 
-          </View>
+              {/* Profile */}
+              <TouchableOpacity
+                style={styles.profileButton}
+                onPress={onProfilePress}
+                activeOpacity={0.7}
+              >
+                {profileImage ? (
+                  <Image
+                    source={{ uri: profileImage }}
+                    style={styles.profileImage}
+                  />
+                ) : (
+                  <View style={styles.defaultAvatar}>
+                    <Ionicons name="person" size={18} color={colors.primary} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </LinearGradient>
     </View>
@@ -136,10 +158,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
+
+  /* LEFT SECTION */
   leftSection: {
     flex: 1,
-    justifyContent: 'center',
   },
+  leftSectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
   greeting: {
     color: colors.white,
     fontSize: fontSize.sm,
@@ -157,10 +185,13 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg + 2,
     fontWeight: fontWeight.bold,
   },
+
+  /* RIGHT SECTION */
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   notificationButton: {
     width: 40,
     height: 40,
@@ -170,6 +201,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: spacing.md,
   },
+
   logoutButton: {
     width: 40,
     height: 40,
@@ -179,6 +211,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: spacing.md,
   },
+
   notificationBadge: {
     position: 'absolute',
     top: -2,
@@ -192,12 +225,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.primary,
   },
+
   badgeText: {
     color: colors.white,
     fontSize: fontSize.xs,
     fontWeight: fontWeight.bold,
   },
+
   profileButton: {},
+
   profileImage: {
     width: 44,
     height: 44,
@@ -205,6 +241,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
   },
+
   defaultAvatar: {
     width: 44,
     height: 44,
@@ -214,6 +251,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
+  },
+
+  backButton: {
+    marginRight: spacing.md,
   },
 });
 
