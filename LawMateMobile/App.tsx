@@ -8,6 +8,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { ToastProvider } from './src/context/ToastContext';
 import { colors } from './src/config/theme';
 
+
 import {
     RootStackParamList, LawyerTabParamList,
     ClientTabParamList, AdminTabParamList
@@ -26,6 +27,7 @@ import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpSc
 import LawyerProfileScreen from './src/screens/lawyer/lawyerProfile/LawyerProfileScreen';
 import LawyerPersonalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerPersonalDetailsScreen';
 import LawyerProfessionalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerProfessionalDetailsScreen';
+import LawyerKnowledgeHubFeed from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubFeed';
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
@@ -128,7 +130,7 @@ function LawyerTabNavigator() {
 
             <LawyerTab.Screen
                 name="Knowledge"
-                component={SettingsScreen}
+                component={LawyerKnowledgeHubFeed}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
