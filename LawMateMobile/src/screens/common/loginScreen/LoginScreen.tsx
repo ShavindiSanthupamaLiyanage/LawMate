@@ -26,10 +26,10 @@ interface LoginScreenProps {
 
 // Hardcoded users for demo
 const USERS: Record<string, User> = {
-    'lawyer@test.com': { email: 'lawyer@test.com', password: '123456', type: 'lawyer', name: 'John Smith' },
-    'client@test.com': { email: 'client@test.com', password: '123456', type: 'client', name: 'Jane Doe' },
-    'admin@test.com': { email: 'admin@test.com', password: '123456', type: 'admin', name: 'Admin User' },
-    'dual@test.com': { email: 'dual@test.com', password: '123', type: 'lawyer', name: 'Dual User' },
+    'lawyer': { email: 'lawyer', password: '123456', type: 'lawyer', name: 'John Smith' },
+    'client': { email: 'client', password: '123456', type: 'client', name: 'Jane Doe' },
+    'admin': { email: 'admin', password: '123456', type: 'admin', name: 'Admin User' },
+    'dual': { email: 'dual', password: '123', type: 'lawyer', name: 'Dual User' },
 };
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
@@ -183,10 +183,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
                     <View style={styles.demoCredentials}>
                         <Text style={styles.demoTitle}>Demo Credentials:</Text>
-                        <Text style={styles.demoText}>Lawyer: lawyer@test.com / 123456</Text>
-                        <Text style={styles.demoText}>Client: client@test.com / 123456</Text>
-                        <Text style={styles.demoText}>Admin: admin@test.com / 123456</Text>
-                        <Text style={styles.demoText}>Dual User: dual@test.com / 123</Text>
+                        <Text style={styles.demoText}>Lawyer: lawyer / 123456</Text>
+                        <Text style={styles.demoText}>Client: client / 123456</Text>
+                        <Text style={styles.demoText}>Admin: admin / 123456</Text>
+                        <Text style={styles.demoText}>Dual User: dual / 123</Text>
                     </View>
                 </View>
             </ScrollView>

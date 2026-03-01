@@ -6,6 +6,7 @@ import TopNavbar from './TopNavbar';
 
 interface LawyerLayoutProps {
     children: React.ReactNode;
+    title?: string;  // optional screen title
     userName?: string;
     profileImage?: string;
     onNotificationPress?: () => void;
@@ -14,7 +15,8 @@ interface LawyerLayoutProps {
 
 const LawyerLayout: React.FC<LawyerLayoutProps> = ({
     children,
-    userName = 'Kavindi Dilhara',
+    title,
+    userName,
     profileImage,
     onNotificationPress,
     onProfilePress,
@@ -23,6 +25,7 @@ const LawyerLayout: React.FC<LawyerLayoutProps> = ({
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
             <View>
                 <TopNavbar
+                    title={title}   // <--- reactive title
                     userName={userName}
                     profileImage={profileImage}
                     onNotificationPress={onNotificationPress}
@@ -41,13 +44,8 @@ const LawyerLayout: React.FC<LawyerLayoutProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    contentContainer: {
-        paddingBottom: spacing.lg,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
+    contentContainer: { paddingBottom: spacing.lg },
 });
 
 export default LawyerLayout;
