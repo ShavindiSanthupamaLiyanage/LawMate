@@ -58,9 +58,6 @@ import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStac
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
-import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
-import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
-import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
 import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
 import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
