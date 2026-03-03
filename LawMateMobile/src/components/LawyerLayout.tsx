@@ -6,14 +6,15 @@ import TopNavbar from './TopNavbar';
 
 interface LawyerLayoutProps {
     children: React.ReactNode;
-    title?: string;  // optional screen title
+    title?: string;
     userName?: string;
     profileImage?: string;
     onNotificationPress?: () => void;
     onProfilePress?: () => void;
     showBackButton?: boolean;
     onBackPress?: () => void;
-    hideRightSection?: boolean; // hide profile + notification
+    hideRightSection?: boolean;
+    disableScroll?: boolean;
 }
 
 const LawyerLayout: React.FC<LawyerLayoutProps> = ({
@@ -26,6 +27,7 @@ const LawyerLayout: React.FC<LawyerLayoutProps> = ({
     showBackButton,
     onBackPress,
     hideRightSection,
+    disableScroll,
 }) => {
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
@@ -36,18 +38,25 @@ const LawyerLayout: React.FC<LawyerLayoutProps> = ({
                     profileImage={profileImage}
                     onNotificationPress={onNotificationPress}
                     onProfilePress={onProfilePress}
-                    showBackButton={showBackButton}     
-                    onBackPress={onBackPress}           
+                    showBackButton={showBackButton}
+                    onBackPress={onBackPress}
                     hideRightSection={hideRightSection}
                 />
             </View>
-            <ScrollView
-                style={styles.container}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.contentContainer}
-            >
-                {children}
-            </ScrollView>
+
+            {disableScroll ? (
+                <View style={styles.container}>
+                    {children}
+                </View>
+            ) : (
+                <ScrollView
+                    style={styles.container}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.contentContainer}
+                >
+                    {children}
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 };
