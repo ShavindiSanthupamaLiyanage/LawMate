@@ -26,9 +26,9 @@ import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpSc
 import LawyerProfileScreen from './src/screens/lawyer/lawyerProfile/LawyerProfileScreen';
 import LawyerPersonalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerPersonalDetailsScreen';
 import LawyerProfessionalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerProfessionalDetailsScreen';
-import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
-import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
-import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
+// import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
+// import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
+// import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
 
 // Client Screens
 import ClientDashboard from './src/screens/client/ClientDashboard';
@@ -64,12 +64,13 @@ import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStac
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
-import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
-import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
-import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
+// import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
+// import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
+// import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
 import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
 import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
+import {AuthProvider} from "./src/context/AuthContext";
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -381,6 +382,7 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <ToastProvider>
+                <AuthProvider>
                 <NavigationContainer>
                     <Stack.Navigator
                         initialRouteName="Splash"
@@ -467,6 +469,7 @@ export default function App() {
 
                     </Stack.Navigator>
                 </NavigationContainer>
+                    </AuthProvider>
             </ToastProvider>
         </SafeAreaProvider>
     );
