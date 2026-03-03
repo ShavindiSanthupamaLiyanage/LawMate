@@ -51,6 +51,9 @@ export type RootStackParamList = {
     LawyerTabs: NavigatorScreenParams<LawyerStackParamList>;
     ClientTabs: NavigatorScreenParams<ClientStackParamList>;
     AdminTabs: NavigatorScreenParams<AdminStackParamList>;
+    ClientAppointmentView:{request:any}
+    PaymentSlipScreen:{request:any}
+    PaymentSlipReceivedScreen:{request:any}
 };
 
 export type LawyerTabParamList = {
@@ -83,6 +86,7 @@ export type ClientTabParamList = {
     Bookings: undefined;
     Lawyers: undefined;
     Knowledge: undefined;
+    AppointmentView: undefined;
 };
 
 export type AdminTabParamList = {
