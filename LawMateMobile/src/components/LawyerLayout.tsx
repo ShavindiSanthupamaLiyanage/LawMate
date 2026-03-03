@@ -11,6 +11,9 @@ interface LawyerLayoutProps {
     profileImage?: string;
     onNotificationPress?: () => void;
     onProfilePress?: () => void;
+    showBackButton?: boolean;
+    onBackPress?: () => void;
+    hideRightSection?: boolean; // hide profile + notification
 }
 
 const LawyerLayout: React.FC<LawyerLayoutProps> = ({
@@ -20,16 +23,22 @@ const LawyerLayout: React.FC<LawyerLayoutProps> = ({
     profileImage,
     onNotificationPress,
     onProfilePress,
+    showBackButton,
+    onBackPress,
+    hideRightSection,
 }) => {
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
             <View>
                 <TopNavbar
-                    title={title}   // <--- reactive title
+                    title={title}
                     userName={userName}
                     profileImage={profileImage}
                     onNotificationPress={onNotificationPress}
                     onProfilePress={onProfilePress}
+                    showBackButton={showBackButton}     
+                    onBackPress={onBackPress}           
+                    hideRightSection={hideRightSection}
                 />
             </View>
             <ScrollView
