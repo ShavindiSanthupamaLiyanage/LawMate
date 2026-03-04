@@ -27,14 +27,24 @@ import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpSc
 import LawyerProfileScreen from './src/screens/lawyer/lawyerProfile/LawyerProfileScreen';
 import LawyerPersonalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerPersonalDetailsScreen';
 import LawyerProfessionalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerProfessionalDetailsScreen';
+<<<<<<< HEAD
 import LawyerKnowledgeHubFeed from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubFeed';
+=======
+import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
+import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
+import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
+>>>>>>> ea61a1903cbde77db64a4dc93bbce49cd1be61b7
 
 // Client Screens
-import ClientDashboard from './src/screens/client/ClientDashboard';
 import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
 import ClientProfileScreen from './src/screens/client/clientProfile/ClientProfileScreen';
 import ClientPersonalDetailsScreen from './src/screens/client/clientProfile/ClientPersonalDetailsScreen';
 import ClientKnowledgeHub from "./src/screens/client/clientKnowledgeHub/ClientKnowledgeHub";
+import ClientRequests from './src/screens/client/clientRequest/ClientRequests'
+import ClientAppointmentView from './src/screens/client/clientRequest/ClientAppointmentView'
+import PaymentSlipScreen from './src/screens/client/clientRequest/PaymentSlipScreen';
+import PaymentSlipReceivedScreen from './src/screens/client/clientRequest/PaymentSlipReceivedScreen';
+import ClientDashboardStack from "./src/screens/client/clientDashboard/ClientDashboardStack";
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
@@ -47,7 +57,6 @@ import SettingsPreferencesScreen from './src/screens/common/SettingsPreferencesS
 import HelpScreen from './src/screens/common/HelpScreen';
 
 // Placeholder Screens
-import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 // import TabIcon from "./src/components/TabIcon";
@@ -60,13 +69,6 @@ import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStac
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
-import FinanceMain from "./src/screens/lawyer/lawyerFinance/FinanceMain";
-import ViewTransactions from "./src/screens/lawyer/lawyerFinance/ViewTransactions";
-import EarningsReport from "./src/screens/lawyer/lawyerFinance/EarningsReport";
-import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
-import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
-import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
-
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -77,6 +79,25 @@ const LawyerStack = createNativeStackNavigator();
 const ClientStack = createNativeStackNavigator();
 const AdminStack = createNativeStackNavigator();
 
+function LawyerRequestsStack() {
+    return (
+        <LawyerStack.Navigator screenOptions={{ headerShown: false }}>
+            <LawyerStack.Screen name="LawyerRequestsList" component={LawyerRequests} />
+            <LawyerStack.Screen name="AppointmentView" component={AppointmentView} />
+        </LawyerStack.Navigator>
+    );
+}
+
+function ClientRequestsStackNavigator() {
+    return (
+        <ClientStack.Navigator screenOptions={{ headerShown: false }}>
+            <ClientStack.Screen name="ClientRequestsList" component={ClientRequests} />
+            <ClientStack.Screen name="ClientAppointmentView" component={ClientAppointmentView} />
+            <ClientStack.Screen name="PaymentSlipScreen" component={PaymentSlipScreen} />
+            <ClientStack.Screen name="PaymentSlipReceivedScreen" component={PaymentSlipReceivedScreen} />
+        </ClientStack.Navigator>
+    );
+}
 // Lawyer Bottom Tabs (Only visible tabs)
 function LawyerTabNavigator() {
     const insets = useSafeAreaInsets();
@@ -104,7 +125,7 @@ function LawyerTabNavigator() {
         >
             <LawyerTab.Screen
                 name="Requests"
-                component={LawyerRequests}
+                component={LawyerRequestsStack}
                 options={{
                     tabBarIcon: ({ color, focused }) => (
                         <TabIcon iconName="mail-outline" color={color} focused={focused} />
@@ -168,7 +189,6 @@ function LawyerTabs() {
             <LawyerStack.Screen name="Availability" component={AvailabilityScreen} />
             <LawyerStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
             <LawyerStack.Screen name="Help" component={HelpScreen} />
-            <LawyerStack.Screen name="AppointmentView" component={AppointmentView}/>
         </LawyerStack.Navigator>
     );
 }
@@ -197,11 +217,11 @@ function ClientTabNavigator() {
             headerShown: false,
         }}>
             <ClientTab.Screen
-                name="Bookings"
-                component={HomeScreen}
+                name="Requests"
+                component={ClientRequestsStackNavigator}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-                        <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
+                        <TabIcon iconName="mail-outline" color={color} focused={focused} />
                     ),
                 }}
             />
@@ -218,7 +238,7 @@ function ClientTabNavigator() {
 
             <ClientTab.Screen
                 name="Dashboard"
-                component={ClientDashboard}
+                component={ClientDashboardStack}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
