@@ -10,10 +10,11 @@ interface ClientLayoutProps {
     profileImage?: string;
     onNotificationPress?: () => void;
     onProfilePress?: () => void;
-    title:string;
+    title: string;
     showBackButton?: boolean;
     onBackPress?: () => void;
-    hideRightSection?: boolean; 
+    hideRightSection?: boolean;
+    disableScroll?: boolean;
 }
 
 const ClientLayout: React.FC<ClientLayoutProps> = ({
@@ -26,28 +27,36 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({
     showBackButton,
     onBackPress,
     hideRightSection,
+    disableScroll,
 }) => {
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
             <View>
                 <TopNavbar
-                    title={title}  
+                    title={title}
                     userName={userName}
                     profileImage={profileImage}
                     onNotificationPress={onNotificationPress}
                     onProfilePress={onProfilePress}
-                    showBackButton={showBackButton}     
-                    onBackPress={onBackPress}           
+                    showBackButton={showBackButton}
+                    onBackPress={onBackPress}
                     hideRightSection={hideRightSection}
                 />
             </View>
-            <ScrollView
-                style={styles.container}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.contentContainer}
-            >
-                {children}
-            </ScrollView>
+
+            {disableScroll ? (
+                <View style={styles.container}>
+                    {children}
+                </View>
+            ) : (
+                <ScrollView
+                    style={styles.container}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.contentContainer}
+                >
+                    {children}
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 };
