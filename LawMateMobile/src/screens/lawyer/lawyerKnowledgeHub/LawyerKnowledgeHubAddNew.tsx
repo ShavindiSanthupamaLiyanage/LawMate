@@ -78,7 +78,7 @@ const AddNewArticle: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+    container: {
     padding: spacing.lg,
   },
 

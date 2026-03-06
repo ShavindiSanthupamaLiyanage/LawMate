@@ -6,13 +6,15 @@ import { useNavigation } from '@react-navigation/native';
 import InitialTopNavbar from '../../../components/InitialTopNavbar';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 
-const AddNewArticle: React.FC = () => {
+const ManageArticle: React.FC = () => {
   const navigation = useNavigation<any>();
 
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState('Law category Identification');
+const [content, setContent] = useState(
+  '"Understanding property law is essential when buying, selling, leasing, or inheriting land and buildings. It defines ownership rights, transfer procedures, land registration requirements, and dispute resolution methods. In Sri Lanka, property ownership is governed by title registration, deeds, and local authority approvals. Individuals must verify clear titles, zoning regulations, and tax obligations before transactions. Legal remedies exist for boundary disputes, unlawful occupation, and inheritance conflicts, making professional legal guidance crucial.'
+);
 
-  const handlePublish = () => {
+  const handleupdate = () => {
     if (!title.trim() || !content.trim()) {
       Alert.alert('Validation', 'Please fill all fields');
       return;
@@ -31,7 +33,7 @@ const AddNewArticle: React.FC = () => {
     <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
       <View style={styles.page}>
         <InitialTopNavbar
-          title="Add New Article"
+          title="Manage Article"
           onBack={() => navigation.goBack()}
           showLogo={false}
         />
@@ -55,7 +57,7 @@ const AddNewArticle: React.FC = () => {
           />
 
       
-          {/* Cancel and Publish Buttons */}
+          {/* Cancel and update Buttons */}
           <View style={styles.buttonRow}>
             <TouchableOpacity
               style={styles.cancelBtn}
@@ -65,10 +67,10 @@ const AddNewArticle: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.publishBtn}
-              onPress={handlePublish}
+              style={styles.updateBtn}
+              onPress={handleupdate}
             >
-              <Text style={styles.publishText}>Publish</Text>
+              <Text style={styles.updateText}>Update</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -123,7 +125,7 @@ borderRadius: 999,
     fontWeight: fontWeight.semibold,
   },
 
-  publishBtn: {
+  updateBtn: {
     flex: 1,
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
@@ -132,7 +134,7 @@ borderRadius: 999,
     marginLeft: spacing.sm,
   },
 
-  publishText: {
+  updateText: {
     color: colors.white,
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
@@ -144,4 +146,4 @@ borderRadius: 999,
   },
 });
 
-export default AddNewArticle;
+export default ManageArticle;
