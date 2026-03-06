@@ -53,7 +53,8 @@ import AdminDashboard from './src/screens/admin/AdminDashboard';
 import AdminProfileScreen from './src/screens/admin/adminProfile/AdminProfileScreen';
 import AdminPersonalDetailsScreen from './src/screens/admin/adminProfile/AdminPersonalDetailsScreen';
 import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
-import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVerificationScreen";
+// import UserVerificationScreen from "./src/screens/admin/userVerification/UserManagementScreen";
+import VerificationStack from "./src/screens/admin/userVerification/VerificationStack";
 import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
 
 // Shared Screens
@@ -306,9 +307,18 @@ function AdminTabNavigator() {
             },
             headerShown: false,
         }}>
+            {/*<AdminTab.Screen*/}
+            {/*    name="Verifications"*/}
+            {/*    component={UserVerificationScreen}*/}
+            {/*    options={{*/}
+            {/*        tabBarIcon: ({ color, focused }) => (*/}
+            {/*            <TabIcon iconName="bookmark-outline" color={color} focused={focused} />*/}
+            {/*        ),*/}
+            {/*    }}*/}
+            {/*/>*/}
             <AdminTab.Screen
                 name="Verifications"
-                component={UserVerificationScreen}
+                component={VerificationStack}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
