@@ -31,7 +31,6 @@ import LawyerProfessionalDetailsScreen from './src/screens/lawyer/lawyerProfile/
 // import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
 
 // Client Screens
-import ClientDashboard from './src/screens/client/ClientDashboard';
 import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
 import ClientProfileScreen from './src/screens/client/clientProfile/ClientProfileScreen';
 import ClientPersonalDetailsScreen from './src/screens/client/clientProfile/ClientPersonalDetailsScreen';
@@ -40,6 +39,7 @@ import ClientRequests from './src/screens/client/clientRequest/ClientRequests'
 import ClientAppointmentView from './src/screens/client/clientRequest/ClientAppointmentView'
 import PaymentSlipScreen from './src/screens/client/clientRequest/PaymentSlipScreen';
 import PaymentSlipReceivedScreen from './src/screens/client/clientRequest/PaymentSlipReceivedScreen';
+import ClientDashboardStack from "./src/screens/client/clientDashboard/ClientDashboardStack";
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
@@ -242,7 +242,7 @@ function ClientTabNavigator() {
 
             <ClientTab.Screen
                 name="Dashboard"
-                component={ClientDashboard}
+                component={ClientDashboardStack}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="home-outline" color={color} focused={focused} isHome={true} />
