@@ -50,11 +50,11 @@ export const API_CONFIG = {
 export const ENDPOINTS = {
     // Authentication
     AUTH: {
-        LOGIN: '/common/login',
-        LOGOUT: '/common/logout',
-        REFRESH_TOKEN: '/common/refresh',
-        FORGOT_PASSWORD: '/common/forgot-password',
-        RESET_PASSWORD: '/common/reset-password',
+        LOGIN: '/auth/login',
+        LOGOUT: '/auth/logout',
+        REFRESH_TOKEN: '/auth/refresh',
+        FORGOT_PASSWORD: '/auth/forgot-password',
+        RESET_PASSWORD: '/auth/reset-password',
     },
 
     // Lawyer endpoints
