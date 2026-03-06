@@ -8,10 +8,12 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
 import AdminLayout from "../../../components/AdminLayout";
-import SummaryCard from "../../admin/userVerificatopm/SummaryCard";
-import ActionItem from "../../admin/userVerificatopm/ActionItem";
+import SummaryCard from ".//SummaryCard";
+import ActionItem from ".//ActionItem";
+import { useNavigation } from "@react-navigation/native";
 
 const UserManagementScreen = () => {
+    const navigation = useNavigation<any>();
     return (
         <AdminLayout userName="Kavindu Gimsara">
             <ScrollView
@@ -73,14 +75,14 @@ const UserManagementScreen = () => {
                 <ActionItem
                     icon={<Feather name="user-check" size={20} color={colors.primary} />}
                     title="Lawyer Verification"
-                    onPress={() => {}}
+                    onPress={() => navigation.navigate("LawyerVerification")}
                 />
 
-                <ActionItem
-                    icon={<Feather name="users" size={20} color={colors.primary} />}
-                    title="Client Verification"
-                    onPress={() => {}}
-                />
+                {/*<ActionItem*/}
+                {/*    icon={<Feather name="users" size={20} color={colors.primary} />}*/}
+                {/*    title="Client Verification"*/}
+                {/*    onPress={() => navigation.navigate("ClientVerification")}*/}
+                {/*/>*/}
 
                 <View style={{ height: 30 }} />
             </ScrollView>
