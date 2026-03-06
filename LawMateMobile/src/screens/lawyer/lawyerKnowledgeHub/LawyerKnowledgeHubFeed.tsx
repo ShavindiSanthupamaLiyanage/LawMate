@@ -38,7 +38,7 @@ const ArticlePost: React.FC<{
           <Text style={styles.postDate}>{article.date}</Text>
         </View>
 
-        {/* ✏️ Edit Icon (My Articles only) */}
+        {/* Edit Icon (My Articles only) */}
         {showEdit && (
           <TouchableOpacity
             style={styles.editButton}
@@ -114,7 +114,7 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
         <Button
           title="ADD NEW"
           variant="primary"
-          onPress={() => navigation.navigate("EarningsReport")}
+          onPress={() => navigation.navigate("AddNewArticle")}
           style={styles.primaryBtn}
         />
 
@@ -154,8 +154,8 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
             onLike={toggleLike}
             showEdit={activeTab === 'recent'}
             onEdit={(art) =>
-              navigation.navigate('EditArticle', { article: art })
-            }
+  navigation.navigate('ManageArticle', { article: art })
+}
           />
         ))}
 

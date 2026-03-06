@@ -8,7 +8,6 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { ToastProvider } from './src/context/ToastContext';
 import { colors } from './src/config/theme';
 
-
 import {
     RootStackParamList, LawyerTabParamList,
     ClientTabParamList, AdminTabParamList
@@ -27,13 +26,10 @@ import LawyerSignUpScreen from './src/screens/lawyer/lawyerSignUp/LawyerSignUpSc
 import LawyerProfileScreen from './src/screens/lawyer/lawyerProfile/LawyerProfileScreen';
 import LawyerPersonalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerPersonalDetailsScreen';
 import LawyerProfessionalDetailsScreen from './src/screens/lawyer/lawyerProfile/LawyerProfessionalDetailsScreen';
-<<<<<<< HEAD
-import LawyerKnowledgeHubFeed from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubFeed';
-=======
 import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
 import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
->>>>>>> ea61a1903cbde77db64a4dc93bbce49cd1be61b7
+import LawyerKnowledgeHubFeed from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubFeed';
 
 // Client Screens
 import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
@@ -69,6 +65,9 @@ import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStac
 import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
 import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
+import AddNewArticle from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubAddNew';
+import ManageArticle from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubManage';
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -189,6 +188,9 @@ function LawyerTabs() {
             <LawyerStack.Screen name="Availability" component={AvailabilityScreen} />
             <LawyerStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
             <LawyerStack.Screen name="Help" component={HelpScreen} />
+            <LawyerStack.Screen name="AddNewArticle" component={AddNewArticle} />
+            <LawyerStack.Screen name="ManageArticle" component={ManageArticle} />
+
         </LawyerStack.Navigator>
     );
 }
