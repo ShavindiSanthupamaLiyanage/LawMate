@@ -59,6 +59,7 @@ export const ENDPOINTS = {
 
     // Lawyer endpoints
     LAWYER: {
+        REGISTER: "/lawyers",
         PROFILE: '/lawyer/profile',
         UPDATE_PROFILE: '/lawyer/profile',
         CASES: '/lawyer/cases',
