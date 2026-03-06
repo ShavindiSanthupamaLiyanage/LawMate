@@ -13,30 +13,37 @@ import {
     colors,
     spacing,
     fontSize,
-    borderRadius, fontWeight,
+    borderRadius,
+    fontWeight,
 } from "../config/theme";
 
-interface SelectInputProps {
-    label: string;
-    value: string;
-    onValueChange: (value: string) => void;
-    items: { label: string; value: string }[];
+// ── Generic so it works with both string and number values ───────────────────
+interface SelectInputProps<T extends string | number> {
+    label:          string;
+    value:          T | undefined;
+    onValueChange:  (value: T) => void;
+    items:          { label: string; value: T }[];
 }
 
-const SelectInput: React.FC<SelectInputProps> = ({
-                                                     label,
-                                                     value,
-                                                     onValueChange,
-                                                     items,
-                                                 }) => {
+function SelectInput<T extends string | number>({
+                                                    label,
+                                                    value,
+                                                    onValueChange,
+                                                    items,
+                                                }: SelectInputProps<T>) {
     const [visible, setVisible] = useState(false);
     const [focused, setFocused] = useState(false);
 
-    const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+    // Derive the display label from the selected value
+    const selectedLabel = items.find((i) => i.value === value)?.label ?? "";
+
+    const animatedValue = useRef(
+        new Animated.Value(value !== undefined && value !== "" ? 1 : 0)
+    ).current;
 
     useEffect(() => {
         Animated.timing(animatedValue, {
-            toValue: focused || value ? 1 : 0,
+            toValue: focused || (value !== undefined && value !== "") ? 1 : 0,
             duration: 200,
             useNativeDriver: false,
         }).start();
@@ -52,15 +59,15 @@ const SelectInput: React.FC<SelectInputProps> = ({
                             position: "absolute",
                             left: spacing.md,
                             top: animatedValue.interpolate({
-                                inputRange: [0, 1],
+                                inputRange:  [0, 1],
                                 outputRange: [14, -14],
                             }),
                             fontSize: animatedValue.interpolate({
-                                inputRange: [0, 1],
+                                inputRange:  [0, 1],
                                 outputRange: [fontSize.md, fontSize.sm],
                             }),
-                            color: focused ? colors.primary : colors.textLight,
-                            fontWeight: fontWeight.medium,
+                            color:           focused ? colors.primary : colors.textLight,
+                            fontWeight:      fontWeight.medium,
                             backgroundColor: colors.white,
                             paddingHorizontal: 4,
                         }}
@@ -68,7 +75,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
                         {label}
                     </Animated.Text>
 
-                    {/* Select Content */}
+                    {/* Select trigger */}
                     <TouchableOpacity
                         style={styles.selectContent}
                         onPress={() => {
@@ -78,12 +85,12 @@ const SelectInput: React.FC<SelectInputProps> = ({
                     >
                         <Text
                             style={{
-                                fontSize: fontSize.md,
+                                fontSize:   fontSize.md,
                                 fontWeight: fontWeight.medium,
-                                color: value ? colors.textPrimary : colors.textLight,
+                                color:      selectedLabel ? colors.textPrimary : colors.textLight,
                             }}
                         >
-                            {value || ""}
+                            {selectedLabel}
                         </Text>
 
                         <Ionicons
@@ -107,17 +114,27 @@ const SelectInput: React.FC<SelectInputProps> = ({
                     <View style={styles.dropdown}>
                         <FlatList
                             data={items}
-                            keyExtractor={(item) => item.value}
+                            keyExtractor={(item) => String(item.value)}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
-                                    style={styles.option}
+                                    style={[
+                                        styles.option,
+                                        item.value === value && styles.optionSelected,
+                                    ]}
                                     onPress={() => {
-                                        onValueChange(item.label);
+                                        onValueChange(item.value);   // ← passes the value (number or string), not the label
                                         setVisible(false);
                                         setFocused(false);
                                     }}
                                 >
-                                    <Text style={styles.optionText}>{item.label}</Text>
+                                    <Text
+                                        style={[
+                                            styles.optionText,
+                                            item.value === value && styles.optionTextSelected,
+                                        ]}
+                                    >
+                                        {item.label}
+                                    </Text>
                                 </TouchableOpacity>
                             )}
                         />
@@ -126,54 +143,61 @@ const SelectInput: React.FC<SelectInputProps> = ({
             </Modal>
         </>
     );
-};
+}
 
 export default SelectInput;
 
 const styles = StyleSheet.create({
-    container: {
-    },
+    container: {},
 
     inputContainer: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: borderRadius.md,
-        height: 55,
-        justifyContent: "center", // 👈 important
+        borderWidth:     1,
+        borderColor:     colors.border,
+        borderRadius:    borderRadius.md,
+        height:          55,
+        justifyContent:  "center",
         backgroundColor: colors.white,
-
     },
 
     selectContent: {
         paddingHorizontal: spacing.md,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        height: "100%",
+        flexDirection:     "row",
+        justifyContent:    "space-between",
+        alignItems:        "center",
+        height:            "100%",
     },
 
     overlay: {
-        flex: 1,
+        flex:            1,
         backgroundColor: "rgba(0,0,0,0.3)",
-        justifyContent: "center",
-        padding: spacing.lg,
+        justifyContent:  "center",
+        padding:         spacing.lg,
     },
 
     dropdown: {
         backgroundColor: colors.white,
-        borderRadius: borderRadius.md,
-        maxHeight: 250,
+        borderRadius:    borderRadius.md,
+        maxHeight:       250,
     },
 
     option: {
-        padding: spacing.md,
+        padding:         spacing.md,
         borderBottomWidth: 1,
         borderBottomColor: colors.borderLight,
     },
 
+    optionSelected: {
+        backgroundColor: colors.primaryLight ?? "#EEF2FF",
+    },
+
     optionText: {
-        fontSize: fontSize.md,
+        fontSize:   fontSize.md,
         fontWeight: fontWeight.medium,
-        color: colors.textPrimary,
+        color:      colors.textPrimary,
+    },
+
+    optionTextSelected: {
+        color:      colors.primary,
+        fontWeight: fontWeight.semibold,
     },
 });

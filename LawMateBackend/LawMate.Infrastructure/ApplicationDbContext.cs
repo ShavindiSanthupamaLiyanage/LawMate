@@ -2,6 +2,7 @@
 using LawMate.Domain.Entities.Auth;
 using LawMate.Domain.Entities.Booking;
 using LawMate.Domain.Entities.Lawyer;
+using LawMate.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -13,6 +14,7 @@ namespace LawMate.Infrastructure
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         #region Auth
+        
         public DbSet<USER_DETAIL> USER_DETAIL => Set<USER_DETAIL>();
         public DbSet<CLIENT_DETAILS> CLIENT_DETAILS => Set<CLIENT_DETAILS>();
         public DbSet<LAWYER_DETAILS> LAWYER_DETAILS => Set<LAWYER_DETAILS>();
@@ -22,7 +24,8 @@ namespace LawMate.Infrastructure
         public DbSet<TIMESLOT> TIMESLOT => Set<TIMESLOT>(); 
         public DbSet<ARTICLE> ARTICLE => Set<ARTICLE>(); 
         public DbSet<MEMBERSHIP_PAYMENT> MEMBERSHIP_PAYMENT => Set<MEMBERSHIP_PAYMENT>(); 
-
+        public DbSet<PASSWORD_RESET_TOKEN> PASSWORD_RESET_TOKEN => Set<PASSWORD_RESET_TOKEN>();
+        
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

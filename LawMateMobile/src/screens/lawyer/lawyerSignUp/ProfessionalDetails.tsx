@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {
     StyleSheet,
     ScrollView,
@@ -13,134 +13,162 @@ import UploadCard from "../../../components/UploadCard";
 import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 
+import { spacing, colors, fontSize, fontWeight } from "../../../config/theme";
+
 import {
-    spacing,
-    colors,
-    fontSize, fontWeight,
-} from "../../../config/theme";
+    FileAsset,
+    LawyerProfessionalDetails,
+} from "../../../interfaces/lawyerRegistration.interface";
+import {AreaOfPracticeOptions, DistrictsByProvince, ProvinceOptions} from "../../../emun/enumOptions";
+import {District, Province} from "../../../emun/enum";
 
-export default function ProfessionalDetailsScreen() {
-    const [certificateNo, setCertificateNo] = useState("");
-    const [membershipCategory, setMembershipCategory] = useState("");
-    const [designation, setDesignation] = useState("");
-    const [areaOfPractice, setAreaOfPractice] = useState("");
-    const [barNumber, setBarNumber] = useState("");
+interface Props {
+    values: LawyerProfessionalDetails;
+    onChange: (patch: Partial<LawyerProfessionalDetails>) => void;
+}
 
-    const [certificateFile, setCertificateFile] = useState<string>();
-    const [nicFile, setNicFile] = useState<string>();
-    const [slipFile, setSlipFile] = useState<string>();
-    const [photoFile, setPhotoFile] = useState<string>();
+export default function ProfessionalDetailsScreen({ values, onChange }: Props) {
 
-    const [confirmed, setConfirmed] = useState(false);
-
-    const pickFile = async (setter: (name: string) => void) => {
+    // Pick a document and store the full asset (uri + name + mimeType)
+    const pickFile = async (
+        field: keyof Pick<
+            LawyerProfessionalDetails,
+            "enrollmentCertificate" | "nicFrontImage" | "nicBackImage" | "profileImage"
+        >
+    ) => {
         const result = await DocumentPicker.getDocumentAsync({
             type: "*/*",
             copyToCacheDirectory: true,
         });
 
         if (result.assets && result.assets.length > 0) {
-            setter(result.assets[0].name);
+            const asset = result.assets[0];
+            const fileAsset: FileAsset = {
+                uri: asset.uri,
+                name: asset.name,
+                mimeType: asset.mimeType ?? undefined,
+                size: asset.size ?? undefined,
+            };
+            onChange({ [field]: fileAsset });
         }
     };
 
+    const [selectedProvince, setSelectedProvince] = useState<Province | undefined>(undefined);
     return (
         <ScrollView
             contentContainerStyle={styles.container}
             keyboardShouldPersistTaps="handled"
         >
-            {/* Inputs */}
             <FloatingInput
                 label="Supreme Court Enrollment No"
-                value={certificateNo}
-                onChangeText={setCertificateNo}
-            />
-
-            <SelectInput
-                label="Membership Category"
-                value={membershipCategory}
-                onValueChange={setMembershipCategory}
-                items={[
-                    { label: "Junior Counsel", value: "junior" },
-                    { label: "Senior Counsel", value: "senior" },
-                    { label: "President’s Counsel", value: "president" },
-                ]}
+                value={values.sceCertificateNo}
+                onChangeText={(v) => onChange({ sceCertificateNo: v })}
             />
 
             <FloatingInput
                 label="Professional Designation"
-                value={designation}
-                onChangeText={setDesignation}
+                value={values.designation}
+                onChangeText={(v) => onChange({ designation: v })}
             />
 
             <SelectInput
                 label="Area of Practice"
-                value={areaOfPractice}
-                onValueChange={setAreaOfPractice}
-                items={[
-                    { label: "Criminal Law", value: "criminal" },
-                    { label: "Civil Law", value: "civil" },
-                    { label: "Corporate Law", value: "corporate" },
-                    { label: "Family Law", value: "family" },
-                ]}
+                value={values.areaOfPractice === "" ? undefined : values.areaOfPractice}
+                onValueChange={(v) => onChange({ areaOfPractice: v })}
+                items={AreaOfPracticeOptions}
             />
 
             <FloatingInput
                 label="BAR Association Registration No"
-                value={barNumber}
-                onChangeText={setBarNumber}
+                value={values.barAssociationRegNo}
+                onChangeText={(v) => onChange({ barAssociationRegNo: v })}
             />
+
+            <FloatingInput
+                label="Years of Experience"
+                value={values.yearOfExperience}
+                onChangeText={(v) => onChange({ yearOfExperience: v })}
+                keyboardType="numeric"
+            />
+
+            <SelectInput
+                label="Province"
+                value={selectedProvince}
+                onValueChange={(v) => {
+                    setSelectedProvince(v as Province);
+                    onChange({ workingDistrict: undefined });
+                }}
+                items={ProvinceOptions}
+            />
+
+            <View pointerEvents={selectedProvince !== undefined ? "auto" : "none"}
+                  style={{ opacity: selectedProvince !== undefined ? 1 : 0.4 }}>
+                <SelectInput
+                    label="Working District"
+                    value={values.workingDistrict}
+                    onValueChange={(v) => onChange({ workingDistrict: v as District })}
+                    items={selectedProvince !== undefined ? DistrictsByProvince[selectedProvince] : []}
+                />
+            </View>
+
+            <Pressable
+                style={styles.checkboxContainer}
+                onPress={() => onChange({ barAssociationMembership: !values.barAssociationMembership })}
+            >
+                <View style={[styles.checkbox, values.barAssociationMembership && styles.checkboxActive]}>
+                    {values.barAssociationMembership && (
+                        <Ionicons name="checkmark" size={16} color={colors.white} />
+                    )}
+                </View>
+                <Text style={styles.checkboxText}>Member of the Bar Association</Text>
+            </Pressable>
 
             {/* Upload Section */}
             <View style={styles.uploadSection}>
                 <View style={styles.uploadRow}>
                     <UploadCard
                         title="Supreme Court Enr. Certificate"
-                        fileName={certificateFile}
-                        onPress={() => pickFile(setCertificateFile)}
+                        fileName={values.enrollmentCertificate?.name}
+                        uri={values.enrollmentCertificate?.uri}       // add this
+                        onPress={() => pickFile("enrollmentCertificate")}
                     />
-
                     <UploadCard
                         title="National Identity (Front)"
-                        fileName={nicFile}
-                        onPress={() => pickFile(setNicFile)}
+                        fileName={values.nicFrontImage?.name}
+                        uri={values.nicFrontImage?.uri}               // add this
+                        onPress={() => pickFile("nicFrontImage")}
                     />
                 </View>
 
                 <View style={styles.uploadRow}>
                     <UploadCard
                         title="National Identity (Back)"
-                        fileName={slipFile}
-                        onPress={() => pickFile(setSlipFile)}
+                        fileName={values.nicBackImage?.name}
+                        uri={values.nicBackImage?.uri}                // add this
+                        onPress={() => pickFile("nicBackImage")}
                     />
-
                     <UploadCard
                         title="Profile Photo"
-                        fileName={photoFile}
-                        onPress={() => pickFile(setPhotoFile)}
+                        fileName={values.profileImage?.name}
+                        uri={values.profileImage?.uri}                // add this
+                        onPress={() => pickFile("profileImage")}
                     />
                 </View>
-
             </View>
 
-            {/* Confirmation */}
+            {/* Confirmation checkbox */}
             <View style={styles.checkboxContainer}>
                 <Pressable
                     style={[
                         styles.checkbox,
-                        confirmed && styles.checkboxActive,
+                        values.confirmed && styles.checkboxActive,
                     ]}
-                    onPress={() => setConfirmed(!confirmed)}
+                    onPress={() => onChange({ confirmed: !values.confirmed })}
                 >
-                    {confirmed && (
-                        <Ionicons
-                            name="checkmark"
-                            size={16}
-                            color={colors.white}
-                        />
+                    {values.confirmed && (
+                        <Ionicons name="checkmark" size={16} color={colors.white} />
                     )}
                 </Pressable>
-
                 <Text style={styles.checkboxText}>
                     I confirm that the details are accurate
                 </Text>
@@ -154,44 +182,19 @@ const styles = StyleSheet.create({
         padding: spacing.lg,
         gap: spacing.md,
     },
-
-    bankSection: {
-        marginTop: spacing.lg,
-    },
-
-    bankText: {
-        fontSize: fontSize.sm,
-        // fontFamily: fontFamily.medium,
-        color: colors.textSecondary,
-        fontWeight: fontWeight.medium,
-        marginBottom: spacing.md,
-        lineHeight: 18,
-    },
-
-    bankDetails: {
-        fontSize: fontSize.sm,
-        // fontFamily: fontFamily.semibold,
-        fontWeight: fontWeight.semibold,
-        color: colors.textPrimary,
-        lineHeight: 20,
-    },
-
     uploadSection: {
         marginTop: spacing.lg,
     },
-
     uploadRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         gap: spacing.sm,
     },
-
     checkboxContainer: {
         flexDirection: "row",
         alignItems: "center",
         marginTop: spacing.lg,
     },
-
     checkbox: {
         width: 22,
         height: 22,
@@ -202,12 +205,10 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginRight: spacing.sm,
     },
-
     checkboxActive: {
         backgroundColor: colors.primary,
         borderColor: colors.primary,
     },
-
     checkboxText: {
         flex: 1,
         fontSize: fontSize.sm,
