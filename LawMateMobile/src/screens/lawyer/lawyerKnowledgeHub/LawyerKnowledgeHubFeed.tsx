@@ -106,8 +106,10 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
 
   return (
     <LawyerLayout
-      userName="Knowledge Hub"
-      onProfilePress={() => navigation.navigate('LawyerProfile')}    >
+      title="Knowledge Hub"
+      userName="Kavindu Gimsara"
+      onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}
+    >
       <ScrollView contentContainerStyle={styles.contentWrapper}>
 
         {/* ADD NEW button under header right side */}
@@ -154,8 +156,8 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
             onLike={toggleLike}
             showEdit={activeTab === 'recent'}
             onEdit={(art) =>
-  navigation.navigate('ManageArticle', { article: art })
-}
+              navigation.navigate('ManageArticle', { article: art })
+            }
           />
         ))}
 
