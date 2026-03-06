@@ -6,6 +6,9 @@ import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
 
 import ClientLayout from "../../../components/ClientLayout";
 import { colors, spacing, fontSize, fontWeight} from "../../../config/theme";
+import { ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /* ----------------------------- */
 /* Donut chart helpers (SVG)     */
@@ -146,12 +149,13 @@ const ActivityCard: React.FC<{
 
 const ClientDashboard: React.FC = () => {
     const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
 
     const donutData: DonutItem[] = [
-        { label: "Criminal",  value: 25, color: "#6D7CFF" },
-        { label: "Civil",     value: 18, color: "#FF8C86" },
-        { label: "Cyber",     value: 20, color: "#26C6DA" },
-        { label: "Family",    value: 22, color: "#FFB74D" },
+        { label: "Criminal", value: 25, color: "#6D7CFF" },
+        { label: "Civil", value: 18, color: "#FF8C86" },
+        { label: "Cyber", value: 20, color: "#26C6DA" },
+        { label: "Family", value: 22, color: "#FFB74D" },
         { label: "Corporate", value: 15, color: "#3F51B5" },
     ];
 
@@ -159,84 +163,108 @@ const ClientDashboard: React.FC = () => {
         <ClientLayout
             title="Dashboard"
             userName="Kavindi Gimsara"
-            onProfilePress={() => navigation.navigate("ClientProfile")}
+            disableScroll
+            onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
         >
-            {/* ✅ Body padding only (TopNavbar stays unchanged) */}
-            <View style={styles.body}>
-                {/* Gradient summary card (like Figma header block) */}
-                <LinearGradient
-                    colors={[colors.primary, "#6D49FF"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.heroCard}
+            <View style={{ flex: 1 }}>
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{
+                        paddingBottom: 140 + insets.bottom, // space so last content isn't hidden by FAB/tabbar
+                    }}
                 >
-                    <Text style={styles.heroSmall}>Good Morning</Text>
-                    <Text style={styles.heroName}>Kavindi Gimsara</Text>
+                    <View style={styles.body}>
+                        {/* Gradient summary card */}
+                        <LinearGradient
+                            colors={[colors.primary, "#6D49FF"]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.heroCard}
+                        >
+                            <Text style={styles.heroSmall}>Good Morning</Text>
+                            <Text style={styles.heroName}>Kavindi Gimsara</Text>
 
-                    <View style={styles.heroStatsRow}>
-                        <View style={[styles.heroStatTile, { backgroundColor: "#BFD9FF" }]}>
-                            <Text style={styles.heroStatNumber}>1234</Text>
-                            <Text style={styles.heroStatLabel}>Appointments</Text>
+                            <View style={styles.heroStatsRow}>
+                                <View style={[styles.heroStatTile, { backgroundColor: "#BFD9FF" }]}>
+                                    <Text style={styles.heroStatNumber}>1234</Text>
+                                    <Text style={styles.heroStatLabel}>Appointments</Text>
+                                </View>
+
+                                <View style={[styles.heroStatTile, { backgroundColor: "#CFF7D0" }]}>
+                                    <Text style={styles.heroStatNumber}>5,678</Text>
+                                    <Text style={styles.heroStatLabel}>Contacted lawyers</Text>
+                                </View>
+                            </View>
+                        </LinearGradient>
+
+                        {/* Total Appointments */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Total Appointments</Text>
+                            <Text style={styles.sectionSub}>Since - 2025</Text>
+
+                            <View style={styles.card}>
+                                <DonutChart totalText="1234" data={donutData} />
+
+                                <View style={styles.legend}>
+                                    {donutData.map((d) => (
+                                        <LegendItem key={d.label} color={d.color} label={d.label} />
+                                    ))}
+                                </View>
+                            </View>
                         </View>
 
-                        <View style={[styles.heroStatTile, { backgroundColor: "#CFF7D0" }]}>
-                            <Text style={styles.heroStatNumber}>5,678</Text>
-                            <Text style={styles.heroStatLabel}>Contacted lawyers</Text>
+                        {/* My Activity */}
+                        <View style={styles.section}>
+                            <View style={styles.sectionHeaderRow}>
+                                <View>
+                                    <Text style={styles.sectionTitle}>My Activity</Text>
+                                    <Text style={styles.sectionSub}>15 Apr - 21 Apr</Text>
+                                </View>
+
+                                <TouchableOpacity onPress={() => navigation.navigate("ClientActivityList")}>
+                                    <Text style={styles.viewAll}>View All</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <ActivityCard
+                                title="Property Dispute"
+                                caseId="LC2024-001"
+                                status="Active"
+                                lawyerName="Mr. Roshan Manawadu"
+                                lawyerMeta1="LL.B (UoL), BSc in Science in International"
+                                lawyerMeta2="Commercial & Business Lawyer and MBA."
+                                filedDate="Nov 20, 2025"
+                                avatarUri="https://i.pravatar.cc/100?img=12"
+                            />
+
+                            <ActivityCard
+                                title="Divorce Settlement"
+                                caseId="LC2024-002"
+                                status="Completed"
+                                lawyerName="Mrs. Dhana de Silva"
+                                lawyerMeta1="LL.B (UoL), BSc in Science in International"
+                                lawyerMeta2="Commercial & Business Lawyer and MBA."
+                                filedDate="Nov 10, 2025"
+                                avatarUri="https://i.pravatar.cc/100?img=44"
+                            />
                         </View>
                     </View>
-                </LinearGradient>
+                </ScrollView>
 
-                {/* Total Appointments */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Total Appointments</Text>
-                    <Text style={styles.sectionSub}>Since - 2025</Text>
-
-                    <View style={styles.card}>
-                        <DonutChart totalText="1234" data={donutData} />
-
-                        <View style={styles.legend}>
-                            {donutData.map((d) => (
-                                <LegendItem key={d.label} color={d.color} label={d.label} />
-                            ))}
-                        </View>
-                    </View>
-                </View>
-
-                {/* My Activity */}
-                <View style={styles.section}>
-                    <View style={styles.sectionHeaderRow}>
-                        <View>
-                            <Text style={styles.sectionTitle}>My Activity</Text>
-                            <Text style={styles.sectionSub}>15 Apr - 21 Apr</Text>
-                        </View>
-
-                        <TouchableOpacity onPress={() => navigation.navigate("ClientActivityList")}>
-                            <Text style={styles.viewAll}>View All</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <ActivityCard
-                        title="Property Dispute"
-                        caseId="LC2024-001"
-                        status="Active"
-                        lawyerName="Mr. Roshan Manawadu"
-                        lawyerMeta1="LL.B (UoL), BSc in Science in International"
-                        lawyerMeta2="Commercial & Business Lawyer and MBA."
-                        filedDate="Nov 20, 2025"
-                        avatarUri="https://i.pravatar.cc/100?img=12"
-                    />
-
-                    <ActivityCard
-                        title="Divorce Settlement"
-                        caseId="LC2024-002"
-                        status="Completed"
-                        lawyerName="Mrs. Dhana de Silva"
-                        lawyerMeta1="LL.B (UoL), BSc in Science in International"
-                        lawyerMeta2="Commercial & Business Lawyer and MBA."
-                        filedDate="Nov 10, 2025"
-                        avatarUri="https://i.pravatar.cc/100?img=44"
-                    />
-                </View>
+                {/* Floating Chat Button (above bottom tab bar) */}
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => navigation.navigate("ClientChatbot")}
+                    style={[
+                        styles.fab,
+                        {
+                            right: spacing.lg,
+                            bottom:spacing.md,
+                        },
+                    ]}
+                >
+                    <Ionicons name="chatbubble-ellipses" size={22} color={colors.white} />
+                </TouchableOpacity>
             </View>
         </ClientLayout>
     );
@@ -407,6 +435,20 @@ const styles = StyleSheet.create({
         marginTop: spacing.md,
         fontSize: fontSize.xs,
         color: colors.textSecondary,
+    },
+    fab: {
+        position: "absolute",
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: colors.primary,
+        alignItems: "center",
+        justifyContent: "center",
+        shadowColor: colors.shadow,
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 6,
     },
 });
 
