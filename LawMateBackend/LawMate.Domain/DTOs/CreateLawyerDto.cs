@@ -10,7 +10,7 @@ namespace LawMate.Domain.DTOs
 {
     public class CreateLawyerDto
     {
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
 
         // USER_DETAIL
         public Prefix Prefix { get; set; }

@@ -20,8 +20,41 @@ import InitialTopNavbar from "../../../components/InitialTopNavbar";
 import Button from "../../../components/Button";
 import {useToast} from "../../../context/ToastContext";
 import ScreenWrapper from "../../../components/ScreenWrapper";
+import {LawyerPersonalDetails, LawyerProfessionalDetails} from "../../../interfaces/lawyerRegistration.interface";
+import {registerLawyer} from "../../../services/lawyerRegistrationService";
 
 type TabKey = "Personal Details" | "Professional Details";
+
+const defaultPersonal = (): LawyerPersonalDetails => ({
+    prefix: "",
+    firstName: "",
+    lastName: "",
+    gender: "",
+    address: "",
+    officeAddress: "",
+    nic: "",
+    dob: null,
+    mobileContact: "",
+    officeContact: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+});
+
+const defaultProfessional = (): LawyerProfessionalDetails => ({
+    sceCertificateNo: "",
+    barAssociationMembership: true,
+    designation: "",
+    areaOfPractice: "",
+    barAssociationRegNo: "",
+    yearOfExperience: "",
+    workingDistrict: "",
+    enrollmentCertificate: null,
+    nicFrontImage: null,
+    nicBackImage: null,
+    profileImage: null,
+    confirmed: false,
+});
 
 export default function LawyerSignUpScreen() {
     const navigation =
@@ -31,14 +64,40 @@ export default function LawyerSignUpScreen() {
 
     const [activeTab, setActiveTab] =
         useState<TabKey>("Personal Details");
+    // @ts-ignore
+    const [loading, setLoading] = useState(false);
+    const { showSuccess, showError } = useToast();
 
-    const {showSuccess} = useToast();
+    const [personal, setPersonal] =
+        useState<LawyerPersonalDetails>(defaultPersonal());
+    const [professional, setProfessional] =
+        useState<LawyerProfessionalDetails>(defaultProfessional());
 
-    const handleSubmit = () => {
-        showSuccess('Verification request submitted successfully.');
-        setTimeout(() => {
-            navigation.replace("VerificationPending");
-        }, 2000);
+    const updatePersonal = (patch: Partial<LawyerPersonalDetails>) =>
+        setPersonal((prev) => ({ ...prev, ...patch }));
+
+    const updateProfessional = (patch: Partial<LawyerProfessionalDetails>) =>
+        setProfessional((prev) => ({ ...prev, ...patch }));
+
+    const passwordsMatch =
+        personal.password !== "" &&
+        personal.confirmPassword !== "" &&
+        personal.password === personal.confirmPassword;
+
+    const isNextDisabled = activeTab === "Personal Details" && !passwordsMatch;
+    const isSubmitDisabled = activeTab === "Professional Details" && !professional.confirmed;
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            await registerLawyer({ ...personal, ...professional });
+            showSuccess("Verification request submitted successfully.");
+            setTimeout(() => navigation.replace("VerificationPending"), 2000);
+        } catch (err: any) {
+            showError(err?.message ?? "Registration failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -98,9 +157,15 @@ export default function LawyerSignUpScreen() {
                 {/* Form */}
                 <View style={{ flex: 1 }}>
                     {activeTab === "Personal Details" ? (
-                        <PersonalDetailsScreen />
+                        <PersonalDetailsScreen
+                            values={personal}
+                            onChange={updatePersonal}
+                        />
                     ) : (
-                        <ProfessionalDetailsScreen />
+                        <ProfessionalDetailsScreen
+                            values={professional}
+                            onChange={updateProfessional}
+                        />
                     )}
                 </View>
 
@@ -121,7 +186,8 @@ export default function LawyerSignUpScreen() {
                                 ? "SAVE AND NEXT"
                                 : "SUBMIT FOR VERIFICATION"
                         }
-                        variant="primary"
+                        variant={isNextDisabled || isSubmitDisabled ? "secondary" : "primary"}
+                        disabled={isNextDisabled || isSubmitDisabled}
                         onPress={() => {
                             if (activeTab === "Personal Details") {
                                 setActiveTab("Professional Details");
