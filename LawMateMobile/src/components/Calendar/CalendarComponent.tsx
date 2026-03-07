@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
+import Button from '../Button';
 
 export interface Appointment {
     id: string;
@@ -115,7 +116,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     const [selectedAppointment, setSelectedApt]   = useState<Appointment | null>(null);
     const [modalVisible, setModalVisible]         = useState(false);
 
-    // ── helpers ─────────────────────────────────────────────────────────────
+    // helpers
     const getDaysInMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
     const getFirstDayOfMonth = (d: Date) => {
         const dow = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
@@ -199,7 +200,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.contentContainer}
         >
-            {/* ── Monthly / Weekly toggle ─────────────────────────────── */}
+            {/* toggle */}
             <View style={styles.viewToggle}>
                 {(['monthly', 'weekly'] as const).map(mode => (
                     <TouchableOpacity
@@ -215,7 +216,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                 ))}
             </View>
 
-            {/* ── Month header ─────────────────────────────────────────── */}
+            {/* month header */}
             <View style={styles.monthHeader}>
                 <TouchableOpacity onPress={prevMonth} style={styles.navButton}>
                     <Ionicons name="chevron-back" size={20} color={colors.primary} />
@@ -281,7 +282,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                 /* Weekly view */
                 <View style={styles.weekRow}>
                     {getWeekDays().map((day, idx) => {
-                        const hasEvent = getApptsForDate(day).length > 0;
+                        const hasEvent = getApptsForDate(day).length > 0 || getSlotsForDate(day).length > 0;
                         const isSelected = selectedDate?.toDateString() === day.toDateString();
                         const isToday   = today.toDateString() === day.toDateString();
                         const WL = ['Mo','Tu','We','Th','Fr','Sa','Su'];
@@ -309,7 +310,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                 </View>
             )}
 
-            {/* ── Appointments for selected date ──────────────────────── */}
+            {/* appointments for selected day */}
             {selectedDate && selApts.length > 0 && (
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>
@@ -345,7 +346,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                 </View>
             )}
 
-            {/* ── Availability for selected date ──────────────────────── */}
+            {/* availability for selected day */}
             {selectedDate && selSlots.length > 0 && (
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>
@@ -375,17 +376,23 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                 </View>
             )}
 
-            {/* ── Action Buttons ──────────────────────────────────────── */}
+            {/* action buttons */}
             <View style={styles.btnRow}>
-                <TouchableOpacity style={styles.availabilityBtn} onPress={onSetAvailability} activeOpacity={0.8}>
-                    <Text style={styles.availabilityBtnText}>SET AVAILABILITY</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.appointmentBtn} onPress={onAddAppointment} activeOpacity={0.8}>
-                    <Text style={styles.appointmentBtnText}>ADD APPOINTMENT</Text>
-                </TouchableOpacity>
+                <Button
+                    title="SET AVAILABILITY"
+                    variant="primary"
+                    onPress={onSetAvailability}
+                    style={styles.btnStyle}
+                />
+                <Button
+                    title="ADD APPOINTMENT"
+                    variant="transparent"
+                    onPress={onAddAppointment}
+                    style={styles.btnStyle}
+                />
             </View>
 
-            {/* ── Appointment Info Bottom Sheet ───────────────────────── */}
+            {/* appointment detail sheet */}
             <Modal
                 visible={modalVisible}
                 transparent
@@ -405,6 +412,10 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                             <ScrollView showsVerticalScrollIndicator={false}>
                                 <DetailRow label="Client"     value={selectedAppointment.clientName} />
                                 <DetailRow label="Email"      value={selectedAppointment.email} />
+                                {selectedAppointment.contactNumber ? (
+                                    <DetailRow label="Contact"   value={selectedAppointment.contactNumber} />
+                                ) : null}
+                                <DetailRow label="Case Type"  value={selectedAppointment.caseType} />
                                 <DetailRow
                                     label="Appointment"
                                     value={fmtDateTimeRange(selectedAppointment.dateTime, selectedAppointment.duration)}
@@ -422,6 +433,13 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                                     label="Mode"
                                     value={selectedAppointment.mode === 'physical' ? 'Physical Appointment' : 'Virtual Appointment'}
                                 />
+                                <DetailRow
+                                    label="Status"
+                                    value={selectedAppointment.status.charAt(0).toUpperCase() + selectedAppointment.status.slice(1)}
+                                />
+                                {selectedAppointment.notes ? (
+                                    <DetailRow label="Notes" value={selectedAppointment.notes} />
+                                ) : null}
                             </ScrollView>
                         )}
                     </View>
@@ -655,32 +673,8 @@ const styles = StyleSheet.create({
         gap: spacing.sm,
         marginTop: spacing.sm,
     },
-    availabilityBtn: {
+    btnStyle: {
         flex: 1,
-        backgroundColor: colors.primary,
-        paddingVertical: spacing.md,
-        borderRadius: borderRadius.md,
-        alignItems: 'center',
-    },
-    availabilityBtnText: {
-        color: colors.white,
-        fontSize: fontSize.sm,
-        fontWeight: fontWeight.bold,
-        letterSpacing: 0.5,
-    },
-    appointmentBtn: {
-        flex: 1,
-        borderWidth: 2,
-        borderColor: colors.primary,
-        paddingVertical: spacing.md,
-        borderRadius: borderRadius.md,
-        alignItems: 'center',
-    },
-    appointmentBtnText: {
-        color: colors.primary,
-        fontSize: fontSize.sm,
-        fontWeight: fontWeight.bold,
-        letterSpacing: 0.5,
     },
 
     // Appointment info bottom sheet
@@ -695,7 +689,7 @@ const styles = StyleSheet.create({
         borderTopRightRadius: borderRadius.xl,
         paddingHorizontal: spacing.lg,
         paddingBottom: 32,
-        maxHeight: '65%',
+        maxHeight: '75%',
     },
     modalHandle: {
         width: 40,
