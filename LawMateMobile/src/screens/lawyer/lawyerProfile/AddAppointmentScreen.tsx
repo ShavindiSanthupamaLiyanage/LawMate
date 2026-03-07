@@ -8,102 +8,96 @@ import {
     TextInput,
     Modal,
     FlatList,
+    Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import Toast from '../../../components/Toast';
 
 const CASE_TYPES = [
-    'Criminal Law',
-    'Family Law',
-    'Property Law',
-    'Corporate Law',
-    'Intellectual Property',
-    'Labor Law',
-    'Immigration Law',
-    'Contract Law',
+    'Criminal Law', 'Family Law', 'Property Law', 'Corporate Law',
+    'Intellectual Property', 'Labor Law', 'Immigration Law', 'Contract Law',
 ];
-
-const DURATIONS = [15, 30, 45, 60];
-
-const STATUSES = ['pending', 'confirmed', 'completed'];
+const DURATIONS = ['15 min', '30 min', '45 min', '60 min'];
+const STATUSES  = ['Pending', 'Confirmed', 'Completed'];
+const MODES     = ['Physical', 'Virtual'];
 
 interface AppointmentData {
     clientName: string;
     email: string;
     contactNumber: string;
     caseType: string;
-    dateTime: Date | null;
-    duration: number;
+    date: Date | null;
+    time: Date | null;
+    duration: string;
     status: string;
     mode: string;
     notes: string;
-    price: number;
 }
 
-interface AddAppointmentProps {
-    onSave: (appointment: AppointmentData) => void;
-    initialDate?: Date;
-}
+/* ─── Floating label input ─────────────────────────────────────────────── */
+const FloatInput: React.FC<{
+    label: string;
+    value: string;
+    onChangeText: (t: string) => void;
+    keyboardType?: any;
+    multiline?: boolean;
+}> = ({ label, value, onChangeText, keyboardType, multiline }) => (
+    <View style={styles.fieldWrap}>
+        <Text style={styles.floatLabel}>{label}</Text>
+        <TextInput
+            style={[styles.fieldInput, multiline && styles.multilineInput]}
+            value={value}
+            onChangeText={onChangeText}
+            keyboardType={keyboardType}
+            multiline={multiline}
+            numberOfLines={multiline ? 4 : 1}
+            textAlignVertical={multiline ? 'top' : 'center'}
+            placeholderTextColor={colors.textSecondary}
+        />
+    </View>
+);
 
-const DropdownSelect = ({
-    label,
-    value,
-    options,
-    onSelect,
-    icon,
-}: {
+/* ─── Dropdown select ──────────────────────────────────────────────────── */
+const DropdownField: React.FC<{
     label: string;
     value: string;
     options: string[];
-    onSelect: (value: string) => void;
+    onSelect: (v: string) => void;
     icon?: keyof typeof Ionicons.glyphMap;
-}) => {
-    const [modalVisible, setModalVisible] = useState(false);
-
+}> = ({ label, value, options, onSelect, icon }) => {
+    const [open, setOpen] = useState(false);
     return (
-        <View style={styles.fieldContainer}>
-            <Text style={styles.label}>{label}</Text>
-            <TouchableOpacity
-                style={styles.dropdownButton}
-                onPress={() => setModalVisible(true)}
-            >
-                <Text style={[styles.input, { color: value ? colors.textPrimary : colors.textSecondary }]}>
+        <View style={styles.fieldWrap}>
+            <Text style={styles.floatLabel}>{label}</Text>
+            <TouchableOpacity style={styles.dropdownBtn} onPress={() => setOpen(true)}>
+                <Text style={[styles.dropdownBtnText, !value && { color: colors.textSecondary }]}>
                     {value || `Select ${label}`}
                 </Text>
-                <Ionicons name={icon || 'chevron-down'} size={20} color={colors.textSecondary} />
+                <Ionicons name={icon ?? 'chevron-down'} size={18} color={colors.textSecondary} />
             </TouchableOpacity>
-
-            <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
+            <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
                 <View style={styles.modalOverlay}>
                     <View style={styles.dropdownModal}>
                         <View style={styles.dropdownHeader}>
                             <Text style={styles.dropdownTitle}>{label}</Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Ionicons name="close" size={24} color={colors.textPrimary} />
+                            <TouchableOpacity onPress={() => setOpen(false)}>
+                                <Ionicons name="close" size={22} color={colors.textPrimary} />
                             </TouchableOpacity>
                         </View>
                         <FlatList
                             data={options}
-                            keyExtractor={(item) => item}
+                            keyExtractor={i => i}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
-                                    style={[styles.optionItem, value === item && styles.selectedOption]}
-                                    onPress={() => {
-                                        onSelect(item);
-                                        setModalVisible(false);
-                                    }}
+                                    style={[styles.optionItem, value === item && styles.optionSelected]}
+                                    onPress={() => { onSelect(item); setOpen(false); }}
                                 >
-                                    {value === item && (
-                                        <Ionicons name="checkmark" size={20} color={colors.primary} />
-                                    )}
-                                    <Text
-                                        style={[
-                                            styles.optionText,
-                                            value === item && styles.selectedOptionText,
-                                        ]}
-                                    >
+                                    {value === item && <Ionicons name="checkmark" size={18} color={colors.primary} />}
+                                    <Text style={[styles.optionText, value === item && styles.optionTextSel]}>
                                         {item}
                                     </Text>
                                 </TouchableOpacity>
@@ -116,296 +110,220 @@ const DropdownSelect = ({
     );
 };
 
-const AddAppointmentScreen: React.FC<AddAppointmentProps> = ({ onSave, initialDate }) => {
+/* ─── Main Screen ──────────────────────────────────────────────────────── */
+const AddAppointmentScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const [formData, setFormData] = useState<AppointmentData>({
+
+    const [form, setForm] = useState<AppointmentData>({
         clientName: '',
         email: '',
         contactNumber: '',
         caseType: '',
-        dateTime: initialDate || null,
-        duration: 30,
-        status: 'pending',
-        mode: 'physical',
+        date: null,
+        time: null,
+        duration: '30 min',
+        status: 'Confirmed',
+        mode: 'Physical',
         notes: '',
-        price: 5000,
     });
 
-    const [dateTimeModalVisible, setDateTimeModalVisible] = useState(false);
+    // Date / time pickers
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
 
-    const handleInputChange = (field: keyof AppointmentData, value: string | number) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value,
-        }));
+    // Toast
+    const [toastVisible, setToastVisible] = useState(false);
+
+    const set = (field: keyof AppointmentData, val: any) =>
+        setForm(prev => ({ ...prev, [field]: val }));
+
+    const fmtDate = (d: Date) =>
+        d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+
+    const fmtTime12 = (d: Date) => {
+        const h = d.getHours(), m = d.getMinutes();
+        const ap = h >= 12 ? 'p.m.' : 'a.m.';
+        return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ap}`;
+    };
+
+    const dateTimeLabel = () => {
+        if (form.date && form.time) {
+            const durMins = parseInt(form.duration) || 30;
+            const end = new Date(form.time.getTime() + durMins * 60000);
+            return `${fmtDate(form.date)}, ${fmtTime12(form.time)} - ${fmtTime12(end)}`;
+        }
+        if (form.date) return fmtDate(form.date);
+        return '';
     };
 
     const handleSave = () => {
-        if (!formData.clientName.trim() || !formData.email.trim() || !formData.dateTime || !formData.caseType) {
-            alert('Please fill in all required fields');
+        if (!form.clientName.trim() || !form.email.trim() || !form.caseType || !form.date) {
             return;
         }
-
-        onSave(formData);
-        // Reset form
-        setFormData({
-            clientName: '',
-            email: '',
-            contactNumber: '',
-            caseType: '',
-            dateTime: null,
-            duration: 30,
-            status: 'pending',
-            mode: 'physical',
-            notes: '',
-            price: 5000,
-        });
-
-        navigation.goBack();
+        setToastVisible(true);
     };
 
     return (
         <View style={styles.container}>
+            {/* Header */}
             <LinearGradient
-                colors={[
-                    'rgba(24,114,234,1)',
-                    'rgba(54,87,208,1)',
-                    'rgba(77,55,200,1)',
-                    'rgba(99,71,253,1)',
-                ]}
+                colors={['rgba(24,114,234,1)', 'rgba(54,87,208,1)', 'rgba(77,55,200,1)', 'rgba(99,71,253,1)']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.header}
             >
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="arrow-back" size={24} color={colors.white} />
+                <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+                    <Ionicons name="arrow-back" size={22} color={colors.white} />
+                    <Text style={styles.backText}>Add Appointment</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Add Appointment</Text>
-                <View style={styles.backButton} />
             </LinearGradient>
 
             <ScrollView
-                style={styles.scrollView}
+                style={styles.scroll}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                <View style={styles.form}>
-                    {/* Client Name */}
-                    <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Client Name</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Client Name"
-                            placeholderTextColor={colors.textSecondary}
-                            value={formData.clientName}
-                            onChangeText={(text) => handleInputChange('clientName', text)}
-                        />
-                    </View>
+                <FloatInput label="Client Name"     value={form.clientName}     onChangeText={v => set('clientName', v)} />
+                <FloatInput label="Email"           value={form.email}          onChangeText={v => set('email', v)} keyboardType="email-address" />
+                <FloatInput label="Contact Number"  value={form.contactNumber}  onChangeText={v => set('contactNumber', v)} keyboardType="phone-pad" />
 
-                    {/* Email */}
-                    <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Email</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Email"
-                            placeholderTextColor={colors.textSecondary}
-                            keyboardType="email-address"
-                            value={formData.email}
-                            onChangeText={(text) => handleInputChange('email', text)}
-                        />
-                    </View>
+                <DropdownField
+                    label="Case Type"
+                    value={form.caseType}
+                    options={CASE_TYPES}
+                    onSelect={v => set('caseType', v)}
+                />
 
-                    {/* Contact Number */}
-                    <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Contact Number</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Contact Number"
-                            placeholderTextColor={colors.textSecondary}
-                            keyboardType="phone-pad"
-                            value={formData.contactNumber}
-                            onChangeText={(text) => handleInputChange('contactNumber', text)}
-                        />
-                    </View>
-
-                    {/* Case Type */}
-                    <DropdownSelect
-                        label="Case Type"
-                        value={formData.caseType}
-                        options={CASE_TYPES}
-                        onSelect={(value) => handleInputChange('caseType', value)}
-                    />
-
-                    {/* Date and Time */}
-                    <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Date and Time</Text>
-                        <TouchableOpacity
-                            style={styles.dropdownButton}
-                            onPress={() => setDateTimeModalVisible(true)}
-                        >
-                            <Text style={[styles.input, { color: formData.dateTime ? colors.textPrimary : colors.textSecondary }]}>
-                                {formData.dateTime ? formData.dateTime.toLocaleString() : 'Select Date and Time'}
-                            </Text>
-                            <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Duration */}
-                    <DropdownSelect
-                        label="Duration"
-                        value={formData.duration ? `${formData.duration} minutes` : ''}
-                        options={DURATIONS.map(d => `${d} minutes`)}
-                        onSelect={(value) => {
-                            const duration = parseInt(value);
-                            handleInputChange('duration', duration);
-                        }}
-                        icon="time-outline"
-                    />
-
-                    {/* Status */}
-                    <DropdownSelect
-                        label="Status"
-                        value={formData.status}
-                        options={STATUSES}
-                        onSelect={(value) => handleInputChange('status', value)}
-                    />
-
-                    {/* Mode */}
-                    <DropdownSelect
-                        label="Mode"
-                        value={formData.mode === 'physical' ? 'Physical' : 'Virtual'}
-                        options={['Physical', 'Virtual']}
-                        onSelect={(value) => {
-                            handleInputChange('mode', value === 'Physical' ? 'physical' : 'virtual');
-                        }}
-                    />
-
-                    {/* Price */}
-                    <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Price (LKR)</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Price"
-                            placeholderTextColor={colors.textSecondary}
-                            keyboardType="decimal-pad"
-                            value={formData.price.toString()}
-                            onChangeText={(text) => handleInputChange('price', parseFloat(text) || 0)}
-                        />
-                    </View>
-
-                    {/* Special Notes */}
-                    <View style={styles.fieldContainer}>
-                        <Text style={styles.label}>Special Notes</Text>
-                        <TextInput
-                            style={[styles.input, styles.notesInput]}
-                            placeholder="Special Notes"
-                            placeholderTextColor={colors.textSecondary}
-                            multiline
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                            value={formData.notes}
-                            onChangeText={(text) => handleInputChange('notes', text)}
-                        />
-                    </View>
+                {/* Date and Time field */}
+                <View style={styles.fieldWrap}>
+                    <Text style={styles.floatLabel}>Date and Time</Text>
+                    <TouchableOpacity
+                        style={styles.dropdownBtn}
+                        onPress={() => setShowDatePicker(true)}
+                    >
+                        <Text style={[styles.dropdownBtnText, !form.date && { color: colors.textSecondary }]}>
+                            {dateTimeLabel() || 'Select Date and Time'}
+                        </Text>
+                        <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+                    </TouchableOpacity>
                 </View>
+
+                <DropdownField
+                    label="Duration"
+                    value={form.duration}
+                    options={DURATIONS}
+                    onSelect={v => set('duration', v)}
+                    icon="time-outline"
+                />
+
+                <DropdownField
+                    label="Status"
+                    value={form.status}
+                    options={STATUSES}
+                    onSelect={v => set('status', v)}
+                />
+
+                <DropdownField
+                    label="Mode"
+                    value={form.mode}
+                    options={MODES}
+                    onSelect={v => set('mode', v)}
+                />
+
+                <FloatInput
+                    label="Special Notes for the Appointment"
+                    value={form.notes}
+                    onChangeText={v => set('notes', v)}
+                    multiline
+                />
             </ScrollView>
 
-            {/* Bottom Buttons */}
-            <View style={styles.bottomButtonContainer}>
+            {/* Bottom buttons */}
+            <View style={styles.bottomBar}>
                 <TouchableOpacity
-                    style={[styles.button, styles.cancelButton]}
+                    style={styles.cancelBtn}
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.8}
                 >
-                    <Text style={styles.cancelButtonText}>BACK</Text>
+                    <Text style={styles.cancelBtnText}>BACK</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.button, styles.saveButton]}
-                    onPress={handleSave}
-                    activeOpacity={0.8}
-                >
+                <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
                     <LinearGradient
                         colors={['#1872EA', '#6347FD']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={styles.saveButtonGradient}
+                        style={styles.saveBtnGradient}
                     >
-                        <Text style={styles.saveButtonText}>SAVE</Text>
+                        <Text style={styles.saveBtnText}>SAVE</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
 
-            {/* Date Time Modal */}
-            <Modal
-                visible={dateTimeModalVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setDateTimeModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.dateTimeModal}>
-                        <Text style={styles.dropdownTitle}>Select Date and Time</Text>
-                        {/* TODO: Implement date/time picker */}
-                        <TouchableOpacity
-                            style={styles.closeModalButton}
-                            onPress={() => setDateTimeModalVisible(false)}
-                        >
-                            <Text style={styles.closeModalButtonText}>Done</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
+            {/* Date picker */}
+            {showDatePicker && (
+                <DateTimePicker
+                    value={form.date ?? new Date()}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(_, d) => {
+                        setShowDatePicker(false);
+                        if (d) { set('date', d); setShowTimePicker(true); }
+                    }}
+                />
+            )}
+            {showTimePicker && (
+                <DateTimePicker
+                    value={form.time ?? new Date()}
+                    mode="time"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(_, t) => {
+                        setShowTimePicker(false);
+                        if (t) set('time', t);
+                    }}
+                />
+            )}
+
+            {/* Success Toast */}
+            <Toast
+                visible={toastVisible}
+                message="Appointment Saved Successfully"
+                type="success"
+                onDismiss={() => { setToastVisible(false); navigation.goBack(); }}
+            />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
+
     header: {
-        height: 100,
+        paddingTop: 48,
+        paddingBottom: spacing.md,
+        paddingHorizontal: spacing.lg,
+    },
+    backBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.xl,
+        gap: spacing.sm,
     },
-    backButton: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerTitle: {
+    backText: {
         color: colors.white,
-        fontSize: fontSize.xl,
+        fontSize: fontSize.lg,
         fontWeight: fontWeight.bold,
     },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingBottom: 120,
-    },
-    form: {
-        padding: spacing.md,
-    },
-    fieldContainer: {
-        marginBottom: spacing.lg,
-    },
-    label: {
-        fontSize: fontSize.md,
+
+    scroll: { flex: 1 },
+    scrollContent: { padding: spacing.lg, paddingBottom: 120 },
+
+    fieldWrap: { marginBottom: spacing.lg },
+    floatLabel: {
+        fontSize: fontSize.sm,
         fontWeight: fontWeight.medium,
-        color: colors.textPrimary,
-        marginBottom: spacing.sm,
+        color: colors.textSecondary,
+        marginBottom: spacing.xs,
     },
-    input: {
+    fieldInput: {
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: borderRadius.md,
@@ -415,31 +333,35 @@ const styles = StyleSheet.create({
         color: colors.textPrimary,
         backgroundColor: colors.white,
     },
-    dropdownButton: {
+    multilineInput: { height: 100, paddingTop: spacing.md },
+
+    dropdownBtn: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         borderWidth: 1,
         borderColor: colors.border,
         borderRadius: borderRadius.md,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.md,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         backgroundColor: colors.white,
     },
-    notesInput: {
-        height: 100,
-        paddingTop: spacing.md,
+    dropdownBtnText: {
+        fontSize: fontSize.sm,
+        color: colors.textPrimary,
+        flex: 1,
     },
+
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'flex-end',
     },
     dropdownModal: {
         backgroundColor: colors.white,
         borderTopLeftRadius: borderRadius.lg,
         borderTopRightRadius: borderRadius.lg,
-        maxHeight: '70%',
+        maxHeight: '60%',
     },
     dropdownHeader: {
         flexDirection: 'row',
@@ -451,49 +373,27 @@ const styles = StyleSheet.create({
         borderBottomColor: colors.borderLight,
     },
     dropdownTitle: {
-        fontSize: fontSize.lg,
+        fontSize: fontSize.md,
         fontWeight: fontWeight.bold,
         color: colors.textPrimary,
     },
     optionItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: spacing.md,
+        paddingHorizontal: spacing.lg,
         paddingVertical: spacing.md,
         borderBottomWidth: 1,
         borderBottomColor: colors.borderLight,
     },
-    selectedOption: {
-        backgroundColor: colors.background,
-    },
+    optionSelected: { backgroundColor: colors.background },
     optionText: {
-        marginLeft: spacing.md,
+        marginLeft: spacing.sm,
         fontSize: fontSize.sm,
         color: colors.textPrimary,
     },
-    selectedOptionText: {
-        fontWeight: fontWeight.bold,
-        color: colors.primary,
-    },
-    dateTimeModal: {
-        backgroundColor: colors.white,
-        borderTopLeftRadius: borderRadius.lg,
-        borderTopRightRadius: borderRadius.lg,
-        padding: spacing.lg,
-        height: '60%',
-    },
-    closeModalButton: {
-        marginTop: spacing.lg,
-        paddingVertical: spacing.md,
-        backgroundColor: colors.primary,
-        borderRadius: borderRadius.md,
-        alignItems: 'center',
-    },
-    closeModalButtonText: {
-        color: colors.white,
-        fontWeight: fontWeight.bold,
-    },
-    bottomButtonContainer: {
+    optionTextSel: { fontWeight: fontWeight.bold, color: colors.primary },
+
+    bottomBar: {
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -505,31 +405,30 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: colors.borderLight,
     },
-    button: {
+    cancelBtn: {
         flex: 1,
-        borderRadius: borderRadius.lg,
-        overflow: 'hidden',
-    },
-    cancelButton: {
         borderWidth: 2,
         borderColor: colors.primary,
-    },
-    cancelButtonText: {
-        color: colors.primary,
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-        paddingVertical: spacing.md,
-        textAlign: 'center',
-    },
-    saveButton: {
-        flex: 1,
-    },
-    saveButtonGradient: {
+        borderRadius: borderRadius.lg,
         paddingVertical: spacing.md,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    saveButtonText: {
+    cancelBtnText: {
+        color: colors.primary,
+        fontSize: fontSize.md,
+        fontWeight: fontWeight.bold,
+    },
+    saveBtn: {
+        flex: 1,
+        borderRadius: borderRadius.lg,
+        overflow: 'hidden',
+    },
+    saveBtnGradient: {
+        paddingVertical: spacing.md,
+        alignItems: 'center',
+    },
+    saveBtnText: {
         color: colors.white,
         fontSize: fontSize.md,
         fontWeight: fontWeight.bold,

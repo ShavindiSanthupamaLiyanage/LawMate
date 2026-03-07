@@ -14,6 +14,7 @@ export interface Appointment {
     id: string;
     clientName: string;
     email: string;
+    contactNumber?: string;
     caseType: string;
     dateTime: Date;
     duration: number;
@@ -21,6 +22,17 @@ export interface Appointment {
     mode: 'physical' | 'virtual';
     price: number;
     notes?: string;
+    appointmentId?: string;
+    paymentStatus?: string;
+}
+
+export interface AvailabilitySlot {
+    id: string;
+    date: Date;
+    startTime: string;
+    price: number;
+    duration: number;
+    booked: boolean;
 }
 
 interface CalendarComponentProps {
@@ -28,293 +40,394 @@ interface CalendarComponentProps {
     onSetAvailability: () => void;
     onSelectDate?: (date: Date) => void;
     appointments?: Appointment[];
+    availabilitySlots?: AvailabilitySlot[];
 }
+
+// Case type colour map
+const CASE_TYPE_COLORS: Record<string, { bg: string; text: string }> = {
+    'Criminal Law':          { bg: '#E8F5E9', text: '#2E7D32' },
+    'Family Law':            { bg: '#FFF3E0', text: '#E65100' },
+    'Property Law':          { bg: '#E3F2FD', text: '#1565C0' },
+    'Corporate Law':         { bg: '#F3E5F5', text: '#6A1B9A' },
+    'Intellectual Property': { bg: '#FBE9E7', text: '#BF360C' },
+    'Labor Law':             { bg: '#E0F7FA', text: '#00695C' },
+    'Immigration Law':       { bg: '#F1F8E9', text: '#33691E' },
+    'Contract Law':          { bg: '#FFF8E1', text: '#F57F17' },
+    'Criminal':              { bg: '#E8F5E9', text: '#2E7D32' },
+};
+const getCaseTypeColors = (caseType: string) =>
+    CASE_TYPE_COLORS[caseType] ?? { bg: '#E8EAF6', text: '#283593' };
+
+const fmt12h = (d: Date) =>
+    new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+const fmtDateTimeRange = (d: Date, mins: number) => {
+    const start = new Date(d);
+    const end   = new Date(start.getTime() + mins * 60000);
+    const dateStr = start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+    const toAP = (x: Date) => {
+        const h = x.getHours(), m = x.getMinutes();
+        const ap = h >= 12 ? 'p.m.' : 'a.m.';
+        return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ap}`;
+    };
+    return `${dateStr}, ${toAP(start)} - ${toAP(end)}`;
+};
+
+const fmtSlotTime = (t: string) => {
+    const [h, m] = t.split(':').map(Number);
+    const ap = h >= 12 ? 'p.m.' : 'a.m.';
+    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ap}`;
+};
+
+const ordSuffix = (n: number) => {
+    if (n >= 11 && n <= 13) return 'th';
+    return (['th','st','nd','rd'] as const)[n % 10] ?? 'th';
+};
+
+const MONTHS = [
+    'January','February','March','April','May','June',
+    'July','August','September','October','November','December',
+];
+
+const DetailRow: React.FC<{ label: string; value: string; isGreen?: boolean }> = ({ label, value, isGreen }) => (
+    <View style={styles.detailRow}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        {isGreen ? (
+            <View style={styles.greenBadge}>
+                <Text style={styles.greenBadgeText}>{value}</Text>
+            </View>
+        ) : (
+            <Text style={styles.detailValue} numberOfLines={2}>{value}</Text>
+        )}
+    </View>
+);
 
 const CalendarComponent: React.FC<CalendarComponentProps> = ({
     onAddAppointment,
     onSetAvailability,
     onSelectDate,
     appointments = [],
+    availabilitySlots = [],
 }) => {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-    const [appointmentModalVisible, setAppointmentModalVisible] = useState(false);
+    const [currentDate, setCurrentDate]         = useState(new Date());
+    const [selectedDate, setSelectedDate]         = useState<Date | null>(null);
+    const [viewMode, setViewMode]                 = useState<'monthly' | 'weekly'>('monthly');
+    const [selectedAppointment, setSelectedApt]   = useState<Appointment | null>(null);
+    const [modalVisible, setModalVisible]         = useState(false);
 
-    // Helper functions
-    const getDaysInMonth = (date: Date) => {
-        return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    // ── helpers ─────────────────────────────────────────────────────────────
+    const getDaysInMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    const getFirstDayOfMonth = (d: Date) => {
+        const dow = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+        return dow === 0 ? 6 : dow - 1; // Monday first
     };
 
-    const getFirstDayOfMonth = (date: Date) => {
-        return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    const matchDate = (ref: Date, y: number, mo: number, dy: number) => {
+        const r = new Date(ref);
+        return r.getFullYear() === y && r.getMonth() === mo && r.getDate() === dy;
     };
 
-    const getMonthName = (date: Date) => {
-        const months = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ];
-        return months[date.getMonth()];
+    const getApptsForDay = (day: number) =>
+        appointments.filter(a => matchDate(a.dateTime, currentDate.getFullYear(), currentDate.getMonth(), day));
+
+    const getSlotsForDay = (day: number) =>
+        availabilitySlots.filter(s => matchDate(s.date, currentDate.getFullYear(), currentDate.getMonth(), day));
+
+    const getApptsForDate = (date: Date) =>
+        appointments.filter(a => {
+            const d = new Date(a.dateTime);
+            return d.getFullYear() === date.getFullYear() &&
+                   d.getMonth()    === date.getMonth()    &&
+                   d.getDate()     === date.getDate();
+        });
+
+    const getSlotsForDate = (date: Date) =>
+        availabilitySlots.filter(s => {
+            const d = new Date(s.date);
+            return d.getFullYear() === date.getFullYear() &&
+                   d.getMonth()    === date.getMonth()    &&
+                   d.getDate()     === date.getDate();
+        });
+
+    const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+
+    const handleDateSelect = (day: number) => {
+        const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+        setSelectedDate(d);
+        if (onSelectDate) onSelectDate(d);
     };
 
-    const isDateBookable = (day: number) => {
-        const testDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Not bookable if today or in past
-        if (testDate < today) {
-            return false;
-        }
-
-        // Not bookable if today or next two days
-        const twoDaysFromNow = new Date(today);
-        twoDaysFromNow.setDate(twoDaysFromNow.getDate() + 2);
-
-        if (testDate <= twoDaysFromNow) {
-            return false;
-        }
-
-        // Bookable if within 3 months
-        const threeMonthsFromNow = new Date(today);
-        threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
-
-        return testDate <= threeMonthsFromNow;
+    const handleAptPress = (apt: Appointment) => {
+        setSelectedApt(apt);
+        setModalVisible(true);
     };
 
-    const getAppointmentsForDate = (day: number) => {
-        const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        return appointments.filter(apt => {
-            const aptDate = new Date(apt.dateTime);
-            const aptDateStr = `${aptDate.getFullYear()}-${String(aptDate.getMonth() + 1).padStart(2, '0')}-${String(aptDate.getDate()).padStart(2, '0')}`;
-            return aptDateStr === dateStr;
+    // Weekly view
+    const getWeekDays = (): Date[] => {
+        const base = selectedDate ?? new Date();
+        const dow = base.getDay();
+        const diff = dow === 0 ? -6 : 1 - dow;
+        const mon = new Date(base);
+        mon.setDate(base.getDate() + diff);
+        return Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(mon);
+            d.setDate(mon.getDate() + i);
+            return d;
         });
     };
 
-    const handlePreviousMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-    };
-
-    const handleNextMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-    };
-
-    const handleDateSelect = (day: number) => {
-        if (isDateBookable(day)) {
-            const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-            setSelectedDate(newDate);
-            const dateAppointments = getAppointmentsForDate(day);
-            if (dateAppointments.length > 0) {
-                setAppointmentModalVisible(true);
-            }
-            if (onSelectDate) {
-                onSelectDate(newDate);
-            }
-        }
-    };
-
-    // Generate calendar days
+    // Calendar grid
     const daysInMonth = getDaysInMonth(currentDate);
-    const firstDay = getFirstDayOfMonth(currentDate);
-    const days = Array.from({ length: 42 }, (_, i) => {
-        const dayNumber = i - firstDay + 1;
-        return dayNumber > 0 && dayNumber <= daysInMonth ? dayNumber : null;
+    const firstDay    = getFirstDayOfMonth(currentDate);
+    const gridDays    = Array.from({ length: 42 }, (_, i) => {
+        const n = i - firstDay + 1;
+        return n > 0 && n <= daysInMonth ? n : null;
     });
 
-    const dateAppointments = selectedDate ? getAppointmentsForDate(selectedDate.getDate()) : [];
+    const today           = new Date();
+    const selApts         = selectedDate ? getApptsForDate(selectedDate) : [];
+    const selSlots        = selectedDate ? getSlotsForDate(selectedDate) : [];
+    const secTitle = (date: Date) => {
+        const d = date.getDate();
+        return `${MONTHS[date.getMonth()].slice(0, 3)} ${d}${ordSuffix(d)}`;
+    };
 
     return (
-        <View style={styles.container}>
-            {/* Calendar Header */}
-            <View style={styles.monthHeader}>
-                <TouchableOpacity onPress={handlePreviousMonth} style={styles.navButton}>
-                    <Ionicons name="chevron-back" size={24} color={colors.primary} />
-                </TouchableOpacity>
-                <Text style={styles.monthYear}>
-                    {getMonthName(currentDate)} {currentDate.getFullYear()}
-                </Text>
-                <TouchableOpacity onPress={handleNextMonth} style={styles.navButton}>
-                    <Ionicons name="chevron-forward" size={24} color={colors.primary} />
-                </TouchableOpacity>
-            </View>
-
-            {/* Weekday Labels */}
-            <View style={styles.weekdayContainer}>
-                {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day, index) => (
-                    <Text key={index} style={styles.weekdayLabel}>
-                        {day}
-                    </Text>
+        <ScrollView
+            style={styles.container}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.contentContainer}
+        >
+            {/* ── Monthly / Weekly toggle ─────────────────────────────── */}
+            <View style={styles.viewToggle}>
+                {(['monthly', 'weekly'] as const).map(mode => (
+                    <TouchableOpacity
+                        key={mode}
+                        style={[styles.toggleTab, viewMode === mode && styles.activeToggleTab]}
+                        onPress={() => setViewMode(mode)}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={[styles.toggleTabText, viewMode === mode && styles.activeToggleTabText]}>
+                            {mode === 'monthly' ? 'Monthly View' : 'Weekly View'}
+                        </Text>
+                    </TouchableOpacity>
                 ))}
             </View>
 
-            {/* Calendar Grid */}
-            <View style={styles.calendarGrid}>
-                {days.map((day, index) => {
-                    const isBookable = day && isDateBookable(day);
-                    const dateAppointments = day ? getAppointmentsForDate(day) : [];
-                    const isSelected = selectedDate && day && selectedDate.getDate() === day && selectedDate.getMonth() === currentDate.getMonth();
-
-                    return (
-                        <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.dayCell,
-                                !day && styles.emptyCell,
-                                isSelected ? styles.selectedCell : null,
-                            ]}
-                            onPress={() => day && handleDateSelect(day)}
-                            disabled={!isBookable}
-                            activeOpacity={isBookable ? 0.7 : 1}
-                        >
-                            {day && (
-                                <>
-                                    <Text
-                                        style={[
-                                            styles.dayText,
-                                            !isBookable && styles.unBookableText,
-                                            isSelected ? styles.selectedText : null,
-                                        ]}
-                                    >
-                                        {day}
-                                    </Text>
-                                    {dateAppointments.length > 0 && (
-                                        <View style={styles.appointmentIndicator}>
-                                            <Text style={styles.indicatorText}>
-                                                {dateAppointments.length}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </>
-                            )}
-                        </TouchableOpacity>
-                    );
-                })}
+            {/* ── Month header ─────────────────────────────────────────── */}
+            <View style={styles.monthHeader}>
+                <TouchableOpacity onPress={prevMonth} style={styles.navButton}>
+                    <Ionicons name="chevron-back" size={20} color={colors.primary} />
+                </TouchableOpacity>
+                <Text style={styles.monthYear}>
+                    {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
+                </Text>
+                <TouchableOpacity onPress={nextMonth} style={styles.navButton}>
+                    <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+                </TouchableOpacity>
             </View>
 
-            {/* Appointments for Selected Date */}
-            {selectedDate && dateAppointments.length > 0 && (
-                <View style={styles.appointmentsSection}>
-                    <Text style={styles.appointmentsTitle}>
-                        Appointments for {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </Text>
-                    <ScrollView style={styles.appointmentsList} showsVerticalScrollIndicator={false}>
-                        {dateAppointments.map((appointment) => (
-                            <View key={appointment.id} style={styles.appointmentCard}>
-                                <View style={styles.appointmentHeader}>
-                                    <View>
-                                        <Text style={styles.clientName}>{appointment.clientName}</Text>
-                                        <Text style={styles.caseType}>{appointment.caseType}</Text>
-                                    </View>
-                                    <Text style={styles.appointmentTime}>
-                                        {new Date(appointment.dateTime).toLocaleTimeString('en-US', {
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                        })}
-                                    </Text>
-                                </View>
-                                <View style={styles.appointmentFooter}>
-                                    <Text style={styles.priceText}>LKR {appointment.price.toFixed(2)}</Text>
-                                    <View
-                                        style={[
-                                            styles.statusBadge,
-                                            appointment.status === 'confirmed' && styles.statusConfirmed,
-                                            appointment.status === 'pending' && styles.statusPending,
-                                        ]}
-                                    >
-                                        <Text style={styles.statusText}>{appointment.status}</Text>
-                                    </View>
-                                </View>
-                            </View>
+            {viewMode === 'monthly' ? (
+                <>
+                    {/* Weekday labels */}
+                    <View style={styles.weekdayRow}>
+                        {['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => (
+                            <Text key={d} style={styles.weekdayLabel}>{d}</Text>
                         ))}
-                    </ScrollView>
+                    </View>
+                    {/* Calendar grid */}
+                    <View style={styles.calendarGrid}>
+                        {gridDays.map((day, idx) => {
+                            if (!day) return <View key={idx} style={[styles.dayCell, styles.emptyCell]} />;
+                            const hasEvent =
+                                getApptsForDay(day).length > 0 || getSlotsForDay(day).length > 0;
+                            const isSelected =
+                                selectedDate !== null &&
+                                selectedDate.getDate()        === day &&
+                                selectedDate.getMonth()       === currentDate.getMonth() &&
+                                selectedDate.getFullYear()    === currentDate.getFullYear();
+                            const isToday =
+                                today.getDate()     === day &&
+                                today.getMonth()    === currentDate.getMonth() &&
+                                today.getFullYear() === currentDate.getFullYear();
+                            return (
+                                <TouchableOpacity
+                                    key={idx}
+                                    style={[
+                                        styles.dayCell,
+                                        isSelected && styles.selectedCell,
+                                        isToday && !isSelected && styles.todayCell,
+                                    ]}
+                                    onPress={() => handleDateSelect(day)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={[
+                                        styles.dayText,
+                                        isSelected && styles.selectedDayText,
+                                        isToday && !isSelected && styles.todayDayText,
+                                    ]}>
+                                        {day}
+                                    </Text>
+                                    {hasEvent && (
+                                        <View style={[styles.eventDot, isSelected && styles.eventDotSel]} />
+                                    )}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </>
+            ) : (
+                /* Weekly view */
+                <View style={styles.weekRow}>
+                    {getWeekDays().map((day, idx) => {
+                        const hasEvent = getApptsForDate(day).length > 0;
+                        const isSelected = selectedDate?.toDateString() === day.toDateString();
+                        const isToday   = today.toDateString() === day.toDateString();
+                        const WL = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+                        return (
+                            <TouchableOpacity
+                                key={idx}
+                                style={[styles.weekDayCell, isSelected && styles.selectedCell]}
+                                onPress={() => { setSelectedDate(day); if (onSelectDate) onSelectDate(day); }}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={[styles.wdLabel, isSelected && { color: colors.white }]}>
+                                    {WL[idx]}
+                                </Text>
+                                <Text style={[
+                                    styles.wdNumber,
+                                    isSelected && styles.selectedDayText,
+                                    isToday && !isSelected && styles.todayDayText,
+                                ]}>
+                                    {day.getDate()}
+                                </Text>
+                                {hasEvent && <View style={[styles.eventDot, isSelected && styles.eventDotSel]} />}
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
             )}
 
-            {/* Action Buttons */}
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                    style={[styles.button, styles.availabilityButton]}
-                    onPress={onSetAvailability}
-                    activeOpacity={0.8}
-                >
-                    <Text style={styles.availabilityButtonText}>SET AVAILABILITY</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.button, styles.appointmentButton]}
-                    onPress={onAddAppointment}
-                    activeOpacity={0.8}
-                >
-                    <Text style={styles.appointmentButtonText}>ADD APPOINTMENT</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Appointment Modal */}
-            <Modal
-                visible={appointmentModalVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setAppointmentModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => setAppointmentModalVisible(false)}
-                        >
-                            <Ionicons name="close" size={24} color={colors.textPrimary} />
-                        </TouchableOpacity>
-
-                        <Text style={styles.modalTitle}>Appointment Information</Text>
-
-                        {dateAppointments.map((appointment) => (
-                            <View key={appointment.id} style={styles.modalAppointmentDetail}>
-                                <View style={styles.detailRow}>
-                                    <Text style={styles.detailLabel}>Client</Text>
-                                    <Text style={styles.detailValue}>{appointment.clientName}</Text>
+            {/* ── Appointments for selected date ──────────────────────── */}
+            {selectedDate && selApts.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>
+                        Appointments for {secTitle(selectedDate)}
+                    </Text>
+                    {selApts.map(apt => {
+                        const cc    = getCaseTypeColors(apt.caseType);
+                        const aptId = apt.appointmentId ?? `APT-${String(apt.id).padStart(4, '0')}`;
+                        return (
+                            <TouchableOpacity
+                                key={apt.id}
+                                style={styles.aptCard}
+                                onPress={() => handleAptPress(apt)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={styles.aptTopRow}>
+                                    <Text style={styles.aptClientId} numberOfLines={1}>
+                                        {apt.clientName} | {aptId}
+                                    </Text>
+                                    <Text style={styles.aptTime}>{fmt12h(apt.dateTime)}</Text>
                                 </View>
-                                <View style={styles.detailRow}>
-                                    <Text style={styles.detailLabel}>Email</Text>
-                                    <Text style={styles.detailValue}>{appointment.email}</Text>
-                                </View>
-                                <View style={styles.detailRow}>
-                                    <Text style={styles.detailLabel}>Appointment</Text>
-                                    <Text style={styles.detailValue}>
-                                        {new Date(appointment.dateTime).toLocaleDateString()},&nbsp;
-                                        {new Date(appointment.dateTime).toLocaleTimeString('en-US', {
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                        })} - {new Date(new Date(appointment.dateTime).getTime() + appointment.duration * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                <View style={[styles.caseTypeBadge, { backgroundColor: cc.bg }]}>
+                                    <Text style={[styles.caseTypeBadgeText, { color: cc.text }]}>
+                                        {apt.caseType}
                                     </Text>
                                 </View>
-                                <View style={styles.detailRow}>
-                                    <Text style={styles.detailLabel}>Amount</Text>
-                                    <Text style={styles.detailValue}>LKR {appointment.price.toFixed(2)}</Text>
+                                <Text style={styles.aptPrice}>
+                                    LKR {apt.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+            )}
+
+            {/* ── Availability for selected date ──────────────────────── */}
+            {selectedDate && selSlots.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>
+                        Availability for {secTitle(selectedDate)}
+                    </Text>
+                    {selSlots.map(slot => (
+                        <View key={slot.id} style={styles.slotCard}>
+                            <View style={styles.slotLeft}>
+                                <View style={styles.slotIconBox}>
+                                    <Ionicons name="calendar-outline" size={18} color={colors.primary} />
                                 </View>
-                                <View style={styles.detailRow}>
-                                    <Text style={styles.detailLabel}>Payment Status</Text>
-                                    <View
-                                        style={[
-                                            styles.paymentBadge,
-                                            { backgroundColor: '#E8F5E9' },
-                                        ]}
-                                    >
-                                        <Text style={{ color: '#2E7D32', fontSize: fontSize.sm }}>
-                                            Verified Payment
-                                        </Text>
-                                    </View>
-                                </View>
-                                <View style={styles.detailRow}>
-                                    <Text style={styles.detailLabel}>Mode</Text>
-                                    <Text style={styles.detailValue}>
-                                        {appointment.mode === 'physical' ? 'Physical Appointment' : 'Virtual Appointment'}
+                                <View>
+                                    <Text style={styles.slotDate}>
+                                        Available on {new Date(slot.date).toLocaleDateString('en-CA')}
+                                    </Text>
+                                    <Text style={styles.slotTime}>
+                                        {fmtSlotTime(slot.startTime)}
                                     </Text>
                                 </View>
                             </View>
-                        ))}
+                            <View style={styles.slotRight}>
+                                <Text style={styles.slotDuration}>{slot.duration} M</Text>
+                                <Text style={styles.slotPerSlot}>PER SLOT</Text>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+            )}
+
+            {/* ── Action Buttons ──────────────────────────────────────── */}
+            <View style={styles.btnRow}>
+                <TouchableOpacity style={styles.availabilityBtn} onPress={onSetAvailability} activeOpacity={0.8}>
+                    <Text style={styles.availabilityBtnText}>SET AVAILABILITY</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.appointmentBtn} onPress={onAddAppointment} activeOpacity={0.8}>
+                    <Text style={styles.appointmentBtnText}>ADD APPOINTMENT</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* ── Appointment Info Bottom Sheet ───────────────────────── */}
+            <Modal
+                visible={modalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalSheet}>
+                        <View style={styles.modalHandle} />
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Appointment Information</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Ionicons name="close" size={22} color={colors.textSecondary} />
+                            </TouchableOpacity>
+                        </View>
+                        {selectedAppointment && (
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <DetailRow label="Client"     value={selectedAppointment.clientName} />
+                                <DetailRow label="Email"      value={selectedAppointment.email} />
+                                <DetailRow
+                                    label="Appointment"
+                                    value={fmtDateTimeRange(selectedAppointment.dateTime, selectedAppointment.duration)}
+                                />
+                                <DetailRow
+                                    label="Amount"
+                                    value={`LKR ${selectedAppointment.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                                />
+                                <DetailRow
+                                    label="Payment Status"
+                                    value={selectedAppointment.paymentStatus ?? 'Verified Payment'}
+                                    isGreen
+                                />
+                                <DetailRow
+                                    label="Mode"
+                                    value={selectedAppointment.mode === 'physical' ? 'Physical Appointment' : 'Virtual Appointment'}
+                                />
+                            </ScrollView>
+                        )}
                     </View>
                 </View>
             </Modal>
-        </View>
+        </ScrollView>
     );
 };
 
@@ -322,217 +435,286 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
-        paddingHorizontal: spacing.md,
-        paddingTop: spacing.md,
     },
+    contentContainer: {
+        paddingHorizontal: spacing.md,
+        paddingTop: spacing.sm,
+        paddingBottom: 80,
+    },
+
+    // Toggle
+    viewToggle: {
+        flexDirection: 'row',
+        backgroundColor: colors.white,
+        borderRadius: borderRadius.lg,
+        padding: 3,
+        marginBottom: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+    },
+    toggleTab: {
+        flex: 1,
+        paddingVertical: spacing.sm,
+        borderRadius: borderRadius.md,
+        alignItems: 'center',
+    },
+    activeToggleTab: {
+        backgroundColor: colors.primary,
+    },
+    toggleTabText: {
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.medium,
+        color: colors.textSecondary,
+    },
+    activeToggleTabText: {
+        color: colors.white,
+        fontWeight: fontWeight.bold,
+    },
+
+    // Month header
     monthHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: spacing.md,
-        paddingHorizontal: spacing.sm,
+        marginBottom: spacing.sm,
     },
-    navButton: {
-        padding: spacing.sm,
-    },
+    navButton: { padding: spacing.sm },
     monthYear: {
-        fontSize: fontSize.lg,
+        fontSize: fontSize.md,
         fontWeight: fontWeight.bold,
         color: colors.textPrimary,
     },
-    weekdayContainer: {
+
+    // Weekday row
+    weekdayRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: spacing.sm,
-        paddingHorizontal: spacing.sm,
+        marginBottom: spacing.xs,
     },
     weekdayLabel: {
-        flex: 1,
+        width: '14.28%',
         textAlign: 'center',
-        fontSize: fontSize.sm,
+        fontSize: fontSize.xs,
         fontWeight: fontWeight.semibold,
         color: colors.textSecondary,
     },
+
+    // Calendar grid
     calendarGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
         marginBottom: spacing.md,
-        paddingHorizontal: spacing.sm,
     },
     dayCell: {
-        width: '13.5%',
+        width: '14.28%',
         aspectRatio: 1,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: borderRadius.md,
         backgroundColor: colors.white,
-        marginBottom: spacing.xs,
+        marginBottom: 1,
         position: 'relative',
-        borderWidth: 1,
-        borderColor: colors.borderLight,
     },
-    emptyCell: {
-        backgroundColor: 'transparent',
-    },
-    selectedCell: {
-        backgroundColor: colors.primary,
-    },
+    emptyCell: { backgroundColor: 'transparent' },
+    selectedCell: { backgroundColor: colors.primary },
+    todayCell: { borderWidth: 1.5, borderColor: colors.primary },
     dayText: {
         fontSize: fontSize.sm,
-        fontWeight: fontWeight.semibold,
+        fontWeight: fontWeight.medium,
         color: colors.textPrimary,
     },
-    unBookableText: {
-        color: colors.textSecondary,
-        opacity: 0.4,
-    },
-    selectedText: {
-        color: colors.white,
-        fontWeight: fontWeight.bold,
-    },
-    appointmentIndicator: {
+    selectedDayText: { color: colors.white, fontWeight: fontWeight.bold },
+    todayDayText:    { color: colors.primary, fontWeight: fontWeight.bold },
+    eventDot: {
         position: 'absolute',
-        bottom: 2,
-        right: 2,
-        backgroundColor: colors.error,
-        borderRadius: 8,
-        minWidth: 16,
-        height: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
+        bottom: 3,
+        width: 4,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: colors.primary,
     },
-    indicatorText: {
-        color: colors.white,
-        fontSize: fontSize.xs,
-        fontWeight: fontWeight.bold,
-    },
-    appointmentsSection: {
+    eventDotSel: { backgroundColor: colors.white },
+
+    // Weekly view
+    weekRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         marginBottom: spacing.md,
-        marginHorizontal: spacing.md,
-        backgroundColor: colors.white,
-        borderRadius: borderRadius.md,
-        padding: spacing.md,
     },
-    appointmentsTitle: {
+    weekDayCell: {
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: spacing.sm,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.white,
+        marginHorizontal: 1,
+        position: 'relative',
+    },
+    wdLabel: {
+        fontSize: fontSize.xs,
+        color: colors.textSecondary,
+        fontWeight: fontWeight.medium,
+    },
+    wdNumber: {
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.bold,
+        color: colors.textPrimary,
+        marginTop: 2,
+    },
+
+    // Sections
+    section: { marginBottom: spacing.md },
+    sectionTitle: {
         fontSize: fontSize.md,
         fontWeight: fontWeight.bold,
         color: colors.textPrimary,
-        marginBottom: spacing.md,
+        marginBottom: spacing.sm,
     },
-    appointmentsList: {
-        maxHeight: 180,
-    },
-    appointmentCard: {
-        backgroundColor: colors.background,
+
+    // Appointment card (Figma style)
+    aptCard: {
+        backgroundColor: colors.white,
         borderRadius: borderRadius.md,
         padding: spacing.md,
         marginBottom: spacing.sm,
-        borderLeftWidth: 3,
-        borderLeftColor: colors.primary,
+        elevation: 1,
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 3,
     },
-    appointmentHeader: {
+    aptTopRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: spacing.sm,
+        alignItems: 'center',
+        marginBottom: spacing.xs,
     },
-    clientName: {
+    aptClientId: {
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.semibold,
+        color: colors.textPrimary,
+        flex: 1,
+        marginRight: spacing.sm,
+    },
+    aptTime: { fontSize: fontSize.xs, color: colors.textSecondary },
+    caseTypeBadge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 2,
+        borderRadius: borderRadius.sm,
+        marginBottom: spacing.xs,
+    },
+    caseTypeBadgeText: { fontSize: fontSize.xs, fontWeight: fontWeight.semibold },
+    aptPrice: {
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.bold,
+        color: colors.textPrimary,
+    },
+
+    // Availability slot card
+    slotCard: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: colors.white,
+        borderRadius: borderRadius.md,
+        padding: spacing.md,
+        marginBottom: spacing.sm,
+        elevation: 1,
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 3,
+    },
+    slotLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    slotIconBox: {
+        width: 34,
+        height: 34,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.background,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    slotDate: {
         fontSize: fontSize.sm,
         fontWeight: fontWeight.semibold,
         color: colors.textPrimary,
     },
-    caseType: {
-        fontSize: fontSize.xs,
-        color: colors.textSecondary,
-        marginTop: spacing.xs,
-    },
-    appointmentTime: {
-        fontSize: fontSize.xs,
-        color: colors.textSecondary,
-    },
-    appointmentFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    priceText: {
-        fontSize: fontSize.md,
+    slotTime: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: 2 },
+    slotRight: { alignItems: 'flex-end' },
+    slotDuration: {
+        fontSize: fontSize.sm,
         fontWeight: fontWeight.bold,
         color: colors.textPrimary,
     },
-    statusBadge: {
-        paddingHorizontal: spacing.sm,
-        paddingVertical: spacing.xs,
-        borderRadius: borderRadius.sm,
-        backgroundColor: '#FFF3E0',
-    },
-    statusConfirmed: {
-        backgroundColor: '#E8F5E9',
-    },
-    statusPending: {
-        backgroundColor: '#FFF3E0',
-    },
-    statusText: {
-        fontSize: fontSize.xs,
-        fontWeight: fontWeight.medium,
-        color: '#FF6F00',
-    },
-    buttonContainer: {
+    slotPerSlot: { fontSize: fontSize.xs, color: colors.textSecondary, marginTop: 2 },
+
+    // Action buttons
+    btnRow: {
         flexDirection: 'row',
-        gap: spacing.md,
-        paddingHorizontal: spacing.md,
-        marginBottom: spacing.md,
+        gap: spacing.sm,
+        marginTop: spacing.sm,
     },
-    button: {
+    availabilityBtn: {
         flex: 1,
+        backgroundColor: colors.primary,
         paddingVertical: spacing.md,
         borderRadius: borderRadius.md,
-        justifyContent: 'center',
         alignItems: 'center',
     },
-    availabilityButton: {
-        backgroundColor: colors.primary,
+    availabilityBtnText: {
+        color: colors.white,
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.bold,
+        letterSpacing: 0.5,
     },
-    appointmentButton: {
+    appointmentBtn: {
+        flex: 1,
         borderWidth: 2,
         borderColor: colors.primary,
-    },
-    availabilityButtonText: {
-        color: colors.white,
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-    },
-    appointmentButtonText: {
-        color: colors.primary,
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
+        paddingVertical: spacing.md,
+        borderRadius: borderRadius.md,
         alignItems: 'center',
     },
-    modalContent: {
-        backgroundColor: colors.white,
-        borderRadius: borderRadius.lg,
-        padding: spacing.md,
-        maxHeight: '80%',
-        width: '90%',
-    },
-    closeButton: {
-        alignSelf: 'flex-end',
-        padding: spacing.sm,
-    },
-    modalTitle: {
-        fontSize: fontSize.lg,
-        fontWeight: fontWeight.bold,
+    appointmentBtnText: {
         color: colors.primary,
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.bold,
+        letterSpacing: 0.5,
+    },
+
+    // Appointment info bottom sheet
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        justifyContent: 'flex-end',
+    },
+    modalSheet: {
+        backgroundColor: colors.white,
+        borderTopLeftRadius: borderRadius.xl,
+        borderTopRightRadius: borderRadius.xl,
+        paddingHorizontal: spacing.lg,
+        paddingBottom: 32,
+        maxHeight: '65%',
+    },
+    modalHandle: {
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: colors.border,
+        alignSelf: 'center',
+        marginVertical: spacing.sm,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: spacing.md,
     },
-    modalAppointmentDetail: {
-        marginBottom: spacing.lg,
+    modalTitle: {
+        fontSize: fontSize.md,
+        fontWeight: fontWeight.bold,
+        color: colors.primary,
     },
     detailRow: {
         flexDirection: 'row',
@@ -546,18 +728,28 @@ const styles = StyleSheet.create({
         fontSize: fontSize.sm,
         color: colors.textSecondary,
         fontWeight: fontWeight.medium,
+        flex: 1,
     },
     detailValue: {
         fontSize: fontSize.sm,
         color: colors.textPrimary,
         fontWeight: fontWeight.semibold,
-        maxWidth: '60%',
+        maxWidth: '58%',
+        textAlign: 'right',
     },
-    paymentBadge: {
+    greenBadge: {
+        backgroundColor: '#E8F5E9',
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xs,
         borderRadius: borderRadius.sm,
     },
+    greenBadgeText: {
+        fontSize: fontSize.xs,
+        fontWeight: fontWeight.semibold,
+        color: '#2E7D32',
+    },
 });
 
 export default CalendarComponent;
+
+

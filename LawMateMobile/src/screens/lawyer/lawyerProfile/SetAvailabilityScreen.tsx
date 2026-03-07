@@ -6,327 +6,277 @@ import {
     ScrollView,
     TouchableOpacity,
     Modal,
-    FlatList,
+    Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import Toast from '../../../components/Toast';
 
 export interface AvailabilitySlot {
     id: string;
     date: Date;
-    startTime: string;
+    startTime: string;   // "HH:MM" 24h
     price: number;
-    duration: number; // in minutes
+    duration: number;    // minutes
     booked: boolean;
 }
 
-interface SetAvailabilityProps {
-    onSave: (slots: AvailabilitySlot[]) => void;
-}
+const DURATIONS = [15, 30, 45, 60];
+const PRICES    = [3000, 5000, 7500, 10000];
 
-const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-    const hours = Math.floor(i / 2);
-    const minutes = (i % 2) * 30;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-});
+/* ─────────────────────────── helpers ─────────────────────────────────── */
+const fmtDate = (d: Date) =>
+    d.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
 
-const SetAvailabilityScreen: React.FC<SetAvailabilityProps> = ({ onSave }) => {
+const to12h = (t: string) => {
+    const [h, m] = t.split(':').map(Number);
+    const ap = h >= 12 ? 'p.m.' : 'a.m.';
+    return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ap}`;
+};
+
+/* ─────────────────────────── main screen ─────────────────────────────── */
+const SetAvailabilityScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const [availabilitySlots, setAvailabilitySlots] = useState<AvailabilitySlot[]>([
-        {
-            id: '1',
-            date: new Date(2025, 11, 4), // December 4, 2025
-            startTime: '12:00',
-            price: 5000,
-            duration: 30,
-            booked: false,
-        },
-        {
-            id: '2',
-            date: new Date(2025, 11, 4),
-            startTime: '12:30',
-            price: 5000,
-            duration: 30,
-            booked: false,
-        },
-        {
-            id: '3',
-            date: new Date(2025, 11, 4),
-            startTime: '13:00',
-            price: 5000,
-            duration: 30,
-            booked: false,
-        },
-        {
-            id: '4',
-            date: new Date(2025, 11, 4),
-            startTime: '13:30',
-            price: 5000,
-            duration: 30,
-            booked: false,
-        },
+
+    const [slots, setSlots] = useState<AvailabilitySlot[]>([
+        { id: '1', date: new Date(2025, 11, 4), startTime: '12:00', price: 5000, duration: 30, booked: false },
+        { id: '2', date: new Date(2025, 11, 4), startTime: '12:30', price: 5000, duration: 30, booked: false },
+        { id: '3', date: new Date(2025, 11, 4), startTime: '13:00', price: 5000, duration: 30, booked: false },
+        { id: '4', date: new Date(2025, 11, 4), startTime: '13:30', price: 5000, duration: 30, booked: false },
     ]);
 
-    const [newSlot, setNewSlot] = useState<Partial<AvailabilitySlot>>({
-        date: new Date(),
-        startTime: '09:00',
-        price: 5000,
-        duration: 30,
-    });
+    // Which slot card is expanded (shows edit/delete)
+    const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    const [showAddSlotModal, setShowAddSlotModal] = useState(false);
-    const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-    const [timeModalVisible, setTimeModalVisible] = useState(false);
+    // Add / edit modal
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editingId, setEditingId]       = useState<string | null>(null);
+    const [slotDate, setSlotDate]         = useState<Date>(new Date());
+    const [slotTime, setSlotTime]         = useState<Date>(new Date());
+    const [slotDuration, setSlotDuration] = useState(30);
+    const [slotPrice, setSlotPrice]       = useState(5000);
 
-    const handleDeleteSlot = (id: string) => {
-        setAvailabilitySlots(slots => slots.filter(slot => slot.id !== id));
+    // Date / time pickers (native)
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
+
+    // Toast
+    const [toastVisible, setToastVisible] = useState(false);
+
+    /* open add-new modal */
+    const openAddModal = () => {
+        setEditingId(null);
+        setSlotDate(new Date());
+        setSlotTime(new Date());
+        setSlotDuration(30);
+        setSlotPrice(5000);
+        setModalVisible(true);
     };
 
-    const handleEditSlot = (slot: AvailabilitySlot) => {
-        setNewSlot(slot);
-        setSelectedSlotId(slot.id);
-        setShowAddSlotModal(true);
+    /* open edit modal */
+    const openEditModal = (slot: AvailabilitySlot) => {
+        setEditingId(slot.id);
+        setSlotDate(slot.date);
+        const [h, m] = slot.startTime.split(':').map(Number);
+        const t = new Date(); t.setHours(h, m, 0, 0);
+        setSlotTime(t);
+        setSlotDuration(slot.duration);
+        setSlotPrice(slot.price);
+        setModalVisible(true);
     };
 
-    const handleSaveSlot = () => {
-        if (!newSlot.date || !newSlot.startTime || !newSlot.price || !newSlot.duration) {
-            alert('Please fill in all fields');
-            return;
-        }
-
-        if (selectedSlotId) {
-            // Edit existing slot
-            setAvailabilitySlots(slots =>
-                slots.map(slot =>
-                    slot.id === selectedSlotId
-                        ? { ...slot, ...newSlot }
-                        : slot
-                )
-            );
+    /* confirm add/edit */
+    const handleConfirm = () => {
+        const timeStr = `${String(slotTime.getHours()).padStart(2,'0')}:${String(slotTime.getMinutes()).padStart(2,'0')}`;
+        if (editingId) {
+            setSlots(prev => prev.map(s => s.id === editingId
+                ? { ...s, date: slotDate, startTime: timeStr, duration: slotDuration, price: slotPrice }
+                : s
+            ));
         } else {
-            // Add new slot
-            const newId = Date.now().toString();
-            setAvailabilitySlots(slots => [
-                ...slots,
-                {
-                    id: newId,
-                    date: newSlot.date!,
-                    startTime: newSlot.startTime!,
-                    price: newSlot.price!,
-                    duration: newSlot.duration!,
-                    booked: false,
-                },
-            ]);
+            setSlots(prev => [...prev, {
+                id: Date.now().toString(),
+                date: slotDate, startTime: timeStr,
+                duration: slotDuration, price: slotPrice, booked: false,
+            }]);
         }
-
-        // Reset form
-        setNewSlot({
-            date: new Date(),
-            startTime: '09:00',
-            price: 5000,
-            duration: 30,
-        });
-        setSelectedSlotId(null);
-        setShowAddSlotModal(false);
+        setModalVisible(false);
+        setToastVisible(true);
     };
 
-    const handleSave = () => {
-        onSave(availabilitySlots);
-        navigation.goBack();
+    const handleDelete = (id: string) => {
+        setSlots(prev => prev.filter(s => s.id !== id));
+        if (selectedId === id) setSelectedId(null);
     };
 
     return (
         <View style={styles.container}>
+            {/* Header */}
             <LinearGradient
-                colors={[
-                    'rgba(24,114,234,1)',
-                    'rgba(54,87,208,1)',
-                    'rgba(77,55,200,1)',
-                    'rgba(99,71,253,1)',
-                ]}
+                colors={['rgba(24,114,234,1)', 'rgba(54,87,208,1)', 'rgba(77,55,200,1)', 'rgba(99,71,253,1)']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.header}
             >
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="arrow-back" size={24} color={colors.white} />
+                <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+                    <Ionicons name="arrow-back" size={22} color={colors.white} />
+                    <Text style={styles.headerTitle}>Set Availability</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Set Availability</Text>
-                <View style={styles.backButton} />
             </LinearGradient>
 
             <ScrollView
-                style={styles.scrollView}
+                style={styles.scroll}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                {/* Availability Slots List */}
-                {availabilitySlots.map((slot) => (
-                    <View key={slot.id} style={styles.slotCard}>
-                        <View style={styles.slotContent}>
-                            <View style={styles.slotInfo}>
-                                <Text style={styles.slotDate}>
-                                    Available on {slot.date.toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                    })}
-                                </Text>
-                                <Text style={styles.slotTime}>{slot.startTime} p.m</Text>
+                {slots.map(slot => {
+                    const isSelected = selectedId === slot.id;
+                    return (
+                        <TouchableOpacity
+                            key={slot.id}
+                            activeOpacity={0.85}
+                            onPress={() => setSelectedId(isSelected ? null : slot.id)}
+                            style={styles.slotCard}
+                        >
+                            <View style={styles.slotRow}>
+                                {/* icon */}
+                                <View style={styles.slotIconWrap}>
+                                    <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                                </View>
+                                {/* info */}
+                                <View style={styles.slotInfo}>
+                                    <Text style={styles.slotDateTxt}>
+                                        Available on {fmtDate(slot.date)}
+                                    </Text>
+                                    <Text style={styles.slotTimeTxt}>{to12h(slot.startTime)}</Text>
+                                </View>
+                                {/* duration badge */}
+                                <View style={styles.slotBadge}>
+                                    <Text style={styles.badgeDur}>{slot.duration} M</Text>
+                                    <Text style={styles.badgePer}>PER SLOT</Text>
+                                </View>
                             </View>
-                            <View style={styles.slotPrice}>
-                                <Text style={styles.priceText}>{slot.duration} M</Text>
-                                <Text style={styles.perSlotText}>PER SLOT</Text>
-                            </View>
-                        </View>
-                        <View style={styles.slotActions}>
-                            <TouchableOpacity
-                                style={styles.editButton}
-                                onPress={() => handleEditSlot(slot)}
-                                activeOpacity={0.7}
-                            >
-                                <Ionicons name="pencil" size={20} color={colors.white} />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.deleteButton}
-                                onPress={() => handleDeleteSlot(slot.id)}
-                                activeOpacity={0.7}
-                            >
-                                <Ionicons name="trash" size={20} color={colors.white} />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                ))}
+
+                            {/* edit / delete — only when selected */}
+                            {isSelected && (
+                                <View style={styles.slotActions}>
+                                    <TouchableOpacity
+                                        style={styles.editBtn}
+                                        onPress={() => { openEditModal(slot); setSelectedId(null); }}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Ionicons name="pencil" size={18} color={colors.white} />
+                                        <Text style={styles.actionTxt}>Edit</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.deleteBtn}
+                                        onPress={() => handleDelete(slot.id)}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Ionicons name="trash" size={18} color={colors.white} />
+                                        <Text style={styles.actionTxt}>Delete</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    );
+                })}
             </ScrollView>
 
-            {/* Add New Slot Button */}
-            <View style={styles.addButtonContainer}>
+            {/* Bottom: BACK + ADD NEW */}
+            <View style={styles.bottomBar}>
                 <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => {
-                        setNewSlot({
-                            date: new Date(),
-                            startTime: '09:00',
-                            price: 5000,
-                            duration: 30,
-                        });
-                        setSelectedSlotId(null);
-                        setShowAddSlotModal(true);
-                    }}
+                    style={styles.backBtn}
+                    onPress={() => navigation.goBack()}
                     activeOpacity={0.8}
                 >
+                    <Text style={styles.backBtnTxt}>BACK</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.addNewBtn} onPress={openAddModal} activeOpacity={0.8}>
                     <LinearGradient
                         colors={['#1872EA', '#6347FD']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={styles.addButtonGradient}
+                        style={styles.addNewGrad}
                     >
-                        <Text style={styles.addButtonText}>ADD NEW</Text>
+                        <Text style={styles.addNewTxt}>ADD NEW</Text>
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
 
-            {/* Add/Edit Slot Modal */}
-            <Modal
-                visible={showAddSlotModal}
-                transparent
-                animationType="slide"
-                onRequestClose={() => setShowAddSlotModal(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>
-                                {selectedSlotId ? 'Edit Slot' : 'Add New Slot'}
-                            </Text>
-                            <TouchableOpacity onPress={() => setShowAddSlotModal(false)}>
-                                <Ionicons name="close" size={24} color={colors.textPrimary} />
+            {/* Add / Edit bottom sheet */}
+            <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
+                <View style={styles.sheetOverlay}>
+                    <View style={styles.sheet}>
+                        {/* handle */}
+                        <View style={styles.sheetHandle} />
+                        <View style={styles.sheetHeader}>
+                            <Text style={styles.sheetTitle}>{editingId ? 'Edit Slot' : 'Add New Slot'}</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Ionicons name="close" size={22} color={colors.textPrimary} />
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView style={styles.modalForm}>
-                            {/* Date Input */}
-                            <View style={styles.formField}>
+                        <ScrollView style={styles.sheetBody} showsVerticalScrollIndicator={false}>
+                            {/* Date */}
+                            <View style={styles.formRow}>
                                 <Text style={styles.formLabel}>Date</Text>
                                 <TouchableOpacity
-                                    style={styles.dateButton}
-                                    onPress={() => {
-                                        // TODO: Implement date picker
-                                    }}
+                                    style={styles.pickBtn}
+                                    onPress={() => setShowDatePicker(true)}
                                 >
-                                    <Text style={styles.dateButtonText}>
-                                        {newSlot.date?.toLocaleDateString()}
-                                    </Text>
-                                    <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+                                    <Text style={styles.pickTxt}>{fmtDate(slotDate)}</Text>
+                                    <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Time Input */}
-                            <View style={styles.formField}>
+                            {/* Time */}
+                            <View style={styles.formRow}>
                                 <Text style={styles.formLabel}>Start Time</Text>
                                 <TouchableOpacity
-                                    style={styles.timeButton}
-                                    onPress={() => setTimeModalVisible(true)}
+                                    style={styles.pickBtn}
+                                    onPress={() => setShowTimePicker(true)}
                                 >
-                                    <Text style={styles.timeButtonText}>
-                                        {newSlot.startTime}
+                                    <Text style={styles.pickTxt}>
+                                        {`${String(slotTime.getHours()).padStart(2,'0')}:${String(slotTime.getMinutes()).padStart(2,'0')}`}
                                     </Text>
-                                    <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
+                                    <Ionicons name="time-outline" size={18} color={colors.textSecondary} />
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Duration Input */}
-                            <View style={styles.formField}>
-                                <Text style={styles.formLabel}>Duration (minutes)</Text>
-                                <View style={styles.durationButtons}>
-                                    {[15, 30, 45, 60].map(duration => (
+                            {/* Duration */}
+                            <View style={styles.formRow}>
+                                <Text style={styles.formLabel}>Duration</Text>
+                                <View style={styles.chipRow}>
+                                    {DURATIONS.map(d => (
                                         <TouchableOpacity
-                                            key={duration}
-                                            style={[
-                                                styles.durationButton,
-                                                newSlot.duration === duration && styles.selectedDurationButton,
-                                            ]}
-                                            onPress={() => setNewSlot({ ...newSlot, duration })}
+                                            key={d}
+                                            style={[styles.chip, slotDuration === d && styles.chipSel]}
+                                            onPress={() => setSlotDuration(d)}
                                         >
-                                            <Text
-                                                style={[
-                                                    styles.durationButtonText,
-                                                    newSlot.duration === duration && styles.selectedDurationButtonText,
-                                                ]}
-                                            >
-                                                {duration}m
+                                            <Text style={[styles.chipTxt, slotDuration === d && styles.chipTxtSel]}>
+                                                {d} min
                                             </Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
                             </View>
 
-                            {/* Price Input */}
-                            <View style={styles.formField}>
+                            {/* Price */}
+                            <View style={styles.formRow}>
                                 <Text style={styles.formLabel}>Price (LKR)</Text>
-                                <View style={styles.priceInputContainer}>
-                                    {[3000, 5000, 7500, 10000].map(price => (
+                                <View style={styles.chipRow}>
+                                    {PRICES.map(p => (
                                         <TouchableOpacity
-                                            key={price}
-                                            style={[
-                                                styles.priceButton,
-                                                newSlot.price === price && styles.selectedPriceButton,
-                                            ]}
-                                            onPress={() => setNewSlot({ ...newSlot, price })}
+                                            key={p}
+                                            style={[styles.chip, slotPrice === p && styles.chipSel]}
+                                            onPress={() => setSlotPrice(p)}
                                         >
-                                            <Text
-                                                style={[
-                                                    styles.priceButtonText,
-                                                    newSlot.price === price && styles.selectedPriceButtonText,
-                                                ]}
-                                            >
-                                                {price}
+                                            <Text style={[styles.chipTxt, slotPrice === p && styles.chipTxtSel]}>
+                                                {p.toLocaleString()}
                                             </Text>
                                         </TouchableOpacity>
                                     ))}
@@ -334,27 +284,19 @@ const SetAvailabilityScreen: React.FC<SetAvailabilityProps> = ({ onSave }) => {
                             </View>
                         </ScrollView>
 
-                        {/* Modal Actions */}
-                        <View style={styles.modalActions}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
-                                onPress={() => setShowAddSlotModal(false)}
-                            >
-                                <Text style={styles.cancelButtonText}>CANCEL</Text>
+                        {/* Sheet actions */}
+                        <View style={styles.sheetActions}>
+                            <TouchableOpacity style={styles.sheetCancelBtn} onPress={() => setModalVisible(false)} activeOpacity={0.8}>
+                                <Text style={styles.sheetCancelTxt}>CANCEL</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.confirmButton]}
-                                onPress={handleSaveSlot}
-                            >
+                            <TouchableOpacity style={styles.sheetConfirmBtn} onPress={handleConfirm} activeOpacity={0.8}>
                                 <LinearGradient
                                     colors={['#1872EA', '#6347FD']}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 0 }}
-                                    style={styles.confirmButtonGradient}
+                                    style={styles.sheetConfirmGrad}
                                 >
-                                    <Text style={styles.confirmButtonText}>
-                                        {selectedSlotId ? 'UPDATE' : 'ADD'}
-                                    </Text>
+                                    <Text style={styles.sheetConfirmTxt}>{editingId ? 'UPDATE' : 'CONFIRM'}</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
                         </View>
@@ -362,422 +304,234 @@ const SetAvailabilityScreen: React.FC<SetAvailabilityProps> = ({ onSave }) => {
                 </View>
             </Modal>
 
-            {/* Time Picker Modal */}
-            <Modal
-                visible={timeModalVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setTimeModalVisible(false)}
-            >
-                <View style={styles.timePickerOverlay}>
-                    <View style={styles.timePickerModal}>
-                        <View style={styles.timePickerHeader}>
-                            <Text style={styles.timePickerTitle}>Select Time</Text>
-                            <TouchableOpacity onPress={() => setTimeModalVisible(false)}>
-                                <Ionicons name="close" size={24} color={colors.textPrimary} />
-                            </TouchableOpacity>
-                        </View>
-                        <FlatList
-                            data={TIME_OPTIONS}
-                            keyExtractor={(item) => item}
-                            numColumns={4}
-                            columnWrapperStyle={styles.timePickerGrid}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.timeOption,
-                                        newSlot.startTime === item && styles.selectedTimeOption,
-                                    ]}
-                                    onPress={() => {
-                                        setNewSlot({ ...newSlot, startTime: item });
-                                        setTimeModalVisible(false);
-                                    }}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.timeOptionText,
-                                            newSlot.startTime === item && styles.selectedTimeOptionText,
-                                        ]}
-                                    >
-                                        {item}
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    </View>
-                </View>
-            </Modal>
+            {/* Native date/time pickers */}
+            {showDatePicker && (
+                <DateTimePicker
+                    value={slotDate}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(_, d) => { setShowDatePicker(false); if (d) setSlotDate(d); }}
+                />
+            )}
+            {showTimePicker && (
+                <DateTimePicker
+                    value={slotTime}
+                    mode="time"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={(_, t) => { setShowTimePicker(false); if (t) setSlotTime(t); }}
+                />
+            )}
 
-            {/* Save Changes Button */}
-            <View style={styles.bottomButtonContainer}>
-                <TouchableOpacity
-                    style={[styles.button, styles.saveButton]}
-                    onPress={handleSave}
-                    activeOpacity={0.8}
-                >
-                    <LinearGradient
-                        colors={['#1872EA', '#6347FD']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.saveButtonGradient}
-                    >
-                        <Text style={styles.saveButtonText}>SAVE CHANGES</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-            </View>
+            {/* Toast */}
+            <Toast
+                visible={toastVisible}
+                message="Availability Updated Successfully"
+                type="success"
+                onDismiss={() => setToastVisible(false)}
+            />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
+
     header: {
-        height: 100,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        paddingTop: 48,
+        paddingBottom: spacing.md,
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.xl,
     },
-    backButton: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    backRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     headerTitle: {
         color: colors.white,
-        fontSize: fontSize.xl,
+        fontSize: fontSize.lg,
         fontWeight: fontWeight.bold,
     },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        padding: spacing.md,
-        paddingBottom: 120,
-    },
+
+    scroll: { flex: 1 },
+    scrollContent: { padding: spacing.lg, paddingBottom: 120 },
+
+    /* slot card */
     slotCard: {
         backgroundColor: colors.white,
         borderRadius: borderRadius.md,
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
         overflow: 'hidden',
         elevation: 2,
-        shadowColor: colors.shadow,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
+        shadowOpacity: 0.06,
         shadowRadius: 4,
     },
-    slotContent: {
+    slotRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        padding: spacing.lg,
+        padding: spacing.md,
+        gap: spacing.md,
     },
-    slotInfo: {
-        flex: 1,
+    slotIconWrap: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: colors.background,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    slotDate: {
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-        color: colors.textPrimary,
-    },
-    slotTime: {
+    slotInfo: { flex: 1 },
+    slotDateTxt: {
         fontSize: fontSize.sm,
-        color: colors.textSecondary,
-        marginTop: spacing.xs,
-    },
-    slotPrice: {
-        alignItems: 'flex-end',
-    },
-    priceText: {
-        fontSize: fontSize.md,
         fontWeight: fontWeight.bold,
         color: colors.textPrimary,
     },
-    perSlotText: {
+    slotTimeTxt: {
         fontSize: fontSize.xs,
         color: colors.textSecondary,
-        marginTop: spacing.xs,
+        marginTop: 2,
+    },
+    slotBadge: { alignItems: 'flex-end' },
+    badgeDur: {
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.bold,
+        color: colors.textPrimary,
+    },
+    badgePer: {
+        fontSize: 10,
+        color: colors.textSecondary,
+        marginTop: 2,
     },
     slotActions: {
         flexDirection: 'row',
-        backgroundColor: colors.primary,
+        borderTopWidth: 1,
+        borderTopColor: colors.borderLight,
     },
-    editButton: {
+    editBtn: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: spacing.md,
-    },
-    deleteButton: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: spacing.md,
-        backgroundColor: colors.error,
-    },
-    addButtonContainer: {
-        padding: spacing.lg,
-    },
-    addButton: {
-        borderRadius: borderRadius.lg,
-        overflow: 'hidden',
-    },
-    addButtonGradient: {
-        paddingVertical: spacing.md,
+        flexDirection: 'row',
+        gap: spacing.xs,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    addButtonText: {
-        color: colors.white,
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-        letterSpacing: 0.5,
-    },
-    modalContainer: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        backgroundColor: colors.white,
-        borderTopLeftRadius: borderRadius.lg,
-        borderTopRightRadius: borderRadius.lg,
-        height: '90%',
-        paddingBottom: spacing.lg,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderLight,
-    },
-    modalTitle: {
-        fontSize: fontSize.lg,
-        fontWeight: fontWeight.bold,
-        color: colors.textPrimary,
-    },
-    modalForm: {
-        flex: 1,
-        padding: spacing.lg,
-    },
-    formField: {
-        marginBottom: spacing.lg,
-    },
-    formLabel: {
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.medium,
-        color: colors.textPrimary,
-        marginBottom: spacing.sm,
-    },
-    dateButton: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: borderRadius.md,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.md,
-        backgroundColor: colors.white,
-    },
-    dateButtonText: {
-        fontSize: fontSize.md,
-        color: colors.textPrimary,
-    },
-    timeButton: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: borderRadius.md,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.md,
-        backgroundColor: colors.white,
-    },
-    timeButtonText: {
-        fontSize: fontSize.md,
-        color: colors.textPrimary,
-    },
-    durationButtons: {
-        flexDirection: 'row',
-        gap: spacing.sm,
-        flexWrap: 'wrap',
-    },
-    durationButton: {
-        flex: 1,
-        minWidth: '48%',
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: borderRadius.md,
-        paddingVertical: spacing.md,
-        alignItems: 'center',
-        backgroundColor: colors.white,
-    },
-    selectedDurationButton: {
+        paddingVertical: spacing.sm,
         backgroundColor: colors.primary,
-        borderColor: colors.primary,
     },
-    durationButtonText: {
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.medium,
-        color: colors.textPrimary,
-    },
-    selectedDurationButtonText: {
-        color: colors.white,
-    },
-    priceInputContainer: {
-        flexDirection: 'row',
-        gap: spacing.sm,
-        flexWrap: 'wrap',
-    },
-    priceButton: {
+    deleteBtn: {
         flex: 1,
-        minWidth: '48%',
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: borderRadius.md,
-        paddingVertical: spacing.md,
+        flexDirection: 'row',
+        gap: spacing.xs,
         alignItems: 'center',
-        backgroundColor: colors.white,
+        justifyContent: 'center',
+        paddingVertical: spacing.sm,
+        backgroundColor: '#E53935',
     },
-    selectedPriceButton: {
-        backgroundColor: colors.primary,
-        borderColor: colors.primary,
-    },
-    priceButtonText: {
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.medium,
-        color: colors.textPrimary,
-    },
-    selectedPriceButtonText: {
-        color: colors.white,
-    },
-    modalActions: {
+    actionTxt: { color: colors.white, fontSize: fontSize.sm, fontWeight: fontWeight.medium },
+
+    /* bottom bar */
+    bottomBar: {
+        position: 'absolute',
+        bottom: 0, left: 0, right: 0,
         flexDirection: 'row',
         gap: spacing.md,
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
-    },
-    modalButton: {
-        flex: 1,
-        borderRadius: borderRadius.lg,
-        overflow: 'hidden',
-    },
-    cancelButton: {
-        borderWidth: 2,
-        borderColor: colors.primary,
-    },
-    cancelButtonText: {
-        color: colors.primary,
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-        paddingVertical: spacing.md,
-        textAlign: 'center',
-    },
-    confirmButton: {
-        flex: 1,
-    },
-    confirmButtonGradient: {
-        paddingVertical: spacing.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    confirmButtonText: {
-        color: colors.white,
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-    },
-    timePickerOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
-    },
-    timePickerModal: {
-        backgroundColor: colors.white,
-        borderTopLeftRadius: borderRadius.lg,
-        borderTopRightRadius: borderRadius.lg,
-        maxHeight: '60%',
-        paddingBottom: spacing.lg,
-    },
-    timePickerHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderLight,
-    },
-    timePickerTitle: {
-        fontSize: fontSize.lg,
-        fontWeight: fontWeight.bold,
-        color: colors.textPrimary,
-    },
-    timePickerGrid: {
-        justifyContent: 'space-between',
-        paddingHorizontal: spacing.lg,
-        marginTop: spacing.md,
-        marginBottom: spacing.sm,
-    },
-    timeOption: {
-        width: '23%',
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: borderRadius.md,
-        paddingVertical: spacing.sm,
-        alignItems: 'center',
-        backgroundColor: colors.white,
-        marginBottom: spacing.sm,
-    },
-    selectedTimeOption: {
-        backgroundColor: colors.primary,
-        borderColor: colors.primary,
-    },
-    timeOptionText: {
-        fontSize: fontSize.sm,
-        fontWeight: fontWeight.medium,
-        color: colors.textPrimary,
-    },
-    selectedTimeOptionText: {
-        color: colors.white,
-    },
-    bottomButtonContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
         padding: spacing.lg,
         backgroundColor: colors.white,
         borderTopWidth: 1,
         borderTopColor: colors.borderLight,
     },
-    button: {
-        borderRadius: borderRadius.lg,
-        overflow: 'hidden',
-    },
-    saveButton: {
+    backBtn: {
         flex: 1,
-    },
-    saveButtonGradient: {
+        borderWidth: 2,
+        borderColor: colors.primary,
+        borderRadius: borderRadius.lg,
         paddingVertical: spacing.md,
         alignItems: 'center',
-        justifyContent: 'center',
     },
-    saveButtonText: {
-        color: colors.white,
+    backBtnTxt: { color: colors.primary, fontSize: fontSize.md, fontWeight: fontWeight.bold },
+    addNewBtn: { flex: 1, borderRadius: borderRadius.lg, overflow: 'hidden' },
+    addNewGrad: { paddingVertical: spacing.md, alignItems: 'center' },
+    addNewTxt: { color: colors.white, fontSize: fontSize.md, fontWeight: fontWeight.bold },
+
+    /* bottom sheet */
+    sheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+    sheet: {
+        backgroundColor: colors.white,
+        borderTopLeftRadius: borderRadius.xl ?? 24,
+        borderTopRightRadius: borderRadius.xl ?? 24,
+        maxHeight: '80%',
+        paddingBottom: spacing.xl,
+    },
+    sheetHandle: {
+        width: 40, height: 4,
+        backgroundColor: colors.border,
+        borderRadius: 2,
+        alignSelf: 'center',
+        marginTop: spacing.sm,
+    },
+    sheetHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.borderLight,
+    },
+    sheetTitle: {
         fontSize: fontSize.md,
         fontWeight: fontWeight.bold,
-        letterSpacing: 0.5,
+        color: colors.textPrimary,
     },
+    sheetBody: { paddingHorizontal: spacing.lg },
+
+    /* form rows */
+    formRow: { marginTop: spacing.lg },
+    formLabel: {
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.medium,
+        color: colors.textSecondary,
+        marginBottom: spacing.xs,
+    },
+    pickBtn: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: borderRadius.md,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.md,
+        backgroundColor: colors.white,
+    },
+    pickTxt: { fontSize: fontSize.sm, color: colors.textPrimary },
+
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.xs },
+    chip: {
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.white,
+    },
+    chipSel: { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipTxt: { fontSize: fontSize.sm, color: colors.textPrimary },
+    chipTxtSel: { color: colors.white, fontWeight: fontWeight.bold },
+
+    sheetActions: {
+        flexDirection: 'row',
+        gap: spacing.md,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+    },
+    sheetCancelBtn: {
+        flex: 1,
+        borderWidth: 2,
+        borderColor: colors.primary,
+        borderRadius: borderRadius.lg,
+        paddingVertical: spacing.md,
+        alignItems: 'center',
+    },
+    sheetCancelTxt: { color: colors.primary, fontSize: fontSize.md, fontWeight: fontWeight.bold },
+    sheetConfirmBtn: { flex: 1, borderRadius: borderRadius.lg, overflow: 'hidden' },
+    sheetConfirmGrad: { paddingVertical: spacing.md, alignItems: 'center' },
+    sheetConfirmTxt: { color: colors.white, fontSize: fontSize.md, fontWeight: fontWeight.bold },
 });
 
 export default SetAvailabilityScreen;
