@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import ScreenWrapper from "../../../components/ScreenWrapper";
-import TopNavbar from "../../../components/TopNavbar";
+import VerificationHeader from "../../../components/VerificationHeader";
 import SearchBar from "../../../components/SearchBar";
 import { colors, spacing, borderRadius } from "../../../config/theme";
 
@@ -101,7 +101,8 @@ const ClientVerificationScreen = () => {
 
     return (
         <ScreenWrapper backgroundColor="#F4F6F9">
-            <TopNavbar userName="Admin" />
+            <VerificationHeader title="Client Verification"
+                                backScreen="UserManagement"/>
 
             <View style={styles.container}>
                 <SearchBar
