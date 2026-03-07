@@ -29,6 +29,9 @@ import LawyerProfessionalDetailsScreen from './src/screens/lawyer/lawyerProfile/
 import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
 import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
+import CalendarScreen from './src/screens/lawyer/CalendarScreen';
+import AddAppointmentScreen from './src/screens/lawyer/lawyerProfile/AddAppointmentScreen';
+import SetAvailabilityScreen from './src/screens/lawyer/lawyerProfile/SetAvailabilityScreen';
 
 // Client Screens
 import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
@@ -161,7 +164,7 @@ function LawyerTabNavigator() {
 
             <LawyerTab.Screen
                 name="Calendar"
-                component={ProfileScreen}
+                component={CalendarScreen}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="calendar-outline" color={color} focused={focused} />
@@ -184,6 +187,8 @@ function LawyerTabs() {
             <LawyerStack.Screen name="Availability" component={AvailabilityScreen} />
             <LawyerStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
             <LawyerStack.Screen name="Help" component={HelpScreen} />
+            <LawyerStack.Screen name="AddAppointment" component={AddAppointmentScreen} />
+            <LawyerStack.Screen name="SetAvailability" component={SetAvailabilityScreen} />
         </LawyerStack.Navigator>
     );
 }

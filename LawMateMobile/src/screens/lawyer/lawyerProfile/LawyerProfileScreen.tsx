@@ -182,7 +182,7 @@ const LawyerProfileScreen: React.FC = () => {
                     <MenuItem
                         icon="calendar-outline"
                         title="Availability"
-                        onPress={() => navigation.navigate('Availability')}
+                        onPress={() => navigation.navigate('SetAvailability')}
                     />
                     <MenuItem
                         icon="settings-outline"
