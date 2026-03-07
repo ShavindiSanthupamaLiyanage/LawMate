@@ -16,6 +16,7 @@ import Input from '../../../components/Input';
 import { useToast } from "../../../context/ToastContext";
 import {AntDesign, Ionicons} from "@expo/vector-icons";
 import ScreenWrapper from "../../../components/ScreenWrapper";
+import {AuthService} from "../../../services/authService";
 
 type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ResetPassword'>;
 
@@ -38,7 +39,8 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
         message: '',
         type: 'info'
     });
-    const { showSuccess } = useToast();
+    const { showSuccess, showError } = useToast();
+    const [isOtpVerified, setIsOtpVerified] = useState(false);
 
     // Check if passwords match
     const passwordsMatch = newPassword !== '' && confirmPassword !== '' && newPassword === confirmPassword;
@@ -51,8 +53,35 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
         const newOtp = [...otp];
         newOtp[index] = value.slice(-1);
         setOtp(newOtp);
+
         if (value && index < 5) {
             otpRefs.current[index + 1]?.focus();
+        }
+
+        // Auto-verify when last box filled
+        if (index === 5 && value) {
+            const fullToken = [...newOtp.slice(0, 5), value.slice(-1)].join('');
+            verifyOtp(fullToken);
+        }
+
+        // Reset verified state if user edits OTP
+        if (isOtpVerified) setIsOtpVerified(false);
+    };
+
+    const verifyOtp = async (token: string): Promise<void> => {
+        try {
+            const isValid = await AuthService.verifyResetToken(token);
+            if (isValid) {
+                setIsOtpVerified(true);
+                showSuccess('OTP verified successfully!');
+            } else {
+                setIsOtpVerified(false);
+                setOtp(['', '', '', '', '', '']);
+                otpRefs.current[0]?.focus();
+                showError('Invalid or expired OTP. Please try again.');
+            }
+        } catch {
+            showError('Could not verify OTP. Please try again.');
         }
     };
 
@@ -62,24 +91,26 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
         }
     };
 
-    const isOtpComplete = otp.every(d => d !== '');
+    // const isOtpComplete = otp.every(d => d !== '');
 
     // Button should be enabled only when both passwords are filled and match
-    const isButtonEnabled = isOtpComplete && newPassword !== '' && confirmPassword !== '' && passwordsMatch;
+    const isButtonEnabled = isOtpVerified && newPassword !== '' && confirmPassword !== '' && passwordsMatch;
 
-    const handleResetPassword = (): void => {
+    const handleResetPassword = async (): Promise<void> => {
         if (!isButtonEnabled) return;
-
         setLoading(true);
-
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const token = otp.join('');  // combine 6 boxes → "922613"
+            await AuthService.resetPasswordWithToken(token, newPassword);
             showSuccess('Your password has been reset successfully!');
             setTimeout(() => {
                 navigation.navigate('Login');
             }, 500);
-        }, 1000);
+        } catch (error: any) {
+            showError('Failed to reset password. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -109,6 +140,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
                     <Text style={styles.otpSubLabel}>
                         Enter the 6-digit code sent to your email
                     </Text>
+
                     <View style={styles.otpContainer}>
                         {otp.map((digit, index) => (
                             <TextInput
@@ -117,6 +149,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
                                 style={[
                                     styles.otpBox,
                                     digit ? styles.otpBoxFilled : null,
+                                    isOtpVerified ? styles.otpBoxVerified : null,  // ADD
                                 ]}
                                 value={digit}
                                 onChangeText={(val) => handleOtpChange(val, index)}
@@ -128,6 +161,9 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
                             />
                         ))}
                     </View>
+                    {isOtpVerified && (
+                        <Text style={styles.otpVerifiedText}> OTP verified</Text>
+                    )}
                 </View>
 
                 <View style={styles.form}>
@@ -286,6 +322,16 @@ const styles = StyleSheet.create({
     otpBoxFilled: {
         borderColor: colors.primary,      // highlight filled boxes
         backgroundColor: colors.white,
+    },
+    otpBoxVerified: {
+        borderColor: colors.success ?? '#22c55e',
+        backgroundColor: colors.white,
+    },
+    otpVerifiedText: {
+        fontSize: fontSize.xs,
+        color: colors.success ?? '#22c55e',
+        marginTop: spacing.xs,
+        marginLeft: spacing.xs,
     },
 });
 

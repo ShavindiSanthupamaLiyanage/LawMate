@@ -54,7 +54,9 @@ export const ENDPOINTS = {
         LOGOUT: '/auth/logout',
         REFRESH_TOKEN: '/auth/refresh',
         FORGOT_PASSWORD: '/auth/forgot-password',
-        RESET_PASSWORD: '/auth/reset-password',
+        REQUEST_RESET_PASSWORD: '/auth/request-reset-password',
+        VERIFY_RESET_TOKEN: '/auth/verify-reset-token',
+        RESET_PASSWORD_WITH_TOKEN: '/auth/reset-password-with-token',
     },
 
     // Lawyer endpoints
@@ -81,5 +83,8 @@ export const ENDPOINTS = {
     ADMIN: {
         USERS: '/admin/users',
         STATISTICS: '/admin/statistics',
+    },
+    USER: {
+        GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
     },
 };
