@@ -193,9 +193,7 @@ export default function FinanceListScreen({ navigation }: Props) {
   };
 
   return (
-      <AdminLayout userName="Finanace Managenent"
-                   onProfilePress={() => parentNavigation.navigate('AdminProfile')}
-      >
+      <AdminLayout title="Finanace Managenent" disableScroll>
         <View style={styles.container}>
           {/* Search Bar */}
           <View style={styles.searchContainer}>
@@ -245,8 +243,6 @@ export default function FinanceListScreen({ navigation }: Props) {
                 </View>
               }
           />
-      {/*  </View>*/}
-      {/*</ScreenWrapper>*/}
         </View>
       </AdminLayout>
   );
