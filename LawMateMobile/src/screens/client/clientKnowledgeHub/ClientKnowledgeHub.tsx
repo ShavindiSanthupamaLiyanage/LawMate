@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import SearchBar from '../../../components/SearchBar';
 import ClientLayout from '../../../components/ClientLayout';
-import {useNavigation} from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 interface Article {
   id: string;
@@ -89,8 +89,10 @@ const KnowledgeHub: React.FC = () => {
   );
 
   return (
-    <ClientLayout userName="Knowledge Hub"
-                  onProfilePress={() => navigation.navigate('ClientProfile')}
+    <ClientLayout
+      title="Knowledge Hub"
+      userName="Kavindu Gimsara"
+      onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
     >
       <View style={styles.contentWrapper}>
         <View style={styles.searchContainer}>
@@ -161,18 +163,17 @@ const styles = StyleSheet.create({
   },
 
   activeTabButton: {
-    backgroundColor:
-      colors.primary
+    backgroundColor: colors.gradient
   },
 
   tabText: {
     fontSize: fontSize.md,
     fontWeight: fontWeight.semibold,
-    color: colors.primary
+    color: colors.primaryLight
   },
 
   activeTabText: {
-    color: colors.white
+    color: colors.primary
   },
 
   postCard: {
@@ -180,10 +181,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
     elevation: 3,
   },
 
@@ -197,7 +194,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 22.5,
-    backgroundColor: '#E5DBFF',
+    backgroundColor: colors.gradient,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md
@@ -266,7 +263,7 @@ const styles = StyleSheet.create({
   articleHeader: {
     fontSize: fontSize.lg,
     fontWeight: 'bold',
-    color: '#2906ed',
+    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
 
