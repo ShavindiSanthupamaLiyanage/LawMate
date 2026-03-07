@@ -1,6 +1,32 @@
 // Navigation Types
 import {NavigatorScreenParams} from "@react-navigation/core";
 
+export type LawyerStackParamList = {
+    LawyerTabNavigator: NavigatorScreenParams<LawyerTabParamList> | undefined;
+    LawyerProfile: undefined;
+    LawyerPersonalDetails: undefined;
+    LawyerProfessionalDetails: undefined;
+    Availability: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
+};
+
+export type ClientStackParamList = {
+    ClientTabNavigator: NavigatorScreenParams<ClientTabParamList> | undefined;
+    ClientProfile: undefined;
+    ClientPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
+};
+
+export type AdminStackParamList = {
+    AdminTabNavigator: NavigatorScreenParams<AdminTabParamList> | undefined;
+    AdminProfile: undefined;
+    AdminPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
+};
+
 export type RootStackParamList = {
     Splash: undefined;
     Welcome: undefined;
@@ -13,9 +39,21 @@ export type RootStackParamList = {
     ResetPassword: undefined;
     PaymentSubmission:undefined;
     PaymentVerification:undefined;
-    LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
-    ClientTabs: NavigatorScreenParams<ClientTabParamList>;
-    AdminTabs: NavigatorScreenParams<AdminTabParamList>;
+    ViewTransactions: undefined;
+    EarningsReport: undefined;
+    // LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
+    // ClientTabs: NavigatorScreenParams<ClientTabParamList>;
+    // AdminTabs: NavigatorScreenParams<AdminTabParamList>;
+    AppointmentView:{ request: any };
+    // LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
+    // ClientTabs: NavigatorScreenParams<ClientTabParamList>;
+    // AdminTabs: NavigatorScreenParams<AdminTabParamList>;
+    LawyerTabs: NavigatorScreenParams<LawyerStackParamList>;
+    ClientTabs: NavigatorScreenParams<ClientStackParamList>;
+    AdminTabs: NavigatorScreenParams<AdminStackParamList>;
+    ClientAppointmentView:{request:any}
+    PaymentSlipScreen:{request:any}
+    PaymentSlipReceivedScreen:{request:any}
 };
 
 export type LawyerTabParamList = {
@@ -23,19 +61,32 @@ export type LawyerTabParamList = {
     Cases: undefined;
     Calendar: undefined;
     Profile: undefined;
+    LawyerProfile: undefined;
+    LawyerPersonalDetails: undefined;
+    LawyerProfessionalDetails: undefined;
+    Availability: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
     Bookings: undefined;
     Finance: undefined;
     Knowledge: undefined;
+    Requests: undefined;
+    AppointmentView: undefined;
 };
 
 export type ClientTabParamList = {
     Dashboard: undefined;
-    Lawly: undefined;
+    Contacts: undefined;
     Requests: undefined;
     Profile: undefined;
+    ClientProfile: undefined;
+    ClientPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
     Bookings: undefined;
     Lawyers: undefined;
     Knowledge: undefined;
+    AppointmentView: undefined;
 };
 
 export type AdminTabParamList = {
@@ -46,6 +97,12 @@ export type AdminTabParamList = {
     Verifications: undefined;
     Finance: undefined;
     Payment: undefined;
+    AdminProfile: undefined;
+    AdminPersonalDetails: undefined;
+    SettingsPreferences: undefined;
+    Help: undefined;
+    Bookings: undefined;
+    
 };
 
 
