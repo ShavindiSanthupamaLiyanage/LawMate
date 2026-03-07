@@ -112,22 +112,27 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
     >
       <ScrollView contentContainerStyle={styles.contentWrapper}>
 
-        {/* ADD NEW button under header right side */}
-        <Button
-          title="ADD NEW"
-          variant="primary"
-          onPress={() => navigation.navigate("AddNewArticle")}
-          style={styles.primaryBtn}
-        />
 
-        <View style={styles.searchContainer}>
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search name..."
-            onSearch={() => console.log('Searching for:', searchQuery)}
-            onClear={() => console.log('Search cleared')}
-          />
+        <View style={styles.topRow}>
+          <View style={styles.searchWrapper}>
+            <SearchBar
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search name..."
+              onSearch={() => console.log('Searching for:', searchQuery)}
+              onClear={() => console.log('Search cleared')}
+            />
+          </View>
+          <View>
+            <Button
+              title="+"
+              variant="primary"
+              onPress={() => navigation.navigate("AddNewArticle")}
+              style={styles.addIconButton}
+              textStyle={styles.addIconText}
+            />
+    
+          </View>
         </View>
 
         <View style={styles.tabsContainer}>
@@ -162,7 +167,7 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
         ))}
 
       </ScrollView>
-    </LawyerLayout>
+    </LawyerLayout >
   );
 };
 
@@ -173,19 +178,38 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
 
-  addNewContainer: {
-    alignItems: 'flex-end',
-    marginBottom: spacing.md,
-  },
-
-  addNewButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
+  addButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: spacing.sm,
+  },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.lg,
   },
 
+  searchWrapper: {
+    flex: 1,
+  },
 
+  addIconButton: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  marginLeft: spacing.sm,
+  paddingHorizontal: 0,
+  alignSelf: "center",
+},
+
+  addIconText: {
+    fontSize: 26,
+    marginTop: -2,
+  },
 
   searchContainer: {
     flexDirection: 'row',
