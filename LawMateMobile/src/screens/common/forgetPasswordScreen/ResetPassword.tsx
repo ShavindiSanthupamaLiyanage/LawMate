@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {
     View,
     Text,
     StyleSheet,
     KeyboardAvoidingView,
-    Platform,
+    Platform, TextInput,
     ScrollView, TouchableOpacity,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,6 +15,7 @@ import Alert from '../../../components/Alert';
 import Input from '../../../components/Input';
 import { useToast } from "../../../context/ToastContext";
 import {AntDesign, Ionicons} from "@expo/vector-icons";
+import ScreenWrapper from "../../../components/ScreenWrapper";
 
 type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ResetPassword'>;
 
@@ -27,6 +28,8 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [otp, setOtp] = useState(['', '', '', '', '', '']);
+    const otpRefs = useRef<Array<TextInput | null>>(Array(6).fill(null));
 
     const [loading, setLoading] = useState<boolean>(false);
     const [alert, setAlert] = useState<AlertState>({
@@ -43,8 +46,26 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
     // Check if passwords don't match but user has started typing confirm password
     const passwordsDontMatch = confirmPassword !== '' && newPassword !== confirmPassword;
 
+    const handleOtpChange = (value: string, index: number) => {
+        if (!/^\d*$/.test(value)) return;
+        const newOtp = [...otp];
+        newOtp[index] = value.slice(-1);
+        setOtp(newOtp);
+        if (value && index < 5) {
+            otpRefs.current[index + 1]?.focus();
+        }
+    };
+
+    const handleOtpKeyPress = (e: any, index: number) => {
+        if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+            otpRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const isOtpComplete = otp.every(d => d !== '');
+
     // Button should be enabled only when both passwords are filled and match
-    const isButtonEnabled = newPassword !== '' && confirmPassword !== '' && passwordsMatch;
+    const isButtonEnabled = isOtpComplete && newPassword !== '' && confirmPassword !== '' && passwordsMatch;
 
     const handleResetPassword = (): void => {
         if (!isButtonEnabled) return;
@@ -62,6 +83,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
     };
 
     return (
+        <ScreenWrapper backgroundColor={colors.white}>
         <KeyboardAvoidingView
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -80,6 +102,32 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
                     <Text style={styles.subtitle}>
                         Your new password must be different from previously used password.
                     </Text>
+                </View>
+
+                <View style={styles.otpSection}>
+                    <Text style={styles.otpLabel}>Enter OTP</Text>
+                    <Text style={styles.otpSubLabel}>
+                        Enter the 6-digit code sent to your email
+                    </Text>
+                    <View style={styles.otpContainer}>
+                        {otp.map((digit, index) => (
+                            <TextInput
+                                key={index}
+                                ref={(el) => { otpRefs.current[index] = el; }}
+                                style={[
+                                    styles.otpBox,
+                                    digit ? styles.otpBoxFilled : null,
+                                ]}
+                                value={digit}
+                                onChangeText={(val) => handleOtpChange(val, index)}
+                                onKeyPress={(e) => handleOtpKeyPress(e, index)}
+                                keyboardType="numeric"
+                                maxLength={1}
+                                textAlign="center"
+                                selectTextOnFocus
+                            />
+                        ))}
+                    </View>
                 </View>
 
                 <View style={styles.form}>
@@ -150,6 +198,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation })
                 onConfirm={alert.onConfirm}
             />
         </KeyboardAvoidingView>
+        </ScreenWrapper>
     );
 };
 
@@ -163,7 +212,7 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'flex-start',
-        marginTop: spacing.lg,
+        // marginTop: spacing.lg,
         marginBottom: spacing.xl,
     },
     headerTop: {
@@ -203,6 +252,40 @@ const styles = StyleSheet.create({
     },
     resetButton: {
         marginTop: spacing.xxxl,
+    },
+    otpSection: {
+        marginBottom: spacing.lg,
+    },
+    otpLabel: {
+        fontSize: fontSize.md,
+        fontWeight: fontWeight.semibold,
+        color: colors.textPrimary,
+        marginBottom: spacing.xs,
+    },
+    otpSubLabel: {
+        fontSize: fontSize.sm,
+        color: colors.textSecondary,
+        marginBottom: spacing.md,
+    },
+    otpContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 8,
+    },
+    otpBox: {
+        flex: 1,
+        height: 52,
+        borderWidth: 1.5,
+        borderColor: colors.border,       // use your theme border color
+        borderRadius: 10,
+        fontSize: fontSize.lg,
+        fontWeight: fontWeight.bold,
+        color: colors.textPrimary,
+        backgroundColor: colors.background ?? '#F9F9F9',
+    },
+    otpBoxFilled: {
+        borderColor: colors.primary,      // highlight filled boxes
+        backgroundColor: colors.white,
     },
 });
 
