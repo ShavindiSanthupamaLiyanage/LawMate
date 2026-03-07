@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   },
 
   backButton: {
-    marginRight: spacing.md,
+    marginRight: 12,
   },
 });
 

@@ -46,6 +46,11 @@ import ClientAppointmentView from './src/screens/client/clientRequest/ClientAppo
 import PaymentSlipScreen from './src/screens/client/clientRequest/PaymentSlipScreen';
 import PaymentSlipReceivedScreen from './src/screens/client/clientRequest/PaymentSlipReceivedScreen';
 import ClientDashboardStack from "./src/screens/client/clientDashboard/ClientDashboardStack";
+import SearchLawyer from './src/screens/client/lawyerSearch/SearchLawyer';
+import AppointmentRequest from './src/screens/client/lawyerSearch/AppointmentRequest';
+import AppointmentForm from './src/screens/client/lawyerSearch/AppointmentForm';
+import AppointmentConfirm from './src/screens/client/lawyerSearch/AppointmentConfirm';
+import AppointmentRequestReceived from './src/screens/client/lawyerSearch/AppointmentRequestReceived';
 import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
 
 // Admin Screens
@@ -93,6 +98,17 @@ function ClientRequestsStackNavigator() {
             <ClientStack.Screen name="ClientAppointmentView" component={ClientAppointmentView} />
             <ClientStack.Screen name="PaymentSlipScreen" component={PaymentSlipScreen} />
             <ClientStack.Screen name="PaymentSlipReceivedScreen" component={PaymentSlipReceivedScreen} />
+        </ClientStack.Navigator>
+    );
+}
+function LawyerSearchStackNavigator() {
+    return (
+        <ClientStack.Navigator screenOptions={{ headerShown: false }}>
+            <ClientStack.Screen name="SearchLawyer" component={SearchLawyer} />
+            <ClientStack.Screen name="AppointmentRequest" component={AppointmentRequest} />
+            <ClientStack.Screen name="AppointmentForm" component={AppointmentForm} />
+            <ClientStack.Screen name="AppointmentConfirm" component={AppointmentConfirm} />
+            <ClientStack.Screen name="AppointmentRequestReceived" component={AppointmentRequestReceived} />
         </ClientStack.Navigator>
     );
 }
@@ -229,7 +245,7 @@ function ClientTabNavigator() {
 
             <ClientTab.Screen
                 name="Lawyers"
-                component={ProfileScreen}
+                component={LawyerSearchStackNavigator}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="search-outline" color={color} focused={focused} />
