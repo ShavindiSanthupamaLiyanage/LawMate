@@ -8,10 +8,9 @@ import {
     Image,
 } from "react-native";
 
-import ScreenWrapper from "../../../components/ScreenWrapper";
-import TopNavbar from "../../../components/TopNavbar";
 import SearchBar from "../../../components/SearchBar";
 import { colors, spacing, borderRadius } from "../../../config/theme";
+import AdminLayout from "../../../components/AdminLayout";
 
 type StatusType = "ALL" | "Active" | "Rejected";
 
@@ -98,11 +97,8 @@ const ClientVerificationScreen = () => {
             </View>
         );
     };
-
     return (
-        <ScreenWrapper backgroundColor="#F4F6F9">
-            <TopNavbar userName="Admin" />
-
+        <AdminLayout title="Client Verification" disableScroll showBackButton>
             <View style={styles.container}>
                 <SearchBar
                     value={search}
@@ -141,7 +137,7 @@ const ClientVerificationScreen = () => {
                     showsVerticalScrollIndicator={false}
                 />
             </View>
-        </ScreenWrapper>
+         </AdminLayout>
     );
 };
 

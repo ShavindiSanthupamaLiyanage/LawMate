@@ -49,6 +49,7 @@ import Constants from "expo-constants";
 
 const getBaseUrl = () => {
     if (!__DEV__) {
+        // Production
         return 'https://your-production-api.com/api';
     }
 
@@ -64,7 +65,7 @@ const getBaseUrl = () => {
         return `http://${host}:5102/api`;
     }
 
-    // Fallback for emulator
+    // Emulator/Simulator
     if (Platform.OS === 'android') {
         return 'http://10.0.2.2:5102/api';
     }
