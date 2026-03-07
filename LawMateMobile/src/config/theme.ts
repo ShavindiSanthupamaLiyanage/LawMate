@@ -7,6 +7,7 @@ interface Colors {
     primaryLight: string;
     primaryDark: string;
     background: string;
+    gradient: string;
     white: string;
     textPrimary: string;
     textSecondary: string;
@@ -67,6 +68,7 @@ export const colors: Colors = {
     // Background Colors
     background: '#F8F9FE',
     white: '#FFFFFF',
+    gradient: '#bfcde6',
 
     // Text Colors
     textPrimary: '#1A1A1A',
