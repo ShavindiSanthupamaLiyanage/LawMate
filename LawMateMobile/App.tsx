@@ -19,6 +19,7 @@ import WelcomeScreen from './src/screens/common/WelcomeScreen';
 import LoginScreen from './src/screens/common/loginScreen/LoginScreen';
 import ResetPasswordScreen from "./src/screens/common/forgetPasswordScreen/ResetPassword";
 import PaymentVerificationStack from "./src/screens/admin/paymentVerification/PaymentVerificationStack";
+import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
@@ -30,6 +31,10 @@ import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
 import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
 import LawyerKnowledgeHubFeed from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubFeed';
+import AddNewArticle from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubAddNew';
+import ManageArticle from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubManage';
+import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
+import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 
 // Client Screens
 import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
@@ -41,11 +46,16 @@ import ClientAppointmentView from './src/screens/client/clientRequest/ClientAppo
 import PaymentSlipScreen from './src/screens/client/clientRequest/PaymentSlipScreen';
 import PaymentSlipReceivedScreen from './src/screens/client/clientRequest/PaymentSlipReceivedScreen';
 import ClientDashboardStack from "./src/screens/client/clientDashboard/ClientDashboardStack";
+import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
 import AdminProfileScreen from './src/screens/admin/adminProfile/AdminProfileScreen';
 import AdminPersonalDetailsScreen from './src/screens/admin/adminProfile/AdminPersonalDetailsScreen';
+import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
+// import UserVerificationScreen from "./src/screens/admin/userVerification/UserManagementScreen";
+import VerificationStack from "./src/screens/admin/userVerification/VerificationStack";
+import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
 
 // Shared Screens
 import AvailabilityScreen from './src/screens/common/AvailabilityScreen';
@@ -54,20 +64,9 @@ import HelpScreen from './src/screens/common/HelpScreen';
 
 // Placeholder Screens
 import ProfileScreen from './src/screens/ProfileScreen';
-import SettingsScreen from './src/screens/SettingsScreen';
-// import TabIcon from "./src/components/TabIcon";
 import VerificationPending from "./src/screens/lawyer/lawyerSignUp/VerificationPending";
 import TabIcon from "./src/components/BottomNavBar";
-import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
-import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
-import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVerificationScreen";
-import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
-import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
-import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
-import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
-import AddNewArticle from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubAddNew';
-import ManageArticle from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubManage';
-
+import {AuthProvider} from "./src/context/AuthContext";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -308,9 +307,18 @@ function AdminTabNavigator() {
             },
             headerShown: false,
         }}>
+            {/*<AdminTab.Screen*/}
+            {/*    name="Verifications"*/}
+            {/*    component={UserVerificationScreen}*/}
+            {/*    options={{*/}
+            {/*        tabBarIcon: ({ color, focused }) => (*/}
+            {/*            <TabIcon iconName="bookmark-outline" color={color} focused={focused} />*/}
+            {/*        ),*/}
+            {/*    }}*/}
+            {/*/>*/}
             <AdminTab.Screen
                 name="Verifications"
-                component={UserVerificationScreen}
+                component={VerificationStack}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
@@ -380,6 +388,7 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <ToastProvider>
+                <AuthProvider>
                 <NavigationContainer>
                     <Stack.Navigator
                         initialRouteName="Splash"
@@ -466,6 +475,7 @@ export default function App() {
 
                     </Stack.Navigator>
                 </NavigationContainer>
+                    </AuthProvider>
             </ToastProvider>
         </SafeAreaProvider>
     );

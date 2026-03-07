@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LawMate.Domain.Entities.Booking;
 using LawMate.Domain.Entities.Lawyer;
+using LawMate.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace LawMate.Application.Common.Interfaces
@@ -23,6 +24,8 @@ namespace LawMate.Application.Common.Interfaces
         DbSet<TIMESLOT> TIMESLOT { get; }
         DbSet<ARTICLE> ARTICLE { get; }
         DbSet<MEMBERSHIP_PAYMENT> MEMBERSHIP_PAYMENT { get; }
+        DbSet<PASSWORD_RESET_TOKEN> PASSWORD_RESET_TOKEN { get; }
+
         #endregion
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
