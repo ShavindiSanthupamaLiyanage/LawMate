@@ -87,4 +87,7 @@ export const ENDPOINTS = {
     USER: {
         GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
     },
+    CONTACT: {
+        SEND: '/contactUs/send',
+    },
 };
