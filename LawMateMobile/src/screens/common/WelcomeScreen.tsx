@@ -46,7 +46,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             <View style={styles.buttonContainer}>
                 <Button
                     title="SIGN UP AS A LAWYER"
-                    // onPress={() => navigation.navigate('Register', { userType: 'lawyer' })}
                     onPress={handleLawyerSignup}
                     variant="primary"
                     style={styles.button}

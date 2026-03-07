@@ -34,7 +34,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ name, action, time }) => (
 
 const AdminDashboard: React.FC = () => {
     const navigation = useNavigation<any>();
-    
+
     // Sample data for charts
     const lawyerCategories = [
         { label: 'Criminal', percentage: 30, color: '#A78BFA' },
@@ -51,11 +51,38 @@ const AdminDashboard: React.FC = () => {
     ];
 
     return (
-        <AdminLayout 
+        <AdminLayout
             userName="Kavindu Gimsara"
             onProfilePress={() => navigation.navigate('AdminProfile')}
         >
             <View>
+                {/* Dashboard Stats */}
+                <LinearGradient
+                    colors={['#3B82F6', '#7C3AED']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.headerCard}
+                >
+                    <Text style={[styles.cardTitle, {color: colors.white}]}>System Users</Text>
+                    <Text style={[styles.cardSubtitle, {color: colors.white}]}>Total Lawyers and Clients</Text>
+
+                    <View style={styles.statsContainer}>
+
+                        {/* Total Lawyers */}
+                        <View style={[styles.statCard, { backgroundColor: '#AFC6E9' }]}>
+                            <Text style={styles.statNumber}>1234</Text>
+                            <Text style={styles.statLabel}>Total Lawyers</Text>
+                        </View>
+
+                        {/* Total Clients */}
+                        <View style={[styles.statCard, { backgroundColor: '#9FE3B4' }]}>
+                            <Text style={styles.statNumber}>5,678</Text>
+                            <Text style={styles.statLabel}>Total Clients</Text>
+                        </View>
+
+                    </View>
+
+                </LinearGradient>
 
                 {/* Total Lawyers Pie Chart */}
                 <View style={styles.card}>
@@ -264,6 +291,7 @@ const styles = StyleSheet.create({
     cardSubtitle: {
         fontSize: fontSize.sm,
         color: colors.textSecondary,
+        paddingBottom: 8,
     },
     pieChartContainer: {
         flexDirection: 'row',

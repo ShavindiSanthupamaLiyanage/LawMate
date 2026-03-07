@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 const UserManagementScreen = () => {
     const navigation = useNavigation<any>();
     return (
-        <AdminLayout userName="Kavindu Gimsara">
+        <AdminLayout title="User Management">
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.content}
