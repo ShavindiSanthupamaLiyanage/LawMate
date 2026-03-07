@@ -19,11 +19,11 @@ const getBaseUrl = () => {
 
     // Development - check environment
     // You can set this manually when testing on real device
-    const USE_REAL_DEVICE = false;  //Change to true for real device
+    const USE_REAL_DEVICE = true;  //Change to true for real device
 
     if (USE_REAL_DEVICE) {
         // Real device - use your computer's IP
-        return 'http://192.168.4.71:5102/api';
+        return 'http://192.168.0.100:5102/api';
     }
 
     // Emulator/Simulator
