@@ -15,6 +15,8 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import ClientLayout from '../../../components/ClientLayout';
 import Button from '../../../components/Button';
 import {useNavigation} from "@react-navigation/native";
+import {useToast} from "../../../context/ToastContext";
+import {ContactService} from "../../../services/contactService";
 
 interface FormValues {
     fullName: string;
@@ -89,6 +91,7 @@ const ContactsScreen: React.FC = () => {
         setValues(prev => ({ ...prev, [field]: text }));
         setErrors(prev => ({ ...prev, [field]: undefined }));
     };
+    const { showSuccess, showError } = useToast();
 
     const validate = (): FormErrors => {
         const newErrors: FormErrors = {};
@@ -110,11 +113,15 @@ const ContactsScreen: React.FC = () => {
             return;
         }
         setIsSubmitting(true);
-        setTimeout(() => {
-            setIsSubmitting(false);
-            Alert.alert('Message Sent', "Thank you! We'll get back to you within 24 hours.");
+        try {
+            await ContactService.sendMessage(values);
+            showSuccess("Message sent! We'll get back to you within 24 hours.");
             setValues({ fullName: '', email: '', subject: '', message: '' });
-        }, 1500);
+        } catch (error: any) {
+            showError('Failed to send message. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const openURL = (url: string) => {
@@ -124,8 +131,9 @@ const ContactsScreen: React.FC = () => {
     };
 
     return (
-        <ClientLayout userName="Contact Us"
-                      onProfilePress={() => navigation.navigate('ClientProfile')}
+        <ClientLayout
+            title="Contact Us"
+            onProfilePress={() => navigation.navigate('ClientProfile')}
         >
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}

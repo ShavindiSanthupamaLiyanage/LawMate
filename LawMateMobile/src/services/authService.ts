@@ -226,32 +226,6 @@ export class AuthService {
     }
 
     /**
-     * Reset password with code
-     *
-     * @param data - Reset code and new password
-     */
-    static async resetPassword(data: {
-        NIC: string;
-        Code: string;
-        NewPassword: string;
-    }): Promise<{ message: string }> {
-        try {
-            console.log('Resetting password for NIC:', data.NIC);
-
-            const response = await apiClient.post<{ message: string }>(
-                ENDPOINTS.AUTH.RESET_PASSWORD,
-                data
-            );
-
-            console.log('Password reset successful');
-            return response.data;
-        } catch (error: any) {
-            console.error('Password reset failed:', error.message);
-            throw error;
-        }
-    }
-
-    /**
      * Validate token (check if still valid)
      * Useful for checking if user session is still active
      *
@@ -276,6 +250,33 @@ export class AuthService {
             return true; // For now, assume token is valid if it exists
         } catch (error) {
             console.error('Token validation failed:', error);
+            return false;
+        }
+    }
+
+    static async requestResetPassword(nic: string, email: string): Promise<{ message: string }> {
+        const response = await apiClient.post<{ message: string }>(
+            ENDPOINTS.AUTH.REQUEST_RESET_PASSWORD,
+            { nic, email }
+        );
+        return response.data;
+    }
+
+    static async resetPasswordWithToken(token: string, newPassword: string): Promise<{ message: string }> {
+        const response = await apiClient.post<{ message: string }>(
+            ENDPOINTS.AUTH.RESET_PASSWORD_WITH_TOKEN,
+            { token, newPassword }
+        );
+        return response.data;
+    }
+
+    static async verifyResetToken(token: string): Promise<boolean> {
+        try {
+            const response = await apiClient.get(ENDPOINTS.AUTH.VERIFY_RESET_TOKEN, {
+                params: { token }
+            });
+            return response.status === 200;
+        } catch (error: any) {
             return false;
         }
     }
