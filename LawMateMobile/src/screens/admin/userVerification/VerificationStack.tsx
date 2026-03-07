@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import UserManagementScreen from ".//UserManagementScreen";
 import LawyerVerificationScreen from "./LawyerVerificationScreen";
-// import ClientVerificationScreen from "./ClientVerificationScreen";
+import ClientVerificationScreen from "./ClientVerificationScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -20,10 +20,10 @@ const VerificationStack = () => {
                 component={LawyerVerificationScreen}
             />
 
-            {/*/!*<Stack.Screen*!/*/}
-            {/*/!*    name="ClientVerification"*!/*/}
-            {/*    // component={ClientVerificationScreen}*/}
-            {/*/>*/}
+            <Stack.Screen
+                name="ClientVerification"
+                component={ClientVerificationScreen}
+            />
         </Stack.Navigator>
     );
 };
