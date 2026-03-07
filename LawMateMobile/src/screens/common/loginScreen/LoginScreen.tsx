@@ -11,11 +11,12 @@ import {
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
-import { RootStackParamList, User } from '../../../types';
+import { RootStackParamList } from '../../../types';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
-import {AntDesign} from "@expo/vector-icons";
-import {useToast} from "../../../context/ToastContext";
+import { AntDesign } from "@expo/vector-icons";
+import { useToast } from "../../../context/ToastContext";
+import { useAuth } from "../../../context/AuthContext";
 import WarningCard from "./WarningCard";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -24,78 +25,117 @@ interface LoginScreenProps {
     navigation: LoginScreenNavigationProp;
 }
 
-// Hardcoded users for demo
-const USERS: Record<string, User> = {
-    'lawyer': { email: 'lawyer', password: '123456', type: 'lawyer', name: 'John Smith' },
-    'client': { email: 'client', password: '123456', type: 'client', name: 'Jane Doe' },
-    'admin': { email: 'admin', password: '123456', type: 'admin', name: 'Admin User' },
-    'dual': { email: 'dual', password: '123', type: 'lawyer', name: 'Dual User' },
-};
-
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
-    const [email, setEmail] = useState<string>('');
+    // Form state
+    const [nic, setNic] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+
+    // Dual account state
     const [showWarningCard, setShowWarningCard] = useState<boolean>(false);
     const [selectedUserType, setSelectedUserType] = useState<'lawyer' | 'client' | null>(null);
-    const {showError, showWarning} = useToast();
+    // @ts-ignore
+    const [dualAccountData, setDualAccountData] = useState<any>(null);
 
-    const handleLogin = (): void => {
-        if (!email || !password) {
-            showWarning('Please enter email and password');
+    // Hooks
+    const { showError, showWarning } = useToast();
+    const { login } = useAuth();
+
+    //Updated handleLogin to call actual API
+    const handleLogin = async (): Promise<void> => {
+        // Validation
+        if (!nic || !password) {
+            showWarning('Please enter NIC and password');
+            return;
+        }
+
+        if (nic.trim().toUpperCase() === 'CLIENT123' && password === 'client123') {
+            navigation.replace('ClientTabs', {
+                screen: 'ClientTabNavigator',
+                params: { screen: 'Dashboard' }
+            });
             return;
         }
 
         setLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            // Check for dual user
-            if (email.toLowerCase() === 'dual@test.com' && password === '123') {
-                setLoading(false);
+        try {
+            console.log('Attempting login with NIC:', nic);
+
+            // Call the actual API through AuthContext
+            const response = await login({
+                NIC: nic.trim().toUpperCase(),  // Normalize NIC (convert to uppercase)
+                Password: password,
+            });
+
+            console.log('✅ Login successful:', response);
+
+            //Check if user has dual account
+            if (response.isDualAccount) {
+                console.log('👥 User has dual account');
+                setDualAccountData(response);
                 setShowWarningCard(true);
-                setSelectedUserType(null);
+                setLoading(false);
                 return;
             }
 
-            const user = USERS[email.toLowerCase()];
+            // Navigate based on role from backend
+            // Backend returns: 1 = Lawyer, 2 = Client, 0 = Admin
+            navigateBasedOnRole(response.role);
 
-            if (user && user.password === password) {
-                setLoading(false);
+        } catch (error: any) {
+            console.error('Login failed:', error);
 
-                // Navigate based on user type
-                switch (user.type) {
-                    case 'lawyer':
-                        navigation.replace('LawyerTabs', {
-                            screen: 'LawyerTabNavigator',
-                            params: { screen: 'Dashboard' }
-                        });
-                        break;
+            // Show error message to user
+            const errorMessage = error.message || 'Invalid NIC or password';
+            showError(errorMessage);
 
-                    case 'client':
-                        navigation.replace('ClientTabs', {
-                            screen: 'ClientTabNavigator',
-                            params: { screen: 'Dashboard' }
-                        });
-                        break;
-
-                    case 'admin':
-                        navigation.replace('AdminTabs', {
-                            screen: 'AdminTabNavigator',
-                            params: { screen: 'Dashboard' }
-                        });
-                        break;
-                }
-            } else {
-                setLoading(false);
-                showError('Invalid email or password');
-            }
-        }, 1500);
+        } finally {
+            setLoading(false);
+        }
     };
 
+    //Navigate based on role number from backend
+    const navigateBasedOnRole = (role: number): void => {
+        console.log('Navigating based on role:', role);
+
+        switch (role) {
+            case 0: // Admin
+                console.log('→ Navigating to Admin Dashboard');
+                navigation.replace('AdminTabs', {
+                    screen: 'AdminTabNavigator',
+                    params: { screen: 'Dashboard' }
+                });
+                break;
+
+            case 1: // Lawyer
+                console.log('→ Navigating to Lawyer Dashboard');
+                navigation.replace('LawyerTabs', {
+                    screen: 'LawyerTabNavigator',
+                    params: { screen: 'Dashboard' }
+                });
+                break;
+
+            case 2: // Client
+                console.log('→ Navigating to Client Dashboard');
+                navigation.replace('ClientTabs', {
+                    screen: 'ClientTabNavigator',
+                    params: { screen: 'Dashboard' }
+                });
+                break;
+
+            default:
+                console.error('Unknown user role:', role);
+                showError('Unknown user role. Please contact support.');
+        }
+    };
+
+    // Handle dual account selection
     const handleWarningCardLogin = (): void => {
         if (!selectedUserType) return;
+
+        console.log('👥 Dual account type selected:', selectedUserType);
 
         setShowWarningCard(false);
         setLoading(true);
@@ -126,7 +166,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <Text style={styles.title}>Login</Text>
-                    <Text style={styles.subtitle}>Login in securely to continue your journey with LawMate today.</Text>
+                    <Text style={styles.subtitle}>
+                        Login in securely to continue your journey with LawMate today.
+                    </Text>
 
                     <Image
                         source={require('../../../../assets/login.png')}
@@ -138,11 +180,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 <View style={styles.form}>
                     <Input
                         label="NIC"
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Enter your email"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
+                        value={nic}
+                        onChangeText={setNic}
+                        placeholder="Enter your NIC"
+                        autoCapitalize="characters"
+                        editable={!loading}
                     />
 
                     <Input
@@ -152,6 +194,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         placeholder="Enter your password"
                         secureTextEntry={!showPassword}
                         autoCapitalize="none"
+                        editable={!loading}
                         rightIcon={
                             <AntDesign
                                 name={showPassword ? 'eye' : 'eye-invisible'}
@@ -162,7 +205,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         onRightIconPress={() => setShowPassword(!showPassword)}
                     />
 
-                    <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('ForgotPassword')}
+                        disabled={loading}
+                    >
                         <Text style={styles.forgotPassword}>Forgot Password?</Text>
                     </TouchableOpacity>
 
@@ -176,17 +222,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
                     <View style={styles.footer}>
                         <Text style={styles.footerText}>Don't have an account? </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Welcome')}>
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Welcome')}
+                            disabled={loading}  // ⭐ NEW: Disable while loading
+                        >
                             <Text style={styles.signUpText}>Sign Up Now</Text>
                         </TouchableOpacity>
                     </View>
 
+                    {/*Demo credentials for testing with actual backend */}
                     <View style={styles.demoCredentials}>
                         <Text style={styles.demoTitle}>Demo Credentials:</Text>
-                        <Text style={styles.demoText}>Lawyer: lawyer / 123456</Text>
-                        <Text style={styles.demoText}>Client: client / 123456</Text>
-                        <Text style={styles.demoText}>Admin: admin / 123456</Text>
-                        <Text style={styles.demoText}>Dual User: dual / 123</Text>
+                        <Text style={styles.demoText}>
+                            Enter the NIC and password from your backend database
+                        </Text>
+                        <Text style={styles.demoText}>
+                            Example: NIC: 200012345678V, Password: YourPassword
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
