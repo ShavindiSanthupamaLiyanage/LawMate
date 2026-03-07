@@ -10,7 +10,7 @@ import {
 
 // import LawyerList from "../userVerification/LawyerList";
 import ScreenWrapper from "../../../components/ScreenWrapper";
-import TopNavbar from "../../../components/TopNavbar";
+import VerificationHeader from "../../../components/VerificationHeader";
 import SearchBar from "../../../components/SearchBar";
 import { colors, spacing, borderRadius } from "../../../config/theme";
 
@@ -108,7 +108,8 @@ const LawyerVerificationScreen = () => {
 
     return (
         <ScreenWrapper backgroundColor="#F4F6F9">
-            <TopNavbar userName="Alex Motor" />
+            <VerificationHeader title="Client Verification"
+                                backScreen="UserManagement"/>
 
             <View style={styles.container}>
                 {/* SEARCH */}
