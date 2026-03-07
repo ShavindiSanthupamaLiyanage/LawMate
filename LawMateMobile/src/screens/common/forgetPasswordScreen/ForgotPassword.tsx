@@ -15,6 +15,9 @@ import Button from '../../../components/Button';
 import Alert from '../../../components/Alert';
 import Input from '../../../components/Input';
 import {useToast} from "../../../context/ToastContext";
+import ScreenWrapper from "../../../components/ScreenWrapper";
+import {AuthService} from "../../../services/authService";
+import {UserService} from "../../../services/userService";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -24,6 +27,7 @@ interface LoginScreenProps {
 
 const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const [email, setEmail] = useState<string>('');
+    const [nic, setNic] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [alert, setAlert] = useState<AlertState>({
         visible: false,
@@ -31,25 +35,62 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         message: '',
         type: 'info'
     });
-    const { showSuccess} = useToast();
+    const { showSuccess, showError} = useToast();
 
     const isValidEmail = (email: string): boolean => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     };
-    const emailIsValid = isValidEmail(email);
+    const isValidNic = (nic: string): boolean => {
+        return /^\d{12}$/.test(nic) || /^\d{9}[VX]$/i.test(nic);
+    };
 
-    const handleForgetPassword = (): void => {
-        if (!emailIsValid) return;
+    const emailIsValid = isValidEmail(email);
+    const nicIsValid = isValidNic(nic.trim());
+    const isFormValid = emailIsValid && nicIsValid;
+
+// Inline error states
+    const showNicError = nic.trim() !== '' && !nicIsValid;
+    const showEmailError = email !== '' && !emailIsValid;
+
+    const handleForgetPassword = async (): Promise<void> => {
+        if (!nicIsValid) {
+            showError('Invalid NIC format. Must be 12 digits or 9 digits followed by V or X.');
+            return;
+        }
+        if (!emailIsValid) {
+            showError('Please enter a valid email address.');
+            return;
+        }
 
         setLoading(true);
+        try {
+            // Step 1: Check if NIC exists and email matches
+            const user = await UserService.getUserByNic(nic.trim());
 
-        showSuccess('Password reset link has been sent successfully!');
-        setTimeout(() => {
-            navigation.navigate('ResetPassword');
-        }, 500);
+            if (!user) {
+                showError('No account found with this NIC.');
+                return;
+            }
+
+            if (user.email.toLowerCase() !== email.toLowerCase()) {
+                showError('No account found with this NIC and email combination.');
+                return;
+            }
+
+            // Step 2: NIC + email verified — request reset
+            await AuthService.requestResetPassword(nic.trim().toUpperCase(), email);
+            showSuccess('Password reset code has been sent to your email!');
+            setTimeout(() => navigation.navigate('ResetPassword'), 500);
+
+        } catch (error: any) {
+            showError('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
+        <ScreenWrapper backgroundColor={colors.white}>
         <KeyboardAvoidingView
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -57,7 +98,7 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <Text style={styles.title}>Forgot Password</Text>
-                    <Text style={styles.subtitle}>Enter your email address and we’ll send you a link to reset your password.</Text>
+                    <Text style={styles.subtitle}>Enter your email address and we’ll send you an OTP to reset your password.</Text>
 
                     <Image
                         source={require('../../../../assets/forgot-pw.png')}
@@ -68,27 +109,49 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
                 <View style={styles.form}>
                     <Input
-                        label="Email"
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Enter your email"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
+                        label="NIC"
+                        value={nic}
+                        onChangeText={setNic}
+                        placeholder="Enter your NIC"
+                        autoCapitalize="characters"
                     />
+                    {showNicError && (
+                        <Text style={styles.fieldError}>
+                            NIC must be 12 digits or 9 digits followed by V or X
+                        </Text>
+                    )}
+
+                    <View style={styles.emailContainer}>
+                        <Input
+                            label="Email"
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="Enter your email"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                        {showEmailError && (
+                            <Text style={styles.fieldError}>
+                                Please enter a valid email address
+                            </Text>
+                        )}
+                    </View>
 
                     <Button
-                        title="SEND RESET LINK"
+                        title="SEND RESET OTP"
                         onPress={handleForgetPassword}
                         loading={loading}
-                        disabled={!emailIsValid}
-                        variant={emailIsValid ? 'primary' : 'secondary'}
+                        // disabled={!emailIsValid}
+                        disabled={!isFormValid}
+                        variant={isFormValid ? 'primary' : 'secondary'}
+                        // variant={emailIsValid ? 'primary' : 'secondary'}
                         style={styles.loginButton}
                     />
 
                     <Button
                         title="BACK TO LOG IN"
                         onPress={() => navigation.navigate('Login')}
-                        loading={loading}
+                        disabled={loading}
                         variant="transparent"
                         style={styles.backLoginButton}
                     />
@@ -103,6 +166,7 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 onClose={() => setAlert({ ...alert, visible: false })}
             />
         </KeyboardAvoidingView>
+        </ScreenWrapper>
     );
 };
 
@@ -116,7 +180,6 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        marginTop: spacing.xl,
         marginBottom: spacing.xl,
     },
     loginImg: {
@@ -147,10 +210,19 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg,
     },
     loginButton: {
-        marginTop: spacing.xxxl,
+        marginTop: spacing.xl,
     },
     backLoginButton: {
         marginTop: spacing.sm,
+    },
+    emailContainer: {
+        marginTop: spacing.md,
+    },
+    fieldError: {
+        fontSize: fontSize.xs,
+        color: colors.error,
+        marginTop: spacing.xs,
+        marginLeft: spacing.xs,
     },
 });
 

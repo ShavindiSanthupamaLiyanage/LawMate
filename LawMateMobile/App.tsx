@@ -19,6 +19,7 @@ import WelcomeScreen from './src/screens/common/WelcomeScreen';
 import LoginScreen from './src/screens/common/loginScreen/LoginScreen';
 import ResetPasswordScreen from "./src/screens/common/forgetPasswordScreen/ResetPassword";
 import PaymentVerificationStack from "./src/screens/admin/paymentVerification/PaymentVerificationStack";
+import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
 
 // Lawyer Screens
 import LawyerDashboard from './src/screens/lawyer/LawyerDashboard';
@@ -32,6 +33,11 @@ import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinance
 import CalendarScreen from './src/screens/lawyer/CalendarScreen';
 import AddAppointmentScreen from './src/screens/lawyer/lawyerProfile/AddAppointmentScreen';
 import SetAvailabilityScreen from './src/screens/lawyer/lawyerProfile/SetAvailabilityScreen';
+import LawyerKnowledgeHubFeed from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubFeed';
+import AddNewArticle from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubAddNew';
+import ManageArticle from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubManage';
+import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
+import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
 
 // Client Screens
 import ClientSignUpScreen from './src/screens/client/clientSignUp/ClientSignUpScreen';
@@ -43,11 +49,21 @@ import ClientAppointmentView from './src/screens/client/clientRequest/ClientAppo
 import PaymentSlipScreen from './src/screens/client/clientRequest/PaymentSlipScreen';
 import PaymentSlipReceivedScreen from './src/screens/client/clientRequest/PaymentSlipReceivedScreen';
 import ClientDashboardStack from "./src/screens/client/clientDashboard/ClientDashboardStack";
+import SearchLawyer from './src/screens/client/lawyerSearch/SearchLawyer';
+import AppointmentRequest from './src/screens/client/lawyerSearch/AppointmentRequest';
+import AppointmentForm from './src/screens/client/lawyerSearch/AppointmentForm';
+import AppointmentConfirm from './src/screens/client/lawyerSearch/AppointmentConfirm';
+import AppointmentRequestReceived from './src/screens/client/lawyerSearch/AppointmentRequestReceived';
+import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
 import AdminProfileScreen from './src/screens/admin/adminProfile/AdminProfileScreen';
 import AdminPersonalDetailsScreen from './src/screens/admin/adminProfile/AdminPersonalDetailsScreen';
+import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
+// import UserVerificationScreen from "./src/screens/admin/userVerification/UserManagementScreen";
+import VerificationStack from "./src/screens/admin/userVerification/VerificationStack";
+import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
 
 // Shared Screens
 import AvailabilityScreen from './src/screens/common/AvailabilityScreen';
@@ -56,17 +72,9 @@ import HelpScreen from './src/screens/common/HelpScreen';
 
 // Placeholder Screens
 import ProfileScreen from './src/screens/ProfileScreen';
-import SettingsScreen from './src/screens/SettingsScreen';
-// import TabIcon from "./src/components/TabIcon";
 import VerificationPending from "./src/screens/lawyer/lawyerSignUp/VerificationPending";
 import TabIcon from "./src/components/BottomNavBar";
-import ForgotPasswordScreen from "./src/screens/common/forgetPasswordScreen/ForgotPassword";
-import ReportsScreen from "./src/screens/admin/reports/ReportsScreen";
-import UserVerificationScreen from "./src/screens/admin/userVerificatopm/UserVerificationScreen";
-import AdminFinanceStack from "./src/screens/admin/adminFinance/AdminFinanceStack";
-import PaymentSubmission from "./src/screens/lawyer/lawyerSignUp/PaymentSubmission";
-import PaymentVerification from "./src/screens/lawyer/lawyerSignUp/PaymentVerification";
-import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
+import {AuthProvider} from "./src/context/AuthContext";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -93,6 +101,17 @@ function ClientRequestsStackNavigator() {
             <ClientStack.Screen name="ClientAppointmentView" component={ClientAppointmentView} />
             <ClientStack.Screen name="PaymentSlipScreen" component={PaymentSlipScreen} />
             <ClientStack.Screen name="PaymentSlipReceivedScreen" component={PaymentSlipReceivedScreen} />
+        </ClientStack.Navigator>
+    );
+}
+function LawyerSearchStackNavigator() {
+    return (
+        <ClientStack.Navigator screenOptions={{ headerShown: false }}>
+            <ClientStack.Screen name="SearchLawyer" component={SearchLawyer} />
+            <ClientStack.Screen name="AppointmentRequest" component={AppointmentRequest} />
+            <ClientStack.Screen name="AppointmentForm" component={AppointmentForm} />
+            <ClientStack.Screen name="AppointmentConfirm" component={AppointmentConfirm} />
+            <ClientStack.Screen name="AppointmentRequestReceived" component={AppointmentRequestReceived} />
         </ClientStack.Navigator>
     );
 }
@@ -154,7 +173,7 @@ function LawyerTabNavigator() {
 
             <LawyerTab.Screen
                 name="Knowledge"
-                component={SettingsScreen}
+                component={LawyerKnowledgeHubFeed}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
@@ -187,8 +206,14 @@ function LawyerTabs() {
             <LawyerStack.Screen name="Availability" component={AvailabilityScreen} />
             <LawyerStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
             <LawyerStack.Screen name="Help" component={HelpScreen} />
+<<<<<<< HEAD
             <LawyerStack.Screen name="AddAppointment" component={AddAppointmentScreen} />
             <LawyerStack.Screen name="SetAvailability" component={SetAvailabilityScreen} />
+=======
+            <LawyerStack.Screen name="AddNewArticle" component={AddNewArticle} />
+            <LawyerStack.Screen name="ManageArticle" component={ManageArticle} />
+
+>>>>>>> 89b6eedb6222e6e910fe8d38a285cad220bdbd9c
         </LawyerStack.Navigator>
     );
 }
@@ -228,7 +253,7 @@ function ClientTabNavigator() {
 
             <ClientTab.Screen
                 name="Lawyers"
-                component={ProfileScreen}
+                component={LawyerSearchStackNavigator}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="search-outline" color={color} focused={focused} />
@@ -306,9 +331,18 @@ function AdminTabNavigator() {
             },
             headerShown: false,
         }}>
+            {/*<AdminTab.Screen*/}
+            {/*    name="Verifications"*/}
+            {/*    component={UserVerificationScreen}*/}
+            {/*    options={{*/}
+            {/*        tabBarIcon: ({ color, focused }) => (*/}
+            {/*            <TabIcon iconName="bookmark-outline" color={color} focused={focused} />*/}
+            {/*        ),*/}
+            {/*    }}*/}
+            {/*/>*/}
             <AdminTab.Screen
                 name="Verifications"
-                component={UserVerificationScreen}
+                component={VerificationStack}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
@@ -378,6 +412,7 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <ToastProvider>
+                <AuthProvider>
                 <NavigationContainer>
                     <Stack.Navigator
                         initialRouteName="Splash"
@@ -464,6 +499,7 @@ export default function App() {
 
                     </Stack.Navigator>
                 </NavigationContainer>
+                    </AuthProvider>
             </ToastProvider>
         </SafeAreaProvider>
     );
