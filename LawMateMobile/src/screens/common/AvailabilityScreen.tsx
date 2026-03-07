@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const AvailabilityScreen: React.FC = () => {
     const navigation = useNavigation<any>();
@@ -54,18 +55,19 @@ const AvailabilityScreen: React.FC = () => {
     );
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={[
-                    'rgba(24,114,234,1)',
-                    'rgba(54,87,208,1)',
-                    'rgba(77,55,200,1)',
-                    'rgba(99,71,253,1)',
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.header}
-            >
+        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+            <View style={styles.container}>
+                <LinearGradient
+                    colors={[
+                        'rgba(24,114,234,1)',
+                        'rgba(54,87,208,1)',
+                        'rgba(77,55,200,1)',
+                        'rgba(99,71,253,1)',
+                    ]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.header}
+                >
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
@@ -100,7 +102,8 @@ const AvailabilityScreen: React.FC = () => {
                     </Text>
                 </View>
             </ScrollView>
-        </View>
+            </View>
+        </ScreenWrapper>
     );
 };
 
@@ -116,6 +119,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.xl,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
     },
     backButton: {
         width: 40,
@@ -133,6 +141,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: spacing.lg,
+        paddingTop: 110,
     },
     card: {
         backgroundColor: colors.white,
