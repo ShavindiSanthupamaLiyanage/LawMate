@@ -9,10 +9,9 @@ import {
 } from "react-native";
 
 // import LawyerList from "../userVerification/LawyerList";
-import ScreenWrapper from "../../../components/ScreenWrapper";
-import TopNavbar from "../../../components/TopNavbar";
 import SearchBar from "../../../components/SearchBar";
 import { colors, spacing, borderRadius } from "../../../config/theme";
+import AdminLayout from "../../../components/AdminLayout";
 
 
 type StatusType = "ALL" | "Pending" | "Active" | "Rejected";
@@ -107,9 +106,7 @@ const LawyerVerificationScreen = () => {
     };
 
     return (
-        <ScreenWrapper backgroundColor="#F4F6F9">
-            <TopNavbar userName="Alex Motor" />
-
+        <AdminLayout title="Lawyer Verification" disableScroll showBackButton>
             <View style={styles.container}>
                 {/* SEARCH */}
                 <SearchBar
@@ -151,7 +148,7 @@ const LawyerVerificationScreen = () => {
                     showsVerticalScrollIndicator={false}
                 />
             </View>
-        </ScreenWrapper>
+        </AdminLayout>
     );
 };
 
