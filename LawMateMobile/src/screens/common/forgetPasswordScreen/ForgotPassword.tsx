@@ -15,6 +15,7 @@ import Button from '../../../components/Button';
 import Alert from '../../../components/Alert';
 import Input from '../../../components/Input';
 import {useToast} from "../../../context/ToastContext";
+import ScreenWrapper from "../../../components/ScreenWrapper";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -24,6 +25,7 @@ interface LoginScreenProps {
 
 const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     const [email, setEmail] = useState<string>('');
+    const [nic, setNic] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [alert, setAlert] = useState<AlertState>({
         visible: false,
@@ -50,6 +52,7 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     };
 
     return (
+        <ScreenWrapper backgroundColor={colors.white}>
         <KeyboardAvoidingView
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -67,6 +70,14 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 </View>
 
                 <View style={styles.form}>
+                    <Input
+                        label="NIC"
+                        value={nic}
+                        onChangeText={setNic}
+                        placeholder="Enter your NIC"
+                        autoCapitalize="none"
+                    />
+
                     <Input
                         label="Email"
                         value={email}
@@ -103,6 +114,7 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 onClose={() => setAlert({ ...alert, visible: false })}
             />
         </KeyboardAvoidingView>
+        </ScreenWrapper>
     );
 };
 
@@ -116,7 +128,7 @@ const styles = StyleSheet.create({
     },
     header: {
         alignItems: 'center',
-        marginTop: spacing.xl,
+        // marginTop: spacing.xl,
         marginBottom: spacing.xl,
     },
     loginImg: {
@@ -147,7 +159,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg,
     },
     loginButton: {
-        marginTop: spacing.xxxl,
+        marginTop: spacing.xl,
     },
     backLoginButton: {
         marginTop: spacing.sm,
