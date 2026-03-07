@@ -8,12 +8,12 @@ import {
     Modal,
     Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Toast from '../../../components/Toast';
+import Button from '../../../components/Button';
 
 export interface AvailabilitySlot {
     id: string;
@@ -41,11 +41,12 @@ const to12h = (t: string) => {
 const SetAvailabilityScreen: React.FC = () => {
     const navigation = useNavigation<any>();
 
+    // TODO: get api - fetch slots
     const [slots, setSlots] = useState<AvailabilitySlot[]>([
-        { id: '1', date: new Date(2025, 11, 4), startTime: '12:00', price: 5000, duration: 30, booked: false },
-        { id: '2', date: new Date(2025, 11, 4), startTime: '12:30', price: 5000, duration: 30, booked: false },
-        { id: '3', date: new Date(2025, 11, 4), startTime: '13:00', price: 5000, duration: 30, booked: false },
-        { id: '4', date: new Date(2025, 11, 4), startTime: '13:30', price: 5000, duration: 30, booked: false },
+        { id: '1', date: new Date(2026, 2, 10), startTime: '10:00', price: 5000, duration: 30, booked: false },
+        { id: '2', date: new Date(2026, 2, 10), startTime: '10:30', price: 5000, duration: 30, booked: false },
+        { id: '3', date: new Date(2026, 2, 15), startTime: '14:00', price: 7500, duration: 45, booked: false },
+        { id: '4', date: new Date(2026, 2, 15), startTime: '14:45', price: 7500, duration: 45, booked: true },
     ]);
 
     // Which slot card is expanded (shows edit/delete)
@@ -66,7 +67,6 @@ const SetAvailabilityScreen: React.FC = () => {
     // Toast
     const [toastVisible, setToastVisible] = useState(false);
 
-    /* open add-new modal */
     const openAddModal = () => {
         setEditingId(null);
         setSlotDate(new Date());
@@ -76,7 +76,6 @@ const SetAvailabilityScreen: React.FC = () => {
         setModalVisible(true);
     };
 
-    /* open edit modal */
     const openEditModal = (slot: AvailabilitySlot) => {
         setEditingId(slot.id);
         setSlotDate(slot.date);
@@ -88,15 +87,17 @@ const SetAvailabilityScreen: React.FC = () => {
         setModalVisible(true);
     };
 
-    /* confirm add/edit */
+    // confirm add / edit
     const handleConfirm = () => {
         const timeStr = `${String(slotTime.getHours()).padStart(2,'0')}:${String(slotTime.getMinutes()).padStart(2,'0')}`;
         if (editingId) {
+            // TODO: patch api - update slot
             setSlots(prev => prev.map(s => s.id === editingId
                 ? { ...s, date: slotDate, startTime: timeStr, duration: slotDuration, price: slotPrice }
                 : s
             ));
         } else {
+            // TODO: post api - create slot
             setSlots(prev => [...prev, {
                 id: Date.now().toString(),
                 date: slotDate, startTime: timeStr,
@@ -108,6 +109,7 @@ const SetAvailabilityScreen: React.FC = () => {
     };
 
     const handleDelete = (id: string) => {
+        // TODO: delete api - remove slot
         setSlots(prev => prev.filter(s => s.id !== id));
         if (selectedId === id) setSelectedId(null);
     };
@@ -115,17 +117,12 @@ const SetAvailabilityScreen: React.FC = () => {
     return (
         <View style={styles.container}>
             {/* Header */}
-            <LinearGradient
-                colors={['rgba(24,114,234,1)', 'rgba(54,87,208,1)', 'rgba(77,55,200,1)', 'rgba(99,71,253,1)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.header}
-            >
+            <View style={styles.header}>
                 <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()} activeOpacity={0.7}>
                     <Ionicons name="arrow-back" size={22} color={colors.white} />
                     <Text style={styles.headerTitle}>Set Availability</Text>
                 </TouchableOpacity>
-            </LinearGradient>
+            </View>
 
             <ScrollView
                 style={styles.scroll}
@@ -163,22 +160,18 @@ const SetAvailabilityScreen: React.FC = () => {
                             {/* edit / delete — only when selected */}
                             {isSelected && (
                                 <View style={styles.slotActions}>
-                                    <TouchableOpacity
-                                        style={styles.editBtn}
+                                    <Button
+                                        title="Edit"
+                                        variant="accept"
                                         onPress={() => { openEditModal(slot); setSelectedId(null); }}
-                                        activeOpacity={0.8}
-                                    >
-                                        <Ionicons name="pencil" size={18} color={colors.white} />
-                                        <Text style={styles.actionTxt}>Edit</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={styles.deleteBtn}
+                                        style={styles.actionBtnStyle}
+                                    />
+                                    <Button
+                                        title="Delete"
+                                        variant="reject"
                                         onPress={() => handleDelete(slot.id)}
-                                        activeOpacity={0.8}
-                                    >
-                                        <Ionicons name="trash" size={18} color={colors.white} />
-                                        <Text style={styles.actionTxt}>Delete</Text>
-                                    </TouchableOpacity>
+                                        style={styles.actionBtnStyle}
+                                    />
                                 </View>
                             )}
                         </TouchableOpacity>
@@ -188,23 +181,18 @@ const SetAvailabilityScreen: React.FC = () => {
 
             {/* Bottom: BACK + ADD NEW */}
             <View style={styles.bottomBar}>
-                <TouchableOpacity
-                    style={styles.backBtn}
+                <Button
+                    title="BACK"
+                    variant="transparent"
                     onPress={() => navigation.goBack()}
-                    activeOpacity={0.8}
-                >
-                    <Text style={styles.backBtnTxt}>BACK</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.addNewBtn} onPress={openAddModal} activeOpacity={0.8}>
-                    <LinearGradient
-                        colors={['#1872EA', '#6347FD']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.addNewGrad}
-                    >
-                        <Text style={styles.addNewTxt}>ADD NEW</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
+                    style={styles.btnStyle}
+                />
+                <Button
+                    title="ADD NEW"
+                    variant="primary"
+                    onPress={openAddModal}
+                    style={styles.btnStyle}
+                />
             </View>
 
             {/* Add / Edit bottom sheet */}
@@ -286,19 +274,18 @@ const SetAvailabilityScreen: React.FC = () => {
 
                         {/* Sheet actions */}
                         <View style={styles.sheetActions}>
-                            <TouchableOpacity style={styles.sheetCancelBtn} onPress={() => setModalVisible(false)} activeOpacity={0.8}>
-                                <Text style={styles.sheetCancelTxt}>CANCEL</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.sheetConfirmBtn} onPress={handleConfirm} activeOpacity={0.8}>
-                                <LinearGradient
-                                    colors={['#1872EA', '#6347FD']}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={styles.sheetConfirmGrad}
-                                >
-                                    <Text style={styles.sheetConfirmTxt}>{editingId ? 'UPDATE' : 'CONFIRM'}</Text>
-                                </LinearGradient>
-                            </TouchableOpacity>
+                            <Button
+                                title="CANCEL"
+                                variant="transparent"
+                                onPress={() => setModalVisible(false)}
+                                style={styles.sheetBtnStyle}
+                            />
+                            <Button
+                                title={editingId ? 'UPDATE' : 'CONFIRM'}
+                                variant="primary"
+                                onPress={handleConfirm}
+                                style={styles.sheetBtnStyle}
+                            />
                         </View>
                     </View>
                 </View>
@@ -337,6 +324,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
 
     header: {
+        backgroundColor: colors.primary,
         paddingTop: 48,
         paddingBottom: spacing.md,
         paddingHorizontal: spacing.lg,
@@ -404,25 +392,10 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: colors.borderLight,
     },
-    editBtn: {
+    actionBtnStyle: {
         flex: 1,
-        flexDirection: 'row',
-        gap: spacing.xs,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: spacing.sm,
-        backgroundColor: colors.primary,
+        height: 36,
     },
-    deleteBtn: {
-        flex: 1,
-        flexDirection: 'row',
-        gap: spacing.xs,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: spacing.sm,
-        backgroundColor: '#E53935',
-    },
-    actionTxt: { color: colors.white, fontSize: fontSize.sm, fontWeight: fontWeight.medium },
 
     /* bottom bar */
     bottomBar: {
@@ -435,18 +408,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: colors.borderLight,
     },
-    backBtn: {
-        flex: 1,
-        borderWidth: 2,
-        borderColor: colors.primary,
-        borderRadius: borderRadius.lg,
-        paddingVertical: spacing.md,
-        alignItems: 'center',
-    },
-    backBtnTxt: { color: colors.primary, fontSize: fontSize.md, fontWeight: fontWeight.bold },
-    addNewBtn: { flex: 1, borderRadius: borderRadius.lg, overflow: 'hidden' },
-    addNewGrad: { paddingVertical: spacing.md, alignItems: 'center' },
-    addNewTxt: { color: colors.white, fontSize: fontSize.md, fontWeight: fontWeight.bold },
+    btnStyle: { flex: 1 },
 
     /* bottom sheet */
     sheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
@@ -520,18 +482,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.md,
     },
-    sheetCancelBtn: {
-        flex: 1,
-        borderWidth: 2,
-        borderColor: colors.primary,
-        borderRadius: borderRadius.lg,
-        paddingVertical: spacing.md,
-        alignItems: 'center',
-    },
-    sheetCancelTxt: { color: colors.primary, fontSize: fontSize.md, fontWeight: fontWeight.bold },
-    sheetConfirmBtn: { flex: 1, borderRadius: borderRadius.lg, overflow: 'hidden' },
-    sheetConfirmGrad: { paddingVertical: spacing.md, alignItems: 'center' },
-    sheetConfirmTxt: { color: colors.white, fontSize: fontSize.md, fontWeight: fontWeight.bold },
+    sheetBtnStyle: { flex: 1 },
 });
 
 export default SetAvailabilityScreen;

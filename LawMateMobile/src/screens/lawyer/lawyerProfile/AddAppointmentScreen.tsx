@@ -10,12 +10,12 @@ import {
     FlatList,
     Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Toast from '../../../components/Toast';
+import Button from '../../../components/Button';
 
 const CASE_TYPES = [
     'Criminal Law', 'Family Law', 'Property Law', 'Corporate Law',
@@ -33,12 +33,13 @@ interface AppointmentData {
     date: Date | null;
     time: Date | null;
     duration: string;
+    price: string;
     status: string;
     mode: string;
     notes: string;
 }
 
-/* ─── Floating label input ─────────────────────────────────────────────── */
+// floating label text input
 const FloatInput: React.FC<{
     label: string;
     value: string;
@@ -61,7 +62,7 @@ const FloatInput: React.FC<{
     </View>
 );
 
-/* ─── Dropdown select ──────────────────────────────────────────────────── */
+// dropdown select
 const DropdownField: React.FC<{
     label: string;
     value: string;
@@ -110,7 +111,6 @@ const DropdownField: React.FC<{
     );
 };
 
-/* ─── Main Screen ──────────────────────────────────────────────────────── */
 const AddAppointmentScreen: React.FC = () => {
     const navigation = useNavigation<any>();
 
@@ -122,6 +122,7 @@ const AddAppointmentScreen: React.FC = () => {
         date: null,
         time: null,
         duration: '30 min',
+        price: '5000',
         status: 'Confirmed',
         mode: 'Physical',
         notes: '',
@@ -157,26 +158,22 @@ const AddAppointmentScreen: React.FC = () => {
     };
 
     const handleSave = () => {
-        if (!form.clientName.trim() || !form.email.trim() || !form.caseType || !form.date) {
+        if (!form.clientName.trim() || !form.email.trim() || !form.caseType || !form.date || !form.price.trim()) {
             return;
         }
+        // TODO: post api - save appointment
         setToastVisible(true);
     };
 
     return (
         <View style={styles.container}>
             {/* Header */}
-            <LinearGradient
-                colors={['rgba(24,114,234,1)', 'rgba(54,87,208,1)', 'rgba(77,55,200,1)', 'rgba(99,71,253,1)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.header}
-            >
+            <View style={styles.header}>
                 <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
                     <Ionicons name="arrow-back" size={22} color={colors.white} />
                     <Text style={styles.backText}>Add Appointment</Text>
                 </TouchableOpacity>
-            </LinearGradient>
+            </View>
 
             <ScrollView
                 style={styles.scroll}
@@ -216,6 +213,13 @@ const AddAppointmentScreen: React.FC = () => {
                     icon="time-outline"
                 />
 
+                <FloatInput
+                    label="Price (LKR)"
+                    value={form.price}
+                    onChangeText={v => set('price', v)}
+                    keyboardType="numeric"
+                />
+
                 <DropdownField
                     label="Status"
                     value={form.status}
@@ -240,23 +244,18 @@ const AddAppointmentScreen: React.FC = () => {
 
             {/* Bottom buttons */}
             <View style={styles.bottomBar}>
-                <TouchableOpacity
-                    style={styles.cancelBtn}
+                <Button
+                    title="BACK"
+                    variant="transparent"
                     onPress={() => navigation.goBack()}
-                    activeOpacity={0.8}
-                >
-                    <Text style={styles.cancelBtnText}>BACK</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.8}>
-                    <LinearGradient
-                        colors={['#1872EA', '#6347FD']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.saveBtnGradient}
-                    >
-                        <Text style={styles.saveBtnText}>SAVE</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
+                    style={styles.btnStyle}
+                />
+                <Button
+                    title="SAVE"
+                    variant="primary"
+                    onPress={handleSave}
+                    style={styles.btnStyle}
+                />
             </View>
 
             {/* Date picker */}
@@ -298,6 +297,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
 
     header: {
+        backgroundColor: colors.primary,
         paddingTop: 48,
         paddingBottom: spacing.md,
         paddingHorizontal: spacing.lg,
@@ -405,35 +405,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: colors.borderLight,
     },
-    cancelBtn: {
-        flex: 1,
-        borderWidth: 2,
-        borderColor: colors.primary,
-        borderRadius: borderRadius.lg,
-        paddingVertical: spacing.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    cancelBtnText: {
-        color: colors.primary,
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-    },
-    saveBtn: {
-        flex: 1,
-        borderRadius: borderRadius.lg,
-        overflow: 'hidden',
-    },
-    saveBtnGradient: {
-        paddingVertical: spacing.md,
-        alignItems: 'center',
-    },
-    saveBtnText: {
-        color: colors.white,
-        fontSize: fontSize.md,
-        fontWeight: fontWeight.bold,
-        letterSpacing: 0.5,
-    },
+    btnStyle: { flex: 1 },
 });
 
 export default AddAppointmentScreen;

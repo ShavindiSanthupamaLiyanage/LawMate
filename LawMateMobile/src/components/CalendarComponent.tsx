@@ -36,6 +36,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     onSelectDate,
     appointments = [],
 }) => {
+    // TODO: get api - fetch appointments
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [appointmentModalVisible, setAppointmentModalVisible] = useState(false);
@@ -160,6 +161,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                             style={[
                                 styles.dayCell,
                                 !day && styles.emptyCell,
+                                day && !isBookable ? styles.unBookableCell : null,
                                 isSelected ? styles.selectedCell : null,
                             ]}
                             onPress={() => day && handleDateSelect(day)}
@@ -374,6 +376,11 @@ const styles = StyleSheet.create({
     },
     emptyCell: {
         backgroundColor: 'transparent',
+        borderColor: 'transparent',
+    },
+    unBookableCell: {
+        backgroundColor: '#F5F5F5',
+        borderColor: '#E0E0E0',
     },
     selectedCell: {
         backgroundColor: colors.primary,
@@ -384,8 +391,7 @@ const styles = StyleSheet.create({
         color: colors.textPrimary,
     },
     unBookableText: {
-        color: colors.textSecondary,
-        opacity: 0.4,
+        color: '#BDBDBD',
     },
     selectedText: {
         color: colors.white,
