@@ -1,15 +1,72 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     ScrollView,
     TouchableOpacity,
+    Modal,
+    TextInput,
+    Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+
+const EditModal: React.FC<{
+    visible: boolean;
+    title: string;
+    value: string;
+    onClose: () => void;
+    onSave: (value: string) => void;
+}> = ({ visible, title, value, onClose, onSave }) => {
+    const [inputValue, setInputValue] = useState(value);
+
+    const handleSave = () => {
+        if (inputValue.trim() === '') {
+            Alert.alert('Validation', `${title} cannot be empty`);
+            return;
+        }
+        onSave(inputValue);
+        onClose();
+    };
+
+    return (
+        <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Edit {title}</Text>
+                    </View>
+                    <TextInput
+                        style={styles.modalInput}
+                        value={inputValue}
+                        onChangeText={setInputValue}
+                        placeholder={`Enter ${title.toLowerCase()}`}
+                        placeholderTextColor={colors.textSecondary}
+                        selectionColor={colors.primary}
+                    />
+                    <View style={styles.modalActions}>
+                        <TouchableOpacity
+                            style={[styles.modalButton, styles.cancelButton]}
+                            onPress={onClose}
+                        >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.modalButton, styles.saveButton]}
+                            onPress={handleSave}
+                        >
+                            <Text style={styles.saveButtonText}>Save</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+};
 
 interface DetailRowProps {
     label: string;
@@ -34,9 +91,11 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, onPress }) => (
 
 const LawyerProfessionalDetailsScreen: React.FC = () => {
     const navigation = useNavigation<any>();
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [editingField, setEditingField] = useState<string | null>(null);
 
     // TODO: Replace with actual API data
-    const professionalData = {
+    const [professionalData, setProfessionalData] = useState({
         barCouncilId: 'SL/2015/1234',
         specialization: 'Criminal Law',
         experience: '08 Years',
@@ -46,22 +105,39 @@ const LawyerProfessionalDetailsScreen: React.FC = () => {
         practiceAreas: 'Criminal Law, Civil Law',
         courtAdmissions: 'Supreme Court, High Court',
         educationQualifications: 'LLB, Attorney-at-Law',
+    });
+
+    const openEditModal = (field: string) => {
+        setEditingField(field);
+        setEditModalVisible(true);
+    };
+
+    const handleSaveField = (newValue: string) => {
+        if (editingField) {
+            setProfessionalData(prev => ({
+                ...prev,
+                [editingField]: newValue,
+            }));
+            // TODO: Call API to update lawyer professional profile
+            // await updateLawyerProfessionalProfile({ [editingField]: newValue });
+        }
     };
 
     return (
-        <View style={styles.container}>
-            {/* Header with Gradient */}
-            <LinearGradient
-                colors={[
-                    'rgba(24,114,234,1)',
-                    'rgba(54,87,208,1)',
-                    'rgba(77,55,200,1)',
-                    'rgba(99,71,253,1)',
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.header}
-            >
+        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+            <View style={styles.container}>
+                {/* Header with Gradient */}
+                <LinearGradient
+                    colors={[
+                        'rgba(24,114,234,1)',
+                        'rgba(54,87,208,1)',
+                        'rgba(77,55,200,1)',
+                        'rgba(99,71,253,1)',
+                    ]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.header}
+                >
                 <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
@@ -82,42 +158,42 @@ const LawyerProfessionalDetailsScreen: React.FC = () => {
                     <DetailRow
                         label="BAR Council ID"
                         value={professionalData.barCouncilId}
-                        onPress={() => {/* TODO: Navigate to edit BAR ID */}}
+                        onPress={() => openEditModal('barCouncilId')}
                     />
                     <DetailRow
                         label="Specialization"
                         value={professionalData.specialization}
-                        onPress={() => {/* TODO: Navigate to edit specialization */}}
+                        onPress={() => openEditModal('specialization')}
                     />
                     <DetailRow
                         label="Experience"
                         value={professionalData.experience}
-                        onPress={() => {/* TODO: Navigate to edit experience */}}
+                        onPress={() => openEditModal('experience')}
                     />
                     <DetailRow
                         label="Languages"
                         value={professionalData.languages}
-                        onPress={() => {/* TODO: Navigate to edit languages */}}
+                        onPress={() => openEditModal('languages')}
                     />
                     <DetailRow
                         label="License Number"
                         value={professionalData.licenseNumber}
-                        onPress={() => {/* TODO: Navigate to edit license */}}
+                        onPress={() => openEditModal('licenseNumber')}
                     />
                     <DetailRow
                         label="Practice Areas"
                         value={professionalData.practiceAreas}
-                        onPress={() => {/* TODO: Navigate to edit practice areas */}}
+                        onPress={() => openEditModal('practiceAreas')}
                     />
                     <DetailRow
                         label="Court Admissions"
                         value={professionalData.courtAdmissions}
-                        onPress={() => {/* TODO: Navigate to edit court admissions */}}
+                        onPress={() => openEditModal('courtAdmissions')}
                     />
                     <DetailRow
                         label="Education Qualifications"
                         value={professionalData.educationQualifications}
-                        onPress={() => {/* TODO: Navigate to edit qualifications */}}
+                        onPress={() => openEditModal('educationQualifications')}
                     />
                     <DetailRow
                         label="Uploaded Document"
@@ -133,7 +209,16 @@ const LawyerProfessionalDetailsScreen: React.FC = () => {
                     </Text>
                 </View>
             </ScrollView>
-        </View>
+
+            <EditModal
+                visible={editModalVisible}
+                title={editingField ? editingField.charAt(0).toUpperCase() + editingField.slice(1) : ''}
+                value={editingField ? professionalData[editingField] : ''}
+                onClose={() => setEditModalVisible(false)}
+                onSave={handleSaveField}
+            />
+            </View>
+        </ScreenWrapper>
     );
 };
 
@@ -149,6 +234,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.xl,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
     },
     backButton: {
         width: 40,
@@ -166,6 +256,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: spacing.lg,
+        paddingTop: 110,
     },
     card: {
         backgroundColor: colors.white,
@@ -198,6 +289,66 @@ const styles = StyleSheet.create({
         fontSize: fontSize.md,
         color: colors.textPrimary,
         fontWeight: fontWeight.medium,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: colors.white,
+        borderTopLeftRadius: borderRadius.xl,
+        borderTopRightRadius: borderRadius.xl,
+        padding: spacing.lg,
+        paddingBottom: spacing.xl,
+    },
+    modalHeader: {
+        marginBottom: spacing.lg,
+        paddingBottom: spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.borderLight,
+    },
+    modalTitle: {
+        fontSize: fontSize.lg,
+        fontWeight: fontWeight.bold,
+        color: colors.textPrimary,
+    },
+    modalInput: {
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+        borderRadius: borderRadius.md,
+        padding: spacing.md,
+        fontSize: fontSize.md,
+        color: colors.textPrimary,
+        marginBottom: spacing.lg,
+    },
+    modalActions: {
+        flexDirection: 'row',
+        gap: spacing.md,
+        marginTop: spacing.lg,
+    },
+    modalButton: {
+        flex: 1,
+        paddingVertical: spacing.md,
+        borderRadius: borderRadius.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    saveButton: {
+        backgroundColor: colors.primary,
+    },
+    cancelButton: {
+        backgroundColor: colors.borderLight,
+    },
+    saveButtonText: {
+        color: colors.white,
+        fontSize: fontSize.md,
+        fontWeight: fontWeight.bold,
+    },
+    cancelButtonText: {
+        color: colors.textPrimary,
+        fontSize: fontSize.md,
+        fontWeight: fontWeight.bold,
     },
     infoBox: {
         flexDirection: 'row',

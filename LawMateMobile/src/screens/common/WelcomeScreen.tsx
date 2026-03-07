@@ -28,7 +28,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
 
     return (
-        <ScreenWrapper backgroundColor={colors.white}>
+        <ScreenWrapper backgroundColor={colors.white} edges={['top']}>
         <View style={styles.container}>
             <View style={styles.content}>
                 <View style={styles.illustrationContainer}>

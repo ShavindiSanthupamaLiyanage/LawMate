@@ -90,7 +90,7 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     };
 
     return (
-        <ScreenWrapper backgroundColor={colors.white}>
+        <ScreenWrapper backgroundColor={colors.white} edges={['top']}>
         <KeyboardAvoidingView
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
