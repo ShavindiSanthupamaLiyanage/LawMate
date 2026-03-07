@@ -24,6 +24,7 @@ namespace LawMate.Infrastructure
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IAppLogger, AppLogger>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
             return services;
         }
     }

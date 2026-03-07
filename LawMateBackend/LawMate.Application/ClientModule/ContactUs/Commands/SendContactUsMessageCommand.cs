@@ -17,13 +17,16 @@ public class SendContactUsMessageCommandHandler
 {
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
+    private readonly IEmailTemplateService _templateService;
 
     public SendContactUsMessageCommandHandler(
         IEmailService emailService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IEmailTemplateService  templateService)
     {
         _emailService = emailService;
         _configuration = configuration;
+        _templateService = templateService;
     }
 
     public async Task<bool> Handle(SendContactUsMessageCommand request, CancellationToken cancellationToken)
@@ -46,14 +49,19 @@ public class SendContactUsMessageCommandHandler
             emailBody
         );
         
-        // Send confirmation email to the user
+        var template = _templateService.LoadTemplate("ContactTemplate.html");
+
+        var logoUrl = $"{_configuration["App:BaseUrl"]}/assets/logo.png";
+
+        template = template
+            .Replace("{{LogoUrl}}", logoUrl)
+            .Replace("{{FullName}}", request.FullName)
+            .Replace("{{Subject}}", request.Subject);
+
         await _emailService.SendAsync(
             request.Email,
             "LawMate Support - We received your message",
-            @"<p>Thank you for contacting LawMate.</p>
-          <p>Our team has received your message and will respond soon.</p>
-          <br/>
-          <p>Best Regards,<br/>LawMate Team</p>"
+            template
         );
 
         return true;
