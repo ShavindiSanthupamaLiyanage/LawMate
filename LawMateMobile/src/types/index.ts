@@ -9,6 +9,8 @@ export type LawyerStackParamList = {
     Availability: undefined;
     SettingsPreferences: undefined;
     Help: undefined;
+    AddAppointment: undefined;
+    SetAvailability: undefined;
 };
 
 export type ClientStackParamList = {

@@ -14,6 +14,7 @@ import { colors, spacing, fontSize, fontWeight } from '../../../config/theme';
 import { RootStackParamList } from '../../../types';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 import { AntDesign } from "@expo/vector-icons";
 import { useToast } from "../../../context/ToastContext";
 import { useAuth } from "../../../context/AuthContext";
@@ -159,11 +160,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScreenWrapper backgroundColor={colors.white} edges={['top']}>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <Text style={styles.title}>Login</Text>
                     <Text style={styles.subtitle}>
@@ -245,13 +247,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             )}
 
         </KeyboardAvoidingView>
+        </ScreenWrapper>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.white,
     },
     scrollContent: {
         padding: spacing.lg,
