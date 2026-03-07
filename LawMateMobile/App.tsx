@@ -71,7 +71,6 @@ import SettingsPreferencesScreen from './src/screens/common/SettingsPreferencesS
 import HelpScreen from './src/screens/common/HelpScreen';
 
 // Placeholder Screens
-import ProfileScreen from './src/screens/ProfileScreen';
 import VerificationPending from "./src/screens/lawyer/lawyerSignUp/VerificationPending";
 import TabIcon from "./src/components/BottomNavBar";
 import {AuthProvider} from "./src/context/AuthContext";
@@ -206,14 +205,10 @@ function LawyerTabs() {
             <LawyerStack.Screen name="Availability" component={AvailabilityScreen} />
             <LawyerStack.Screen name="SettingsPreferences" component={SettingsPreferencesScreen} />
             <LawyerStack.Screen name="Help" component={HelpScreen} />
-<<<<<<< HEAD
-            <LawyerStack.Screen name="AddAppointment" component={AddAppointmentScreen} />
-            <LawyerStack.Screen name="SetAvailability" component={SetAvailabilityScreen} />
-=======
             <LawyerStack.Screen name="AddNewArticle" component={AddNewArticle} />
             <LawyerStack.Screen name="ManageArticle" component={ManageArticle} />
-
->>>>>>> 89b6eedb6222e6e910fe8d38a285cad220bdbd9c
+            <LawyerStack.Screen name="AddAppointment" component={AddAppointmentScreen} />
+            <LawyerStack.Screen name="SetAvailability" component={SetAvailabilityScreen} />
         </LawyerStack.Navigator>
     );
 }
