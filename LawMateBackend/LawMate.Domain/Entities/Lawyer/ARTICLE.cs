@@ -6,11 +6,12 @@ namespace LawMate.Domain.Entities.Lawyer;
 public class ARTICLE
 {
     [Key]
-    public string ArticleId { get; set; }
+    public int ArticleId { get; set; }
     [Required]
     public string LawyerId { get; set; }
     [Required]
     public string Title { get; set; }
+    [Required]
     public string Content { get; set; }
     public LegalCategory LegalCategory { get; set; }
     public Language Language { get; set; }
