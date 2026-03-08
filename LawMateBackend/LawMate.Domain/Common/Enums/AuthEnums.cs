@@ -65,6 +65,7 @@ namespace LawMate.Domain.Common.Enums
     {
         Male = 1,
         Female = 2,
+        Other = 3
     }
 
     public enum Province

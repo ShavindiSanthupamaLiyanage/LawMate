@@ -7,13 +7,11 @@ import {
     KeyboardAvoidingView,
     Platform,
 } from "react-native";
-
 import {colors, fontWeight, spacing} from "../../../config/theme";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../../types";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import PersonalDetailsScreen from "./PersonalDetails";
 import ProfessionalDetailsScreen from "./ProfessionalDetails";
 import InitialTopNavbar from "../../../components/InitialTopNavbar";
@@ -43,7 +41,7 @@ const defaultPersonal = (): LawyerPersonalDetails => ({
 
 const defaultProfessional = (): LawyerProfessionalDetails => ({
     sceCertificateNo: "",
-    barAssociationMembership: true,
+    barAssociationMembership: false,
     designation: "",
     areaOfPractice: "",
     barAssociationRegNo: "",
@@ -84,8 +82,45 @@ export default function LawyerSignUpScreen() {
         personal.confirmPassword !== "" &&
         personal.password === personal.confirmPassword;
 
-    const isNextDisabled = activeTab === "Personal Details" && !passwordsMatch;
-    const isSubmitDisabled = activeTab === "Professional Details" && !professional.confirmed;
+    // const isSubmitDisabled = activeTab === "Professional Details" && !professional.confirmed;
+
+    const isPersonalValid = (): boolean => {
+        const phoneRegex = /^\d{10}$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        return (
+            personal.firstName.trim() !== "" &&
+            personal.lastName.trim() !== "" &&
+            personal.prefix !== "" &&
+            personal.gender !== "" &&
+            personal.address.trim() !== "" &&
+            personal.officeAddress.trim() !== "" &&
+            personal.nic.trim() !== "" &&
+            personal.dob !== null &&
+            phoneRegex.test(personal.mobileContact) &&
+            phoneRegex.test(personal.officeContact) &&
+            emailRegex.test(personal.email) &&
+            passwordsMatch
+        );
+    };
+
+    const isProfessionalValid = (): boolean => {
+        return (
+            professional.sceCertificateNo.trim() !== "" &&
+            professional.designation.trim() !== "" &&
+            professional.areaOfPractice !== "" &&
+            professional.yearOfExperience.trim() !== "" &&
+            professional.workingDistrict !== undefined &&
+            professional.enrollmentCertificate !== null &&
+            professional.nicFrontImage !== null &&
+            professional.nicBackImage !== null &&
+            (!professional.barAssociationMembership || professional.barAssociationRegNo.trim() !== "") &&
+            professional.confirmed
+        );
+    };
+
+    const isNextDisabled = activeTab === "Personal Details" && !isPersonalValid();
+    const isSubmitDisabled = activeTab === "Professional Details" && !isProfessionalValid();
 
     const handleSubmit = async () => {
         setLoading(true);
@@ -130,7 +165,7 @@ export default function LawyerSignUpScreen() {
                 </Pressable>
 
                 <Pressable
-                    onPress={() => setActiveTab("Professional Details")}
+                    onPress={() => isPersonalValid() && setActiveTab("Professional Details")}
                     style={styles.tab}
                 >
                     <Text

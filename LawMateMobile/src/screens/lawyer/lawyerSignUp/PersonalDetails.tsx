@@ -5,7 +5,6 @@ import DateInput from "../../../components/DateInput";
 import SelectInput from "../../../components/SelectInput";
 import { colors, spacing } from "../../../config/theme";
 import { AntDesign } from "@expo/vector-icons";
-
 import { LawyerPersonalDetails } from "../../../interfaces/lawyerRegistration.interface";
 import {GenderOptions, PrefixOptions} from "../../../emun/enumOptions";
 
@@ -77,12 +76,20 @@ export default function PersonalDetailsScreen({ values, onChange }: Props) {
                 onChangeText={(v) => onChange({ mobileContact: v })}
                 keyboardType="phone-pad"
             />
+            {values.mobileContact !== "" && !/^\d{10}$/.test(values.mobileContact) && (
+                <Text style={styles.errorText}>Mobile number must be 10 digits</Text>
+            )}
+
             <FloatingInput
                 label="Office Contact"
                 value={values.officeContact}
                 onChangeText={(v) => onChange({ officeContact: v })}
                 keyboardType="phone-pad"
             />
+            {values.officeContact !== "" && !/^\d{10}$/.test(values.officeContact) && (
+                <Text style={styles.errorText}>Office number must be 10 digits</Text>
+            )}
+
             <FloatingInput
                 label="Email"
                 value={values.email}
@@ -90,6 +97,9 @@ export default function PersonalDetailsScreen({ values, onChange }: Props) {
                 keyboardType="email-address"
                 autoCapitalize="none"
             />
+            {values.email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email) && (
+                <Text style={styles.errorText}>Enter a valid email address</Text>
+            )}
 
             <FloatingInput
                 label="Password"
