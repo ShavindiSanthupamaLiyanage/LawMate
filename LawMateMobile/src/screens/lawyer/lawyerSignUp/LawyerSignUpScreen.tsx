@@ -92,7 +92,7 @@ export default function LawyerSignUpScreen() {
         try {
             await registerLawyer({ ...personal, ...professional });
             showSuccess("Verification request submitted successfully.");
-            setTimeout(() => navigation.replace("VerificationPending"), 2000);
+            setTimeout(() => navigation.replace("VerificationPending"), 3000);
         } catch (err: any) {
             showError(err?.message ?? "Registration failed. Please try again.");
         } finally {
