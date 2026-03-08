@@ -5,8 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Command
 {
-    public record DeleteArticleCommand(string ArticleId) : IRequest<bool>;
-
+    public record DeleteArticleCommand(int ArticleId) : IRequest<bool>;
     public class DeleteArticleCommandHandler : IRequestHandler<DeleteArticleCommand, bool>
     {
         private readonly IApplicationDbContext _context;
