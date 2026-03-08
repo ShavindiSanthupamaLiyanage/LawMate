@@ -101,6 +101,7 @@ export const ENDPOINTS = {
     // Lawyer endpoints
     LAWYER: {
         REGISTER: "/lawyers",
+        MEMBERSHIP_PAYMENT: (lawyerId: string) => `/lawyers/${lawyerId}/membership-payment`,
         PROFILE: '/lawyer/profile',
         UPDATE_PROFILE: '/lawyer/profile',
         CASES: '/lawyer/cases',
