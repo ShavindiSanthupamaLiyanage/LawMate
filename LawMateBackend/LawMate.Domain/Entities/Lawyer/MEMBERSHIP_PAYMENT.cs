@@ -22,4 +22,6 @@ public class MEMBERSHIP_PAYMENT : AuditEntity
     public DateTime? VerifiedAt { get; set; }
     public byte[]? ReceiptDocument { get; set; }
     public bool IsExpired { get; set; }
+    [Required]
+    public MembershipType MembershipType { get; set; }
 }

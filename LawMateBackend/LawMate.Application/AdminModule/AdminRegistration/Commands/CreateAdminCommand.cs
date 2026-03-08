@@ -60,7 +60,7 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Commands
                 ContactNumber = dto.ContactNumber,
                 RecordStatus = dto.RecordStatus,
                 RegistrationDate = DateTime.Now,
-                State = dto.State,
+                State = State.Active,
                 ProfileImage = dto.ProfileImage,
                 CreatedBy = _currentUserService.UserId,
                 CreatedAt = DateTime.Now,
