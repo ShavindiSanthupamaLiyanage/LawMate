@@ -8,52 +8,49 @@ import {
     Image,
 } from "react-native";
 
-// import LawyerList from "../userVerification/LawyerList";
 import SearchBar from "../../../components/SearchBar";
 import { colors, spacing, borderRadius } from "../../../config/theme";
 import AdminLayout from "../../../components/AdminLayout";
 
+type StatusType = "ALL" | "Active" | "Rejected";
 
-type StatusType = "ALL" | "Pending" | "Active" | "Rejected";
-
-interface Lawyer {
+interface Client {
     id: string;
     name: string;
-    barId: string;
+    email: string;
     image: string;
     status: StatusType;
 }
 
-const DATA: Lawyer[] = [
+const DATA: Client[] = [
     {
         id: "1",
-        name: "Maya Wickramage",
-        barId: "Bar ID: SL/2017/2345",
-        image: "https://i.pravatar.cc/150?img=5",
-        status: "Pending",
+        name: "Nisal Perera",
+        email: "nisal@gmail.com",
+        image: "https://i.pravatar.cc/150?img=10",
+        status: "Rejected",
     },
     {
         id: "2",
-        name: "Tharindu Bandara",
-        barId: "Bar ID: SL/2017/2346",
-        image: "https://i.pravatar.cc/150?img=8",
+        name: "Nisha Perera",
+        email: "nisha@gmail.com",
+        image: "https://i.pravatar.cc/150?img=12",
         status: "Active",
     },
     {
         id: "3",
-        name: "Namal Kumar",
-        barId: "Bar ID: SL/2017/2347",
-        image: "https://i.pravatar.cc/150?img=12",
-        status: "Rejected",
+        name: "Kamal Silva",
+        email: "kamal@gmail.com",
+        image: "https://i.pravatar.cc/150?img=7",
+        status: "Active",
     },
 ];
 
-const LawyerVerificationScreen = () => {
+const ClientVerificationScreen = () => {
     const [search, setSearch] = useState("");
     const [selectedTab, setSelectedTab] = useState<StatusType>("ALL");
 
-    /* ---------- FILTER LOGIC ---------- */
-    const filteredData = DATA.filter(item => {
+    const filteredData = DATA.filter((item) => {
         const matchSearch = item.name
             .toLowerCase()
             .includes(search.toLowerCase());
@@ -64,11 +61,8 @@ const LawyerVerificationScreen = () => {
         return matchSearch && matchStatus;
     });
 
-    /* ---------- STATUS COLOR ---------- */
     const getStatusStyle = (status: StatusType) => {
         switch (status) {
-            case "Pending":
-                return { backgroundColor: "#FFE8B3", color: "#B7791F" };
             case "Active":
                 return { backgroundColor: "#D4F4E2", color: "#1E8E5A" };
             case "Rejected":
@@ -78,8 +72,7 @@ const LawyerVerificationScreen = () => {
         }
     };
 
-    /* ---------- LIST ITEM ---------- */
-    const renderItem = ({ item }: { item: Lawyer }) => {
+    const renderItem = ({ item }: { item: Client }) => {
         const statusStyle = getStatusStyle(item.status);
 
         return (
@@ -88,7 +81,7 @@ const LawyerVerificationScreen = () => {
 
                 <View style={{ flex: 1 }}>
                     <Text style={styles.name}>{item.name}</Text>
-                    <Text style={styles.barId}>{item.barId}</Text>
+                    <Text style={styles.email}>{item.email}</Text>
                 </View>
 
                 <View
@@ -104,20 +97,17 @@ const LawyerVerificationScreen = () => {
             </View>
         );
     };
-
     return (
-        <AdminLayout title="Lawyer Verification" disableScroll showBackButton>
+        <AdminLayout title="Client Verification" disableScroll showBackButton>
             <View style={styles.container}>
-                {/* SEARCH */}
                 <SearchBar
                     value={search}
                     onChangeText={setSearch}
                     placeholder="Search here..."
                 />
 
-                {/* FILTER TABS */}
                 <View style={styles.tabs}>
-                    {["ALL", "Pending", "Active", "Rejected"].map(tab => (
+                    {["ALL", "Active", "Rejected"].map((tab) => (
                         <TouchableOpacity
                             key={tab}
                             style={[
@@ -140,17 +130,18 @@ const LawyerVerificationScreen = () => {
                     ))}
                 </View>
 
-                {/* LIST */}
                 <FlatList
                     data={filteredData}
-                    keyExtractor={item => item.id}
+                    keyExtractor={(item) => item.id}
                     renderItem={renderItem}
                     showsVerticalScrollIndicator={false}
                 />
             </View>
-        </AdminLayout>
+         </AdminLayout>
     );
 };
+
+export default ClientVerificationScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -158,7 +149,6 @@ const styles = StyleSheet.create({
         padding: spacing.md,
     },
 
-    /* Tabs */
     tabs: {
         flexDirection: "row",
         marginVertical: spacing.md,
@@ -178,7 +168,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary,
     },
 
-    /* Card */
     card: {
         flexDirection: "row",
         alignItems: "center",
@@ -201,7 +190,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
 
-    barId: {
+    email: {
         color: "#777",
         fontSize: 12,
         marginTop: 2,
@@ -213,5 +202,3 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
 });
-
-export default LawyerVerificationScreen;

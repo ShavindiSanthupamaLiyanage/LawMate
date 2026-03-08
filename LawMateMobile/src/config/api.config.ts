@@ -9,7 +9,43 @@
  *
  * Look for IPv4 Address (something like 192.168.x.x or 10.0.x.x)
  */
-import {Platform} from "react-native";
+// import {Platform} from "react-native";
+// // import { API_BASE_URL } from '@env';
+//
+// const getBaseUrl = () => {
+//     if (!__DEV__) {
+//         // Production
+//         return 'https://your-production-api.com/api';
+//     }
+//
+//     // Development - check environment
+//     // You can set this manually when testing on real device
+//     const USE_REAL_DEVICE = true;  //Change to true for real device
+//
+//     if (USE_REAL_DEVICE) {
+//         // Real device - use your computer's IP
+//         return 'http://192.168.1.10:5102/api';
+//     }
+//
+//     // Emulator/Simulator
+//     if (Platform.OS === 'android') {
+//         return 'http://10.0.2.2:5102/api';  // Android Emulator
+//     } else {
+//         return 'http://localhost:5102/api';  // iOS Simulator
+//     }
+// };
+//
+// export const API_CONFIG = {
+//     BASE_URL: getBaseUrl(),
+//     TIMEOUT: 30000,
+//     HEADERS: {
+//         'Content-Type': 'application/json',
+//         'Accept': 'application/json',
+//     },
+// };
+
+import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 const getBaseUrl = () => {
     if (!__DEV__) {
@@ -17,21 +53,24 @@ const getBaseUrl = () => {
         return 'https://your-production-api.com/api';
     }
 
-    // Development - check environment
-    // You can set this manually when testing on real device
-    const USE_REAL_DEVICE = false;  //Change to true for real device
+    // When using tunnel, Metro runs on exp.direct but your API is still local.
+    // Use the debuggerHost to derive the machine's IP dynamically.
+    const debuggerHost = Constants.expoConfig?.hostUri
+        ?? Constants.manifest2?.extra?.expoGo?.debuggerHost
+        ?? Constants.manifest?.debuggerHost;
 
-    if (USE_REAL_DEVICE) {
-        // Real device - use your computer's IP
-        return 'http://192.168.4.71:5102/api';
+    if (debuggerHost) {
+        // Extract just the IP/hostname, strip the port
+        const host = debuggerHost.split(':')[0];
+        return `http://${host}:5102/api`;
     }
 
     // Emulator/Simulator
     if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:5102/api';  // Android Emulator
-    } else {
-        return 'http://localhost:5102/api';  // iOS Simulator
+        return 'http://10.0.2.2:5102/api';
     }
+
+    return 'http://localhost:5102/api';
 };
 
 export const API_CONFIG = {
@@ -54,7 +93,9 @@ export const ENDPOINTS = {
         LOGOUT: '/auth/logout',
         REFRESH_TOKEN: '/auth/refresh',
         FORGOT_PASSWORD: '/auth/forgot-password',
-        RESET_PASSWORD: '/auth/reset-password',
+        REQUEST_RESET_PASSWORD: '/auth/request-reset-password',
+        VERIFY_RESET_TOKEN: '/auth/verify-reset-token',
+        RESET_PASSWORD_WITH_TOKEN: '/auth/reset-password-with-token',
     },
 
     // Lawyer endpoints
@@ -81,5 +122,11 @@ export const ENDPOINTS = {
     ADMIN: {
         USERS: '/admin/users',
         STATISTICS: '/admin/statistics',
+    },
+    USER: {
+        GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
+    },
+    CONTACT: {
+        SEND: '/contactUs/send',
     },
 };

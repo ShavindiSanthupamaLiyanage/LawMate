@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 const UserManagementScreen = () => {
     const navigation = useNavigation<any>();
     return (
-        <AdminLayout userName="Kavindu Gimsara">
+        <AdminLayout title="User Management">
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.content}
@@ -73,16 +73,16 @@ const UserManagementScreen = () => {
 
                 {/*Action Items*/}
                 <ActionItem
-                    icon={<Feather name="user-check" size={20} color={colors.primary} />}
+                    icon={<Feather name="user-check" size={40} color={colors.primary} />}
                     title="Lawyer Verification"
                     onPress={() => navigation.navigate("LawyerVerification")}
                 />
 
-                {/*<ActionItem*/}
-                {/*    icon={<Feather name="users" size={20} color={colors.primary} />}*/}
-                {/*    title="Client Verification"*/}
-                {/*    onPress={() => navigation.navigate("ClientVerification")}*/}
-                {/*/>*/}
+                <ActionItem
+                    icon={<Feather name="users" size={40} color={colors.primary} />}
+                    title="Client Verification"
+                    onPress={() => navigation.navigate("ClientVerification")}
+                />
 
                 <View style={{ height: 30 }} />
             </ScrollView>

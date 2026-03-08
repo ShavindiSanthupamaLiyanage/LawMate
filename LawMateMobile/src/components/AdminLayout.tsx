@@ -8,34 +8,54 @@ interface AdminLayoutProps {
     children: React.ReactNode;
     userName?: string;
     profileImage?: string;
+    title: string;
     onNotificationPress?: () => void;
     onProfilePress?: () => void;
+    showBackButton?: boolean;
+    onBackPress?: () => void;
+    hideRightSection?: boolean;
+    disableScroll?: boolean;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({
+    title,
     children,
     userName = 'Admin User',
     profileImage,
     onNotificationPress,
     onProfilePress,
+    showBackButton,
+    onBackPress,
+    hideRightSection,
+    disableScroll,
 }) => {
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
             <View>
                 <TopNavbar
+                    title={title}
                     userName={userName}
                     profileImage={profileImage}
                     onNotificationPress={onNotificationPress}
                     onProfilePress={onProfilePress}
+                    showBackButton={showBackButton}
+                    onBackPress={onBackPress}
+                    hideRightSection={hideRightSection}
                 />
             </View>
-            <ScrollView
-                style={styles.container}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.contentContainer}
-            >
-                {children}
-            </ScrollView>
+            {disableScroll ? (
+                            <View style={styles.container}>
+                                {children}
+                            </View>
+                        ) : (
+                            <ScrollView
+                                style={styles.container}
+                                showsVerticalScrollIndicator={false}
+                                contentContainerStyle={styles.contentContainer}
+                            >
+                                {children}
+                            </ScrollView>
+                        )}
         </ScreenWrapper>
     );
 };
@@ -51,3 +71,4 @@ const styles = StyleSheet.create({
 });
 
 export default AdminLayout;
+ 
