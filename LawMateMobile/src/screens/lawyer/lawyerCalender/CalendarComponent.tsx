@@ -8,8 +8,8 @@ import {
     Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
-import Button from '../Button';
+import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import Button from '../../../components/Button';
 
 export interface Appointment {
     id: string;

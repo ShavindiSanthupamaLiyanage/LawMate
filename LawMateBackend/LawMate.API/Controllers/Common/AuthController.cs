@@ -115,7 +115,8 @@ namespace LawMate.API.Controllers.Common
                 accessToken = new JwtSecurityTokenHandler().WriteToken(token),
                 userId = matchedUser.UserId,
                 role = matchedUser.UserRole,
-                isDualAccount = matchedUser.IsDualAccount
+                isDualAccount = matchedUser.IsDualAccount,
+                accountStatus = matchedUser.State
             });
         }
 

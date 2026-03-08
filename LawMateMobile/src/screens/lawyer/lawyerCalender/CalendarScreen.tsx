@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { colors } from '../../config/theme';
-import LawyerLayout from '../../components/LawyerLayout';
-import CalendarComponent, { Appointment, AvailabilitySlot } from '../../components/Calendar/CalendarComponent';
+import { colors } from '../../../config/theme';
+import LawyerLayout from '../../../components/LawyerLayout';
+import CalendarComponent, { Appointment, AvailabilitySlot } from './CalendarComponent';
 
 const CalendarScreen: React.FC = () => {
     const navigation = useNavigation<any>();
