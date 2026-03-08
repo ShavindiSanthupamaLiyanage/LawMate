@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -19,22 +20,51 @@ interface MenuItemProps {
     onPress: () => void;
     iconColor?: string;
     isLogout?: boolean;
+    hasSubItems?: boolean;
+    isExpanded?: boolean;
+    onToggle?: () => void;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout }) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
-        <View style={styles.menuLeft}>
-            <View style={[styles.iconContainer, isLogout && styles.logoutIconContainer]}>
-                <Ionicons name={icon} size={20} color={iconColor || colors.primary} />
-            </View>
-            <Text style={[styles.menuTitle, isLogout && styles.logoutText]}>{title}</Text>
+interface SubItemProps {
+    title: string;
+    onPress: () => void;
+}
+
+const SubMenuItem: React.FC<SubItemProps> = ({ title, onPress }) => (
+    <TouchableOpacity style={styles.subMenuItem} onPress={onPress} activeOpacity={0.7}>
+        <View style={styles.subMenuLeft}>
+            <View style={styles.dotIndicator} />
+            <Text style={styles.subMenuTitle}>{title}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
     </TouchableOpacity>
+);
+
+const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout, hasSubItems, isExpanded, onToggle }) => (
+    <>
+        <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={hasSubItems ? onToggle : onPress} 
+            activeOpacity={0.7}
+        >
+            <View style={styles.menuLeft}>
+                <View style={[styles.iconContainer, isLogout && styles.logoutIconContainer]}>
+                    <Ionicons name={icon} size={20} color={iconColor || colors.primary} />
+                </View>
+                <Text style={[styles.menuTitle, isLogout && styles.logoutText]}>{title}</Text>
+            </View>
+            {hasSubItems ? (
+                <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color={colors.textSecondary} />
+            ) : (
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            )}
+        </TouchableOpacity>
+    </>
 );
 
 const AdminProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
+    const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
 
     // TODO: Replace with actual API data
     const profileData = {
@@ -43,8 +73,15 @@ const AdminProfileScreen: React.FC = () => {
         role: 'Super Admin',
         totalUsers: 1250,
         pendingVerifications: 18,
-        totalRevenue: '₹2.5M',
+        totalRevenue: 'Rs.2.5M',
         profileImage: null, // Set to image URL when available
+    };
+
+    const toggleExpand = (key: string) => {
+        setExpandedItems(prev => ({
+            ...prev,
+            [key]: !prev[key]
+        }));
     };
 
     const handleLogout = () => {
@@ -70,38 +107,40 @@ const AdminProfileScreen: React.FC = () => {
     };
 
     const handleEditProfile = () => {
-        // TODO: Navigate to edit profile screen
-        Alert.alert('Edit Profile', 'Navigate to edit profile screen');
+        // Navigate to personal details screen for editing
+        navigation.navigate('AdminPersonalDetails');
     };
 
     return (
-        <View style={styles.container}>
+        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+            <View style={styles.container}>
+            {/* Fixed Header */}
+            <LinearGradient
+                colors={[
+                    'rgba(24,114,234,1)',
+                    'rgba(54,87,208,1)',
+                    'rgba(77,55,200,1)',
+                    'rgba(99,71,253,1)',
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.fixedHeader}
+            >
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => navigation.goBack()}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="arrow-back" size={24} color={colors.white} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Admin Profile</Text>
+                <View style={styles.backButton} />
+            </LinearGradient>
+
             <ScrollView 
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                {/* Header with Gradient */}
-                <LinearGradient
-                    colors={[
-                        'rgba(24,114,234,1)',
-                        'rgba(54,87,208,1)',
-                        'rgba(77,55,200,1)',
-                        'rgba(99,71,253,1)',
-                    ]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.header}
-                >
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => navigation.goBack()}
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons name="arrow-back" size={24} color={colors.white} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Admin Profile</Text>
-                    <View style={styles.backButton} />
-                </LinearGradient>
 
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
@@ -157,26 +196,140 @@ const AdminProfileScreen: React.FC = () => {
                         title="Personal Details"
                         onPress={() => navigation.navigate('AdminPersonalDetails')}
                     />
+                    
                     <MenuItem
                         icon="people-outline"
                         title="User Management"
-                        onPress={() => Alert.alert('User Management', 'TODO: Navigate to user management')}
+                        onPress={() => setExpandedItems(prev => ({ ...prev, userMgmt: !prev.userMgmt }))}
+                        hasSubItems
+                        isExpanded={expandedItems.userMgmt}
+                        onToggle={() => toggleExpand('userMgmt')}
                     />
+                    {expandedItems.userMgmt && (
+                        <>
+                            <SubMenuItem
+                                title="View All Users"
+                                onPress={() => Alert.alert('View All Users', 'Navigate to user list')}
+                            />
+                            <SubMenuItem
+                                title="Active Users"
+                                onPress={() => Alert.alert('Active Users', 'Navigate to active users')}
+                            />
+                            <SubMenuItem
+                                title="Banned Users"
+                                onPress={() => Alert.alert('Banned Users', 'Navigate to banned users')}
+                            />
+                            <SubMenuItem
+                                title="User Roles"
+                                onPress={() => Alert.alert('User Roles', 'Manage user roles')}
+                            />
+                        </>
+                    )}
+
                     <MenuItem
                         icon="shield-checkmark-outline"
                         title="Verification Requests"
-                        onPress={() => Alert.alert('Verification', 'TODO: Navigate to verification requests')}
+                        onPress={() => setExpandedItems(prev => ({ ...prev, verification: !prev.verification }))}
+                        hasSubItems
+                        isExpanded={expandedItems.verification}
+                        onToggle={() => toggleExpand('verification')}
                     />
+                    {expandedItems.verification && (
+                        <>
+                            <SubMenuItem
+                                title="Pending Verifications"
+                                onPress={() => Alert.alert('Pending', 'Navigate to pending verifications')}
+                            />
+                            <SubMenuItem
+                                title="Approved Verifications"
+                                onPress={() => Alert.alert('Approved', 'Navigate to approved verifications')}
+                            />
+                            <SubMenuItem
+                                title="Rejected Verifications"
+                                onPress={() => Alert.alert('Rejected', 'Navigate to rejected verifications')}
+                            />
+                        </>
+                    )}
+
                     <MenuItem
                         icon="bar-chart-outline"
                         title="Analytics & Reports"
-                        onPress={() => Alert.alert('Analytics', 'TODO: Navigate to analytics')}
+                        onPress={() => setExpandedItems(prev => ({ ...prev, analytics: !prev.analytics }))}
+                        hasSubItems
+                        isExpanded={expandedItems.analytics}
+                        onToggle={() => toggleExpand('analytics')}
                     />
+                    {expandedItems.analytics && (
+                        <>
+                            <SubMenuItem
+                                title="Dashboard Stats"
+                                onPress={() => Alert.alert('Dashboard', 'View dashboard statistics')}
+                            />
+                            <SubMenuItem
+                                title="User Analytics"
+                                onPress={() => Alert.alert('Analytics', 'View user analytics')}
+                            />
+                            <SubMenuItem
+                                title="Revenue Reports"
+                                onPress={() => Alert.alert('Revenue', 'View revenue reports')}
+                            />
+                            <SubMenuItem
+                                title="Activity Logs"
+                                onPress={() => Alert.alert('Logs', 'View activity logs')}
+                            />
+                        </>
+                    )}
+
+                    <MenuItem
+                        icon="notifications-outline"
+                        title="Notifications"
+                        onPress={() => setExpandedItems(prev => ({ ...prev, notifications: !prev.notifications }))}
+                        hasSubItems
+                        isExpanded={expandedItems.notifications}
+                        onToggle={() => toggleExpand('notifications')}
+                    />
+                    {expandedItems.notifications && (
+                        <>
+                            <SubMenuItem
+                                title="System Alerts"
+                                onPress={() => Alert.alert('Alerts', 'View system alerts')}
+                            />
+                            <SubMenuItem
+                                title="User Reports"
+                                onPress={() => Alert.alert('Reports', 'View user reports')}
+                            />
+                            <SubMenuItem
+                                title="Notification Settings"
+                                onPress={() => Alert.alert('Settings', 'Manage notification settings')}
+                            />
+                        </>
+                    )}
+
                     <MenuItem
                         icon="settings-outline"
                         title="Settings & Preferences"
-                        onPress={() => navigation.navigate('SettingsPreferences')}
+                        onPress={() => setExpandedItems(prev => ({ ...prev, settings: !prev.settings }))}
+                        hasSubItems
+                        isExpanded={expandedItems.settings}
+                        onToggle={() => toggleExpand('settings')}
                     />
+                    {expandedItems.settings && (
+                        <>
+                            <SubMenuItem
+                                title="Account Security"
+                                onPress={() => Alert.alert('Security', 'Manage account security')}
+                            />
+                            <SubMenuItem
+                                title="Privacy Settings"
+                                onPress={() => Alert.alert('Privacy', 'Manage privacy settings')}
+                            />
+                            <SubMenuItem
+                                title="System Settings"
+                                onPress={() => Alert.alert('System', 'Configure system settings')}
+                            />
+                        </>
+                    )}
+
                     <MenuItem
                         icon="help-circle-outline"
                         title="Help"
@@ -209,7 +362,8 @@ const AdminProfileScreen: React.FC = () => {
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-        </View>
+            </View>
+        </ScreenWrapper>
     );
 };
 
@@ -220,6 +374,25 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingBottom: 100,
+        paddingTop: 110,
+    },
+    fixedHeader: {
+        height: 80,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        elevation: 8,
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
     },
     header: {
         height: 100,
@@ -237,8 +410,10 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         color: colors.white,
-        fontSize: fontSize.xl,
+        fontSize: fontSize.lg + 2,
         fontWeight: fontWeight.bold,
+        flex: 1,
+        textAlign: 'center',
     },
     profileCard: {
         backgroundColor: colors.white,
@@ -385,6 +560,34 @@ const styles = StyleSheet.create({
     },
     logoutText: {
         color: colors.error,
+    },
+    subMenuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.xl,
+        backgroundColor: '#F8F8F8',
+        borderBottomWidth: 1,
+        borderBottomColor: colors.borderLight,
+    },
+    subMenuLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        flex: 1,
+    },
+    dotIndicator: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: colors.primary,
+        marginLeft: spacing.md,
+    },
+    subMenuTitle: {
+        fontSize: fontSize.md,
+        color: colors.textPrimary,
+        fontWeight: fontWeight.medium,
     },
     bottomButtonContainer: {
         position: 'absolute',

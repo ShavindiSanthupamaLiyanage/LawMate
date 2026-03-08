@@ -28,7 +28,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
 
     return (
-        <ScreenWrapper backgroundColor={colors.white}>
+        <ScreenWrapper backgroundColor={colors.white} edges={['top']}>
         <View style={styles.container}>
             <View style={styles.content}>
                 <View style={styles.illustrationContainer}>
@@ -46,7 +46,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
             <View style={styles.buttonContainer}>
                 <Button
                     title="SIGN UP AS A LAWYER"
-                    // onPress={() => navigation.navigate('Register', { userType: 'lawyer' })}
                     onPress={handleLawyerSignup}
                     variant="primary"
                     style={styles.button}

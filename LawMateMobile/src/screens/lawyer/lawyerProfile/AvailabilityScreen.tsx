@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const AvailabilityScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -35,13 +36,14 @@ const AvailabilityScreen: React.FC = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={[colors.primary, colors.primaryLight]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.header}
-            >
+        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+            <View style={styles.container}>
+                <LinearGradient
+                    colors={[colors.primary, colors.primaryLight]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.header}
+                >
                 <View style={styles.headerContent}>
                     <View style={styles.headerLeft}>
                         <Ionicons 
@@ -86,7 +88,8 @@ const AvailabilityScreen: React.FC = () => {
                 {/* TODO: API Integration - Save availability changes to backend */}
                 <View style={styles.bottomSpacing} />
             </ScrollView>
-        </View>
+            </View>
+        </ScreenWrapper>
     );
 };
 
@@ -101,6 +104,11 @@ const styles = StyleSheet.create({
         paddingTop: spacing.lg,
         height: 100,
         justifyContent: 'flex-end',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
     },
     headerContent: {
         flexDirection: 'row',
@@ -123,7 +131,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.lg,
+        paddingTop: 110,
     },
     infoBox: {
         flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle, View } from 'react-native';
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 
 interface ScreenWrapperProps {
@@ -9,10 +9,20 @@ interface ScreenWrapperProps {
     style?: ViewStyle;
 }
 
+/**
+ * ScreenWrapper provides safe area handling for all screens.
+ * 
+ * When edges includes 'top', SafeAreaView automatically handles the status bar spacing.
+ * Do NOT add additional paddingTop in contentWrapper as SafeAreaView already manages it.
+ * 
+ * Usage:
+ * - For screens with headers: <ScreenWrapper edges={['top']}>
+ * - For screens without headers: <ScreenWrapper> (no edges specified)
+ */
 const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
                                                          children,
                                                          backgroundColor = '#FFFFFF',
-                                                         edges = ['top', 'bottom'],
+                                                         edges = [],
                                                          style
                                                      }) => {
     return (
@@ -20,13 +30,18 @@ const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
             style={[styles.container, { backgroundColor }, style]}
             edges={edges}
         >
-            {children}
+            <View style={styles.contentWrapper}>
+                {children}
+            </View>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
+    },
+    contentWrapper: {
         flex: 1,
     },
 });

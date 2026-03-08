@@ -10,10 +10,11 @@ import {
     Image
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
+import { colors, spacing, fontSize, fontWeight } from '../../../config/theme';
 import { RootStackParamList } from '../../../types';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 import { AntDesign } from "@expo/vector-icons";
 import { useToast } from "../../../context/ToastContext";
 import { useAuth } from "../../../context/AuthContext";
@@ -159,11 +160,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScreenWrapper backgroundColor={colors.white} edges={['top']}>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <Text style={styles.title}>Login</Text>
                     <Text style={styles.subtitle}>
@@ -224,21 +226,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                         <Text style={styles.footerText}>Don't have an account? </Text>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Welcome')}
-                            disabled={loading}  // ⭐ NEW: Disable while loading
+                            disabled={loading}
                         >
                             <Text style={styles.signUpText}>Sign Up Now</Text>
                         </TouchableOpacity>
-                    </View>
-
-                    {/*Demo credentials for testing with actual backend */}
-                    <View style={styles.demoCredentials}>
-                        <Text style={styles.demoTitle}>Demo Credentials:</Text>
-                        <Text style={styles.demoText}>
-                            Enter the NIC and password from your backend database
-                        </Text>
-                        <Text style={styles.demoText}>
-                            Example: NIC: 200012345678V, Password: YourPassword
-                        </Text>
                     </View>
                 </View>
             </ScrollView>
@@ -256,13 +247,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             )}
 
         </KeyboardAvoidingView>
+        </ScreenWrapper>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.white,
     },
     scrollContent: {
         padding: spacing.lg,
@@ -300,6 +291,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg,
     },
     loginButton: {
+        marginTop: spacing.xxl,
         marginBottom: spacing.lg,
     },
     footer: {
@@ -316,23 +308,6 @@ const styles = StyleSheet.create({
         fontSize: fontSize.sm,
         color: colors.primary,
         fontWeight: fontWeight.semibold,
-    },
-    demoCredentials: {
-        backgroundColor: colors.background,
-        padding: spacing.md,
-        borderRadius: borderRadius.md,
-        marginTop: spacing.lg,
-    },
-    demoTitle: {
-        fontSize: fontSize.sm,
-        fontWeight: fontWeight.semibold,
-        color: colors.textPrimary,
-        marginBottom: spacing.sm,
-    },
-    demoText: {
-        fontSize: fontSize.xs,
-        color: colors.textSecondary,
-        marginBottom: 2,
     },
 });
 
