@@ -3,25 +3,26 @@ using LawMate.Domain.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Queries
+namespace LawMate.Application.ClientModule.ClientKnowledgeHub.Queries
 {
-    public record GetAllArticlesQuery : IRequest<List<ArticleDto>>;
+    public record GetAllArticleQuery : IRequest<List<ArticleDto>>;
 
-    public class GetAllArticlesQueryHandler
-        : IRequestHandler<GetAllArticlesQuery, List<ArticleDto>>
+    public class GetAllArticleQueryHandler 
+        : IRequestHandler<GetAllArticleQuery, List<ArticleDto>>
     {
         private readonly IApplicationDbContext _context;
 
-        public GetAllArticlesQueryHandler(IApplicationDbContext context)
+        public GetAllArticleQueryHandler(IApplicationDbContext context)
         {
             _context = context;
         }
 
         public async Task<List<ArticleDto>> Handle(
-            GetAllArticlesQuery request,
+            GetAllArticleQuery request,
             CancellationToken cancellationToken)
         {
-            return await _context.ARTICLE   
+            return await _context.ARTICLE
+                .Where(a => a.IsPublished)   // clients should only see published articles
                 .OrderByDescending(a => a.CreatedAt)
                 .Select(a => new ArticleDto
                 {
@@ -32,13 +33,11 @@ namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Queries
                     LegalCategory = a.LegalCategory.ToString(),
                     Language = a.Language.ToString(),
                     IsPublished = a.IsPublished,
-                    CreatedBy =  a.CreatedBy,
+                    CreatedBy = a.CreatedBy,
                     CreatedAt = a.CreatedAt,
-                    ModifiedBy =   a.ModifiedBy,
+                    ModifiedBy = a.ModifiedBy,
                     ModifiedAt = a.ModifiedAt,
-                  
-
-                    
+                   
                 })
                 .ToListAsync(cancellationToken);
         }

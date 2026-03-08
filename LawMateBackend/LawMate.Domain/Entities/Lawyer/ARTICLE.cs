@@ -23,5 +23,5 @@ public class ARTICLE
     public string? ModifiedBy { get; set; }
     public DateTime? ModifiedAt { get; set; }
     public DateTime? PublishedAt { get; set; }
-    public int LikeCount { get; set; }
+    
 }
