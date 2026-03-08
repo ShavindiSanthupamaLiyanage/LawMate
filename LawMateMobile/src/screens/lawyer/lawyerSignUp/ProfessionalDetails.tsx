@@ -78,11 +78,32 @@ export default function ProfessionalDetailsScreen({ values, onChange }: Props) {
                 items={AreaOfPracticeOptions}
             />
 
-            <FloatingInput
-                label="BAR Association Registration No"
-                value={values.barAssociationRegNo}
-                onChangeText={(v) => onChange({ barAssociationRegNo: v })}
-            />
+            <Pressable
+                style={styles.checkboxContainer1}
+                onPress={() => {
+                    const newVal = !values.barAssociationMembership;
+                    onChange({
+                        barAssociationMembership: newVal,
+                        barAssociationRegNo: newVal ? values.barAssociationRegNo : ""
+                    });
+                }}
+            >
+                <View style={[styles.checkbox, values.barAssociationMembership && styles.checkboxActive]}>
+                    {values.barAssociationMembership && (
+                        <Ionicons name="checkmark" size={16} color={colors.white} />
+                    )}
+                </View>
+                <Text style={styles.checkboxText}>Member of the Bar Association</Text>
+            </Pressable>
+
+            <View pointerEvents={values.barAssociationMembership ? "auto" : "none"}
+                  style={{ opacity: values.barAssociationMembership ? 1 : 0.4 }}>
+                <FloatingInput
+                    label="BAR Association Registration No"
+                    value={values.barAssociationRegNo}
+                    onChangeText={(v) => onChange({ barAssociationRegNo: v })}
+                />
+            </View>
 
             <FloatingInput
                 label="Years of Experience"
@@ -110,18 +131,6 @@ export default function ProfessionalDetailsScreen({ values, onChange }: Props) {
                     items={selectedProvince !== undefined ? DistrictsByProvince[selectedProvince] : []}
                 />
             </View>
-
-            <Pressable
-                style={styles.checkboxContainer}
-                onPress={() => onChange({ barAssociationMembership: !values.barAssociationMembership })}
-            >
-                <View style={[styles.checkbox, values.barAssociationMembership && styles.checkboxActive]}>
-                    {values.barAssociationMembership && (
-                        <Ionicons name="checkmark" size={16} color={colors.white} />
-                    )}
-                </View>
-                <Text style={styles.checkboxText}>Member of the Bar Association</Text>
-            </Pressable>
 
             {/* Upload Section */}
             <View style={styles.uploadSection}>
@@ -195,6 +204,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginTop: spacing.lg,
     },
+    checkboxContainer1: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: spacing.xs,
+},
     checkbox: {
         width: 22,
         height: 22,

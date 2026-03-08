@@ -1,11 +1,10 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Image, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
-import { colors, spacing, fontSize, fontWeight } from "../../config/theme";
-import LawyerLayout from "../../components/LawyerLayout";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
+import LawyerLayout from "../../../components/LawyerLayout";
 
 /* ----------------------------- */
 /* Donut chart helpers (SVG)     */
@@ -134,7 +133,6 @@ const ActivityCard: React.FC<{
 /* ----------------------------- */
 const LawyerDashboard: React.FC = () => {
     const navigation = useNavigation<any>();
-    const insets = useSafeAreaInsets();
 
     const donutData: DonutItem[] = [
         { label: "Criminal", value: 12, color: "#6D7CFF" },

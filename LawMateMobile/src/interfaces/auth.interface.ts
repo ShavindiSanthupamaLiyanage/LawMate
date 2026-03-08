@@ -14,6 +14,7 @@ export interface LoginResponse {
     userId: string;
     role: number;
     isDualAccount: boolean;
+    accountStatus: number;
 }
 
 /**
