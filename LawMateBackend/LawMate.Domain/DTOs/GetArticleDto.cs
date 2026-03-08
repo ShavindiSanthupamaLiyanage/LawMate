@@ -2,7 +2,7 @@
 {
     public class ArticleDto
     {
-        public string ArticleId { get; set; }
+        public int ArticleId { get; set; }
         public string LawyerId { get; set; }
         public string Title { get; set; }
         public string Content { get; set; }

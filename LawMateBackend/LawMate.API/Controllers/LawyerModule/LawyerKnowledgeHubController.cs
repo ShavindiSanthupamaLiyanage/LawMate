@@ -47,8 +47,8 @@ public class LawyerKnowledgeHubController : ControllerBase
     
     //Update an existing article
     [Authorize]
-    [HttpPut("update/{articleId}")]
-    public async Task<IActionResult> UpdateArticle(string articleId, [FromBody] ArticleDto articleDto)
+    [HttpPut("update/{articleId:int}")]
+    public async Task<IActionResult> UpdateArticle(int articleId, [FromBody] ArticleDto articleDto)
     {
         var result = await _mediator.Send(new UpdateArticleCommand(articleId, articleDto));
         return Ok(result);
@@ -56,13 +56,10 @@ public class LawyerKnowledgeHubController : ControllerBase
     
     //Delete an existing article
     [Authorize]
-    [HttpDelete("delete/{articleId}")]
-    public async Task<IActionResult> DeleteArticle(string articleId)
+    [HttpDelete("delete/{articleId:int}")]
+    public async Task<IActionResult> DeleteArticle(int articleId)
     {
         var result = await _mediator.Send(new DeleteArticleCommand(articleId));
-        if (result)
-            return NoContent(); // 204 No Content
-        else
-            return NotFound();
+        return result ? NoContent() : NotFound();
     }
 }

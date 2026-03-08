@@ -7,8 +7,7 @@ using LawMate.Domain.Common.Enums;
 
 namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Command
 {
-    public record UpdateArticleCommand(string ArticleId, ArticleDto Article) : IRequest<ArticleDto>;
-
+    public record UpdateArticleCommand(int ArticleId, ArticleDto Article) : IRequest<ArticleDto>;
     public class UpdateArticleCommandHandler : IRequestHandler<UpdateArticleCommand, ArticleDto>
     {
         private readonly IApplicationDbContext _context;

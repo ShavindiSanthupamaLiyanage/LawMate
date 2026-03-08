@@ -21,7 +21,6 @@ namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Command
         {
             var article = new ARTICLE
             {
-                ArticleId = Guid.NewGuid().ToString(),  // <-- generate a unique ID
                 LawyerId = request.Article.LawyerId,
                 Title = request.Article.Title,
                 Content = request.Article.Content,
