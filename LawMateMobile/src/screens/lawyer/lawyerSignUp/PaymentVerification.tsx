@@ -12,27 +12,20 @@ export default function PaymentVerification() {
     const navigation =
         useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-    const handleBackToWelcome = () => {
-        // Back arrow should take user to Welcome screen
-        navigation.replace("Welcome");
-        // If you want user to be able to go back instead:
-        // navigation.navigate("Welcome");
-    };
-
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
             <View style={styles.page}>
-                {/* ✅ Header with back arrow */}
+                {/* Header with back arrow */}
                 <InitialTopNavbar
                     title="Payment Verification"
-                    onBack={handleBackToWelcome}
+                    onBack={() => navigation.navigate('Login')}
                     showLogo={true}
                 />
 
-                {/* ✅ Body */}
+                {/* Body */}
                 <View style={styles.container}>
                     <Text style={styles.title}>
-                        Payment{"\n"}Request{"\n"}Received
+                        Payment Slip {"\n"}Received
                     </Text>
 
                     <Image
@@ -42,7 +35,7 @@ export default function PaymentVerification() {
                     />
 
                     <Text style={styles.description}>
-                        We've received it and our team is currently reviewing the payment
+                        We've received your payment slip and our team is currently reviewing the payment
                         details. You’ll receive an email after the review is completed. Once
                         verified, you can continue with LawMate.
                     </Text>
@@ -75,8 +68,8 @@ const styles = StyleSheet.create({
     },
 
     image: {
-        width: 300,
-        height: 300,
+        width: 400,
+        height: 400,
         marginBottom: spacing.xl,
     },
 

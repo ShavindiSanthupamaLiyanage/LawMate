@@ -8,6 +8,7 @@ import {
     State,
     VerificationStatus,
 } from "../emun/enum";
+import {StorageService} from "../utils/storage";
 
 
 const appendFile = (
@@ -144,4 +145,76 @@ export const registerLawyer = async (
 
     console.log("[registerLawyer] Registration successful!");
     return json as CreateLawyerResponse;
+};
+
+export const uploadMembershipPayment = async (
+    lawyerId: string,
+    membershipType: number,
+    amount: number,
+    receiptFile: { uri: string; name: string; mimeType?: string }
+): Promise<{ transactionId: string }> => {
+    console.log('=== [uploadMembershipPayment] START ===');
+    console.log('[uploadMembershipPayment] Params:', {
+        lawyerId,
+        membershipType: membershipType === 0 ? 'Monthly' : 'Biannual',
+        amount,
+        receiptFile: { name: receiptFile.name, mimeType: receiptFile.mimeType },
+    });
+
+    const data = new FormData();
+    data.append('LawyerId', lawyerId);
+    data.append('MembershipType', String(membershipType));
+    data.append('Amount', String(amount));
+    appendFile(data, 'ReceiptDocument', receiptFile);
+
+    console.log('[uploadMembershipPayment] FormData built');
+
+    const token = await StorageService.getToken();
+    console.log('[uploadMembershipPayment] Token retrieved:', token ? '✅ exists' : '❌ missing');
+
+    const url = `${API_CONFIG.BASE_URL}${ENDPOINTS.LAWYER.MEMBERSHIP_PAYMENT(lawyerId)}`;
+    console.log('[uploadMembershipPayment] POST →', url);
+
+    let response: Response;
+    try {
+        response = await fetch(url, {
+            method: 'POST',
+            body: data,
+            headers: { Authorization: `Bearer ${token}` },
+        });
+    } catch (networkError) {
+        console.error('[uploadMembershipPayment] Network error:', networkError);
+        throw new Error('Network error. Please check your connection and try again.');
+    }
+
+    console.log('[uploadMembershipPayment] Response status:', response.status);
+
+    const rawText = await response.text();
+    console.log('[uploadMembershipPayment] Raw response:', rawText);
+
+    let json: any = {};
+    try {
+        json = JSON.parse(rawText);
+        console.log('[uploadMembershipPayment] Response body:', JSON.stringify(json, null, 2));
+    } catch {
+        console.error('[uploadMembershipPayment] Response is not JSON:', rawText);
+        if (!response.ok) {
+            throw new Error(`Server error (${response.status}): ${rawText.slice(0, 200)}`);
+        }
+    }
+
+    if (!response.ok) {
+        console.error('[uploadMembershipPayment] Request failed:', json?.message);
+        throw new Error(json?.message ?? 'Payment upload failed.');
+    }
+
+    console.log('[uploadMembershipPayment] Response body:', JSON.stringify(json, null, 2));
+
+    if (!response.ok) {
+        console.error('[uploadMembershipPayment] Request failed:', json?.message);
+        throw new Error(json?.message ?? 'Payment upload failed.');
+    }
+
+    console.log('[uploadMembershipPayment] ✅ Success | TransactionId:', json.transactionId);
+    return json;
 };
