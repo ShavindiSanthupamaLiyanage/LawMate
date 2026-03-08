@@ -18,6 +18,7 @@ namespace LawMate.Domain.Common.Enums
         Pending = 0,
         Active = 1,
         Inactive = 2,
+        AllVerified = 3,
     }
 
     public enum VerificationStatus
@@ -139,5 +140,11 @@ namespace LawMate.Domain.Common.Enums
         Completed,
         Cancelled,
         NoShow
+    }
+
+    public enum MembershipType
+    {
+        Monthly = 0,
+        BiAnnual = 1,
     }
 }
