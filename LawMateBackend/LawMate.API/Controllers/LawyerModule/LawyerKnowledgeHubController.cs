@@ -8,12 +8,12 @@ using Microsoft.AspNetCore.Authorization;
 namespace LawMate.API.Controllers.LawyerModule;
 
 [ApiController]
-[Route("api/lawyers/articles")]
-public class ArticleController : ControllerBase
+[Route("api/lawyers/knowledgehub")]
+public class LawyerKnowledgeHubController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public ArticleController(IMediator mediator)
+    public LawyerKnowledgeHubController(IMediator mediator)
     {
         _mediator = mediator;
     }
@@ -43,5 +43,26 @@ public class ArticleController : ControllerBase
     {
         var result = await _mediator.Send(new CreateArticleCommand(articleDto));
         return CreatedAtAction(nameof(GetArticlesByLawyer), new { lawyerId = result.LawyerId }, result);
+    }
+    
+    //Update an existing article
+    [Authorize]
+    [HttpPut("update/{articleId}")]
+    public async Task<IActionResult> UpdateArticle(string articleId, [FromBody] ArticleDto articleDto)
+    {
+        var result = await _mediator.Send(new UpdateArticleCommand(articleId, articleDto));
+        return Ok(result);
+    }
+    
+    //Delete an existing article
+    [Authorize]
+    [HttpDelete("delete/{articleId}")]
+    public async Task<IActionResult> DeleteArticle(string articleId)
+    {
+        var result = await _mediator.Send(new DeleteArticleCommand(articleId));
+        if (result)
+            return NoContent(); // 204 No Content
+        else
+            return NotFound();
     }
 }
