@@ -126,7 +126,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
                 NIC = dto.NIC,
                 ContactNumber = dto.ContactNumber,
                 RecordStatus = 0,
-                State = State.Pending,
+                State = State.Inactive,
                 RegistrationDate = DateTime.Now,
                 ProfileImage = profileImageBytes,
                 IsDualAccount = isDualAccount,
