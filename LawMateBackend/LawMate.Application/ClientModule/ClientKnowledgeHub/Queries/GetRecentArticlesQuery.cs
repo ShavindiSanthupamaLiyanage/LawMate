@@ -3,25 +3,28 @@ using LawMate.Domain.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Queries
+namespace LawMate.Application.ClientModule.ClientKnowledgeHub.Queries
 {
-    public record GetAllArticlesQuery : IRequest<List<ArticleDto>>;
+    public record GetRecentArticlesQuery : IRequest<List<ArticleDto>>;
 
-    public class GetAllArticlesQueryHandler
-        : IRequestHandler<GetAllArticlesQuery, List<ArticleDto>>
+    public class GetRecentArticlesQueryHandler 
+        : IRequestHandler<GetRecentArticlesQuery, List<ArticleDto>>
     {
         private readonly IApplicationDbContext _context;
 
-        public GetAllArticlesQueryHandler(IApplicationDbContext context)
+        public GetRecentArticlesQueryHandler(IApplicationDbContext context)
         {
             _context = context;
         }
 
         public async Task<List<ArticleDto>> Handle(
-            GetAllArticlesQuery request,
+            GetRecentArticlesQuery request,
             CancellationToken cancellationToken)
         {
-            return await _context.ARTICLE   
+            var lastWeek = DateTime.UtcNow.AddDays(-7);
+
+            return await _context.ARTICLE
+                .Where(a => a.IsPublished && a.CreatedAt >= lastWeek)
                 .OrderByDescending(a => a.CreatedAt)
                 .Select(a => new ArticleDto
                 {
@@ -32,13 +35,12 @@ namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Queries
                     LegalCategory = a.LegalCategory.ToString(),
                     Language = a.Language.ToString(),
                     IsPublished = a.IsPublished,
-                    CreatedBy =  a.CreatedBy,
+                    CreatedBy = a.CreatedBy,
                     CreatedAt = a.CreatedAt,
-                    ModifiedBy =   a.ModifiedBy,
+                    ModifiedBy = a.ModifiedBy,
                     ModifiedAt = a.ModifiedAt,
-                  
+                   
 
-                    
                 })
                 .ToListAsync(cancellationToken);
         }
