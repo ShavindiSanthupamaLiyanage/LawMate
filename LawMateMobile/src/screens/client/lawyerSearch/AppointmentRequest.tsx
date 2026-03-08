@@ -6,9 +6,9 @@ import {
     TouchableOpacity,
     FlatList,
     Image,
-    ActivityIndicator,
 } from 'react-native';
 import ClientLayout from '../../../components/ClientLayout';
+import Button from '../../../components/Button';
 import { colors, spacing } from '../../../config/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -117,7 +117,6 @@ const AppointmentRequest: React.FC<AppointmentRequestScreenProps> = ({
     const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // In a real app, fetch lawyer by route.params?.lawyerId
     const lawyer: Lawyer = {
         id: route?.params?.lawyerId ?? '1',
         name: 'Tharindu Bandara',
@@ -176,21 +175,14 @@ const AppointmentRequest: React.FC<AppointmentRequestScreenProps> = ({
 
                 {/* Footer */}
                 <View style={styles.footer}>
-                    <TouchableOpacity
-                        style={[
-                            styles.continueButton,
-                            selectedSlotId !== null && styles.continueButtonActive,
-                        ]}
+                    <Button
+                        title="CONTINUE"
+                        variant="primary"
                         onPress={handleContinue}
-                        activeOpacity={0.85}
-                        disabled={!selectedSlotId || loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.continueButtonText}>CONTINUE</Text>
-                        )}
-                    </TouchableOpacity>
+                        loading={loading}
+                        disabled={selectedSlotId === null}
+                        style={styles.continueButton}
+                    />
                 </View>
             </View>
         </ClientLayout>
@@ -287,7 +279,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#4F3CC9',
+        color: '#432cdd',
         marginBottom: 14,
     },
     slotsList: {
@@ -357,20 +349,7 @@ const styles = StyleSheet.create({
         paddingTop: 10,
     },
     continueButton: {
-        backgroundColor: '#A9A9D6',
-        borderRadius: 30,
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    continueButtonActive: {
-        backgroundColor: '#4F3CC9',
-    },
-    continueButtonText: {
-        color: '#FFFFFF',
-        fontSize: 15,
-        fontWeight: '700',
-        letterSpacing: 1.2,
+        width: '100%',
     },
 });
 

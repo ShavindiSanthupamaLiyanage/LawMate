@@ -8,10 +8,10 @@ import {
     Image,
     Modal,
     ScrollView,
-    ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ClientLayout from '../../../components/ClientLayout';
+import Button from '../../../components/Button';
 import { colors, spacing } from '../../../config/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -179,7 +179,6 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation }) => {
     const [results, setResults] = useState<Lawyer[] | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // ← Reset to search form whenever the tab is focused (e.g. tapping tab icon again)
     useFocusEffect(
         useCallback(() => {
             setResults(null);
@@ -197,6 +196,12 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation }) => {
     const handleLawyerPress = (lawyer: Lawyer) => {
         navigation?.navigate('AppointmentRequest', { lawyerId: lawyer.id });
     };
+
+    // All three dropdowns must be selected to enable the button
+    const isFormFilled =
+        filters.caseArea !== '' &&
+        filters.district !== '' &&
+        filters.name !== '';
 
     const renderContent = () => {
         if (results !== null) {
@@ -245,9 +250,6 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation }) => {
         );
     };
 
-    const isFormFilled =
-        filters.caseArea !== '' || filters.district !== '' || filters.name !== '';
-
     return (
         <ClientLayout title="Search Lawyer" disableScroll>
             <View style={styles.screen}>
@@ -255,21 +257,14 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation }) => {
 
                 {results === null && (
                     <View style={styles.footer}>
-                        <TouchableOpacity
-                            style={[
-                                styles.searchButton,
-                                isFormFilled && styles.searchButtonActive,
-                            ]}
+                        <Button
+                            title="SEARCH A LAWYER"
+                            variant="primary"
                             onPress={handleSearch}
-                            activeOpacity={0.85}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.searchButtonText}>SEARCH A LAWYER</Text>
-                            )}
-                        </TouchableOpacity>
+                            loading={loading}
+                            disabled={!isFormFilled}
+                            style={styles.searchButton}
+                        />
                     </View>
                 )}
             </View>
@@ -373,20 +368,7 @@ const styles = StyleSheet.create({
         paddingTop: 10,
     },
     searchButton: {
-        backgroundColor: '#A9A9D6',
-        borderRadius: 30,
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    searchButtonActive: {
-        backgroundColor: '#4F3CC9',
-    },
-    searchButtonText: {
-        color: '#FFFFFF',
-        fontSize: 15,
-        fontWeight: '700',
-        letterSpacing: 1.2,
+        width: '100%',
     },
     resultsList: {
         paddingHorizontal: spacing.lg ?? 20,

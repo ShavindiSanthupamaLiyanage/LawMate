@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import ClientLayout from '../../../components/ClientLayout';
 import { colors, spacing } from '../../../config/theme';
+import Button from '../../../components/Button';
 
 interface AppointmentRequestReceivedScreenProps {
     navigation?: any;
@@ -45,16 +46,13 @@ const AppointmentRequestReceived: React.FC<AppointmentRequestReceivedScreenProps
                     </Text>
                 </View>
 
-                {/* Finish Button */}
                 <View style={styles.footer}>
-                    <TouchableOpacity
-                        style={styles.finishButton}
-                        onPress={handleFinish}
-                        activeOpacity={0.85}
-                    >
-                        <Text style={styles.finishButtonText}>FINISH</Text>
-                    </TouchableOpacity>
-                </View>
+                        <Button
+                            title="FINISH"
+                            variant="primary"
+                            onPress={handleFinish}
+                        />
+                    </View>
             </View>
         </ClientLayout>
     );
