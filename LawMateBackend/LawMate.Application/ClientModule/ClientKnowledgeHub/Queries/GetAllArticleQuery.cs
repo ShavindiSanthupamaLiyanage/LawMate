@@ -37,6 +37,7 @@ namespace LawMate.Application.ClientModule.ClientKnowledgeHub.Queries
                     CreatedAt = a.CreatedAt,
                     ModifiedBy = a.ModifiedBy,
                     ModifiedAt = a.ModifiedAt,
+                    LikeCount = a.LikeCount
                    
                 })
                 .ToListAsync(cancellationToken);

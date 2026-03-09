@@ -33,7 +33,7 @@ namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Command
             article.IsPublished = request.Article.IsPublished;
             article.ModifiedBy = request.Article.ModifiedBy;
             article.ModifiedAt = DateTime.UtcNow;
-           
+           article.LikeCount = request.Article.LikeCount;
 
             await _context.SaveChangesAsync(cancellationToken);
 

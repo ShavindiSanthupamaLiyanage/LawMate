@@ -31,4 +31,5 @@ public class ClientKnowledgeHubController : ControllerBase
         var result = await _mediator.Send(new GetRecentArticlesQuery());
         return Ok(result);
     }
+    
 }
