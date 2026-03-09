@@ -200,7 +200,6 @@ const LawyerPersonalDetailsScreen: React.FC = () => {
                         label="Nationality"
                         value={personalData.nationality}
                         onPress={() => openEditModal('nationality')}
-                        onPress={() => {/* TODO: Navigate to edit nationality */}}
                     />
                 </View>
 
