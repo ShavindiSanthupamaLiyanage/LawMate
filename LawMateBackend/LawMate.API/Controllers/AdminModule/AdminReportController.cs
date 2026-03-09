@@ -13,16 +13,19 @@ public class AdminReportController : ControllerBase
         private readonly IClientDetailReportService _clientDetailReportService;
         private readonly IMembershipRenewalReportService _membershipRenewalReportService;
         private readonly IPlatformCommissionReportService _platformReportService;
+        private readonly IMonthlyRevenueReportService _monthlyRevenueReportService;
 
         public AdminReportController(ILawyerDetailReportService lawyerDetailReportService,
             IClientDetailReportService clientDetailReportService,
             IMembershipRenewalReportService membershipRenewalReportService,
-            IPlatformCommissionReportService platformReportService)
+            IPlatformCommissionReportService platformReportService,
+            IMonthlyRevenueReportService monthlyRevenueReportService)
         {
             _lawyerDetailReportService = lawyerDetailReportService;
             _clientDetailReportService = clientDetailReportService;
             _membershipRenewalReportService = membershipRenewalReportService;
             _platformReportService = platformReportService;
+            _monthlyRevenueReportService = monthlyRevenueReportService;
         }
         
         [HttpGet("lawyer-details")]
@@ -97,6 +100,22 @@ public class AdminReportController : ControllerBase
             var fileBytes = await _platformReportService.GeneratePlatformCommissionReportAsync(userId);
 
             var fileName = $"LawMate_PlatformCommissionReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+            return File(
+                fileBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName
+            );
+        }
+        
+        [HttpGet("monthly-revenue")]
+        public async Task<IActionResult> DownloadMonthlyRevenueReport()
+        {
+            var userId = User.Identity?.Name ?? "System";
+            
+            var fileBytes = await _monthlyRevenueReportService.GenerateMonthlyRevenueReportAsync(userId);
+
+            var fileName = $"LawMate_MonthlyRevenueReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
 
             return File(
                 fileBytes,
