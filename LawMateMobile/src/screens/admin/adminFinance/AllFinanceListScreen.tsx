@@ -17,8 +17,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AdminFinanceStackParamList } from "./AdminFinanceStack";
 import AdminLayout from '../../../components/AdminLayout';
 import SearchBar from '../../../components/SearchBar';
-import {AdminTabParamList} from "../../../types";
-import {useNavigation} from "@react-navigation/native";
 
 type Props = {
   navigation: NativeStackNavigationProp<
@@ -165,8 +163,6 @@ export default function FinanceListScreen({ navigation }: Props) {
       "All" | "Pending" | "Paid Out"
   >("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const parentNavigation =
-      useNavigation<NativeStackNavigationProp<AdminTabParamList>>();
   const filteredData = dummyData.filter((item) => {
     const matchesTab =
         selectedTab === "All" ? true : item.status === selectedTab;

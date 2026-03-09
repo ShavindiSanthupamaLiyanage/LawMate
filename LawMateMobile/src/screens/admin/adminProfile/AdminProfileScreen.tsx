@@ -6,13 +6,15 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert,
+    Alert as RNAlert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import Alert from '../../../components/Alert';
+import { AuthService } from '../../../services/authService';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -65,6 +67,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 const AdminProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
+    const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
     // TODO: Replace with actual API data
     const profileData = {
@@ -85,25 +88,13 @@ const AdminProfileScreen: React.FC = () => {
     };
 
     const handleLogout = () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Logout',
-                    onPress: () => {
-                        // TODO: Call logout API and clear auth tokens
-                        navigation.navigate('Login');
-                    },
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: false }
-        );
+        setShowLogoutAlert(true);
+    };
+
+    const confirmLogout = async () => {
+        setShowLogoutAlert(false);
+        await AuthService.logout();
+        navigation.navigate('Welcome'); // or whatever your welcome screen is named
     };
 
     const handleEditProfile = () => {
@@ -209,19 +200,19 @@ const AdminProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="View All Users"
-                                onPress={() => Alert.alert('View All Users', 'Navigate to user list')}
+                                onPress={() => RNAlert.alert('View All Users', 'Navigate to user list')}
                             />
                             <SubMenuItem
                                 title="Active Users"
-                                onPress={() => Alert.alert('Active Users', 'Navigate to active users')}
+                                onPress={() => RNAlert.alert('Active Users', 'Navigate to active users')}
                             />
                             <SubMenuItem
                                 title="Banned Users"
-                                onPress={() => Alert.alert('Banned Users', 'Navigate to banned users')}
+                                onPress={() => RNAlert.alert('Banned Users', 'Navigate to banned users')}
                             />
                             <SubMenuItem
                                 title="User Roles"
-                                onPress={() => Alert.alert('User Roles', 'Manage user roles')}
+                                onPress={() => RNAlert.alert('User Roles', 'Manage user roles')}
                             />
                         </>
                     )}
@@ -238,15 +229,15 @@ const AdminProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Pending Verifications"
-                                onPress={() => Alert.alert('Pending', 'Navigate to pending verifications')}
+                                onPress={() => RNAlert.alert('Pending', 'Navigate to pending verifications')}
                             />
                             <SubMenuItem
                                 title="Approved Verifications"
-                                onPress={() => Alert.alert('Approved', 'Navigate to approved verifications')}
+                                onPress={() => RNAlert.alert('Approved', 'Navigate to approved verifications')}
                             />
                             <SubMenuItem
                                 title="Rejected Verifications"
-                                onPress={() => Alert.alert('Rejected', 'Navigate to rejected verifications')}
+                                onPress={() => RNAlert.alert('Rejected', 'Navigate to rejected verifications')}
                             />
                         </>
                     )}
@@ -263,19 +254,19 @@ const AdminProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Dashboard Stats"
-                                onPress={() => Alert.alert('Dashboard', 'View dashboard statistics')}
+                                onPress={() => RNAlert.alert('Dashboard', 'View dashboard statistics')}
                             />
                             <SubMenuItem
                                 title="User Analytics"
-                                onPress={() => Alert.alert('Analytics', 'View user analytics')}
+                                onPress={() => RNAlert.alert('Analytics', 'View user analytics')}
                             />
                             <SubMenuItem
                                 title="Revenue Reports"
-                                onPress={() => Alert.alert('Revenue', 'View revenue reports')}
+                                onPress={() => RNAlert.alert('Revenue', 'View revenue reports')}
                             />
                             <SubMenuItem
                                 title="Activity Logs"
-                                onPress={() => Alert.alert('Logs', 'View activity logs')}
+                                onPress={() => RNAlert.alert('Logs', 'View activity logs')}
                             />
                         </>
                     )}
@@ -292,15 +283,15 @@ const AdminProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="System Alerts"
-                                onPress={() => Alert.alert('Alerts', 'View system alerts')}
+                                onPress={() => RNAlert.alert('Alerts', 'View system alerts')}
                             />
                             <SubMenuItem
                                 title="User Reports"
-                                onPress={() => Alert.alert('Reports', 'View user reports')}
+                                onPress={() => RNAlert.alert('Reports', 'View user reports')}
                             />
                             <SubMenuItem
                                 title="Notification Settings"
-                                onPress={() => Alert.alert('Settings', 'Manage notification settings')}
+                                onPress={() => RNAlert.alert('Settings', 'Manage notification settings')}
                             />
                         </>
                     )}
@@ -317,15 +308,15 @@ const AdminProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Account Security"
-                                onPress={() => Alert.alert('Security', 'Manage account security')}
+                                onPress={() => RNAlert.alert('Security', 'Manage account security')}
                             />
                             <SubMenuItem
                                 title="Privacy Settings"
-                                onPress={() => Alert.alert('Privacy', 'Manage privacy settings')}
+                                onPress={() => RNAlert.alert('Privacy', 'Manage privacy settings')}
                             />
                             <SubMenuItem
                                 title="System Settings"
-                                onPress={() => Alert.alert('System', 'Configure system settings')}
+                                onPress={() => RNAlert.alert('System', 'Configure system settings')}
                             />
                         </>
                     )}
@@ -363,6 +354,19 @@ const AdminProfileScreen: React.FC = () => {
                 </TouchableOpacity>
             </View>
             </View>
+
+            <Alert
+                visible={showLogoutAlert}
+                title="Logout"
+                message="Are you sure you want to logout?"
+                type="warning"
+                confirmText="Logout"
+                cancelText="Cancel"
+                onConfirm={confirmLogout}
+                onCancel={() => setShowLogoutAlert(false)}
+                onClose={() => setShowLogoutAlert(false)}
+            />
+
         </ScreenWrapper>
     );
 };
