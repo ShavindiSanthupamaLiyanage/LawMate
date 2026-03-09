@@ -94,5 +94,24 @@ namespace LawMate.API.Controllers.LawyerModule
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+        
+        [Authorize]
+        [HttpPost("{lawyerId}/membership-payment")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadMembershipPayment(
+            string lawyerId,
+            [FromForm] UploadMembershipPaymentCommand command)
+        {
+            if (lawyerId != command.LawyerId)
+                return BadRequest("LawyerId mismatch");
+
+            var transactionId = await _mediator.Send(command);
+
+            return Ok(new
+            {
+                Message = "Membership payment uploaded successfully",
+                TransactionId = transactionId
+            });
+        }
     }
 }

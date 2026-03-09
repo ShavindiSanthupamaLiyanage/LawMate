@@ -81,6 +81,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 return;
             }
 
+            if (response.role === 1) {
+                if (response.accountStatus === 2) {
+                    setTimeout(() => navigation.replace("VerificationPending"), 3000);
+                    return;
+                }
+
+                if (response.accountStatus === 0) {
+                    setTimeout(() => navigation.replace("PaymentSubmission"), 3000);
+                    return;
+                }
+
+                if (response.accountStatus === 1) {
+                    setTimeout(() => navigation.replace("PaymentVerification"), 3000);
+                    return;
+                }
+            }
             // Navigate based on role from backend
             // Backend returns: 1 = Lawyer, 2 = Client, 0 = Admin
             navigateBasedOnRole(response.role);
