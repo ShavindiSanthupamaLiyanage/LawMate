@@ -30,6 +30,7 @@ namespace LawMate.Infrastructure
             services.AddScoped<ILawyerDetailReportService, LawyerDetailReportService>();
             services.AddScoped<IClientDetailReportService, ClientDetailReportService>();
             services.AddScoped<IMembershipRenewalReportService, MembershipRenewalReportService>();
+            services.AddScoped<IPlatformCommissionReportService, PlatformCommissionReportService>();
             return services;
         }
     }
