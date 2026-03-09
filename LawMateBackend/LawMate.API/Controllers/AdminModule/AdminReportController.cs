@@ -11,12 +11,15 @@ public class AdminReportController : ControllerBase
     {
         private readonly ILawyerDetailReportService _lawyerDetailReportService;
         private readonly IClientDetailReportService _clientDetailReportService;
+        private readonly IMembershipRenewalReportService _membershipRenewalReportService;
 
         public AdminReportController(ILawyerDetailReportService lawyerDetailReportService,
-            IClientDetailReportService clientDetailReportService)
+            IClientDetailReportService clientDetailReportService,
+            IMembershipRenewalReportService membershipRenewalReportService)
         {
             _lawyerDetailReportService = lawyerDetailReportService;
             _clientDetailReportService = clientDetailReportService;
+            _membershipRenewalReportService = membershipRenewalReportService;
         }
         
         [HttpGet("lawyer-details")]
@@ -59,6 +62,22 @@ public class AdminReportController : ControllerBase
             var fileBytes = await _clientDetailReportService.GenerateClientDetailReportAsync(userId);
 
             var fileName = $"LawMate_ClientDetailReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+            return File(
+                fileBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName
+            );
+        }
+        
+        [HttpGet("membership-renewals")]
+        public async Task<IActionResult> DownloadMembershipRenewalReport()
+        {
+            var userId = User.Identity?.Name ?? "Unknown";
+
+            var fileBytes = await _membershipRenewalReportService.GenerateMembershipRenewalReportAsync(userId);
+
+            var fileName = $"LawMate_MembershipRenewalReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
 
             return File(
                 fileBytes,

@@ -29,7 +29,7 @@ namespace LawMate.Infrastructure
             services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
             services.AddScoped<ILawyerDetailReportService, LawyerDetailReportService>();
             services.AddScoped<IClientDetailReportService, ClientDetailReportService>();
-
+            services.AddScoped<IMembershipRenewalReportService, MembershipRenewalReportService>();
             return services;
         }
     }
