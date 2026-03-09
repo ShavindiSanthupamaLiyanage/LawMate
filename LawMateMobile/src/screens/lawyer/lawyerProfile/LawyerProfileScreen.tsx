@@ -6,13 +6,15 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert,
+    Alert as RNAlert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import Alert from "../../../components/Alert";
+import {AuthService} from "../../../services/authService";
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -65,6 +67,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 const LawyerProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
+    const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
     // TODO: Replace with actual API data
     const profileData = {
@@ -87,27 +90,14 @@ const LawyerProfileScreen: React.FC = () => {
     };
 
     const handleLogout = () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Logout',
-                    onPress: () => {
-                        // TODO: Call logout API and clear auth tokens
-                        navigation.navigate('Login');
-                    },
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: false }
-        );
+        setShowLogoutAlert(true);
     };
 
+    const confirmLogout = async () => {
+        setShowLogoutAlert(false);
+        await AuthService.logout();
+        navigation.navigate('Welcome'); // or whatever your welcome screen is named
+    };
     const handleEditProfile = () => {
         // Navigate to personal details screen for editing
         navigation.navigate('LawyerPersonalDetails');
@@ -230,15 +220,15 @@ const LawyerProfileScreen: React.FC = () => {
                             />
                             <SubMenuItem
                                 title="Specializations"
-                                onPress={() => Alert.alert('Specializations', 'Manage specializations')}
+                                onPress={() => RNAlert.alert('Specializations', 'Manage specializations')}
                             />
                             <SubMenuItem
                                 title="Education"
-                                onPress={() => Alert.alert('Education', 'View education details')}
+                                onPress={() => RNAlert.alert('Education', 'View education details')}
                             />
                             <SubMenuItem
                                 title="Experience"
-                                onPress={() => Alert.alert('Experience', 'View experience details')}
+                                onPress={() => RNAlert.alert('Experience', 'View experience details')}
                             />
                         </>
                     )}
@@ -259,11 +249,11 @@ const LawyerProfileScreen: React.FC = () => {
                             />
                             <SubMenuItem
                                 title="View Schedule"
-                                onPress={() => Alert.alert('Schedule', 'View your schedule')}
+                                onPress={() => RNAlert.alert('Schedule', 'View your schedule')}
                             />
                             <SubMenuItem
                                 title="Time Slots"
-                                onPress={() => Alert.alert('Slots', 'Manage time slots')}
+                                onPress={() => RNAlert.alert('Slots', 'Manage time slots')}
                             />
                         </>
                     )}
@@ -280,11 +270,11 @@ const LawyerProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Active Cases"
-                                onPress={() => Alert.alert('Active', 'View active cases')}
+                                onPress={() => RNAlert.alert('Active', 'View active cases')}
                             />
                             <SubMenuItem
                                 title="Completed Cases"
-                                onPress={() => Alert.alert('Completed', 'View completed cases')}
+                                onPress={() => RNAlert.alert('Completed', 'View completed cases')}
                             />
                             <SubMenuItem
                                 title="Appointments"
@@ -305,15 +295,15 @@ const LawyerProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="My Reviews"
-                                onPress={() => Alert.alert('Reviews', 'View all reviews')}
+                                onPress={() => RNAlert.alert('Reviews', 'View all reviews')}
                             />
                             <SubMenuItem
                                 title="Ratings Overview"
-                                onPress={() => Alert.alert('Ratings', 'View rating statistics')}
+                                onPress={() => RNAlert.alert('Ratings', 'View rating statistics')}
                             />
                             <SubMenuItem
                                 title="Testimonials"
-                                onPress={() => Alert.alert('Testimonials', 'View client testimonials')}
+                                onPress={() => RNAlert.alert('Testimonials', 'View client testimonials')}
                             />
                         </>
                     )}
@@ -330,15 +320,15 @@ const LawyerProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Earnings Overview"
-                                onPress={() => Alert.alert('Earnings', 'View earnings statistics')}
+                                onPress={() => RNAlert.alert('Earnings', 'View earnings statistics')}
                             />
                             <SubMenuItem
                                 title="Payment History"
-                                onPress={() => Alert.alert('History', 'View payment history')}
+                                onPress={() => RNAlert.alert('History', 'View payment history')}
                             />
                             <SubMenuItem
                                 title="Bank Details"
-                                onPress={() => Alert.alert('Bank', 'Manage bank details')}
+                                onPress={() => RNAlert.alert('Bank', 'Manage bank details')}
                             />
                         </>
                     )}
@@ -355,15 +345,15 @@ const LawyerProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Account Security"
-                                onPress={() => Alert.alert('Security', 'Manage account security')}
+                                onPress={() => RNAlert.alert('Security', 'Manage account security')}
                             />
                             <SubMenuItem
                                 title="Privacy Settings"
-                                onPress={() => Alert.alert('Privacy', 'Manage privacy settings')}
+                                onPress={() => RNAlert.alert('Privacy', 'Manage privacy settings')}
                             />
                             <SubMenuItem
                                 title="Notification Settings"
-                                onPress={() => Alert.alert('Notifications', 'Configure notifications')}
+                                onPress={() => RNAlert.alert('Notifications', 'Configure notifications')}
                             />
                         </>
                     )}
@@ -380,11 +370,11 @@ const LawyerProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="FAQ"
-                                onPress={() => Alert.alert('FAQ', 'View frequently asked questions')}
+                                onPress={() => RNAlert.alert('FAQ', 'View frequently asked questions')}
                             />
                             <SubMenuItem
                                 title="Contact Support"
-                                onPress={() => Alert.alert('Support', 'Contact customer support')}
+                                onPress={() => RNAlert.alert('Support', 'Contact customer support')}
                             />
                         </>
                     )}
@@ -417,6 +407,19 @@ const LawyerProfileScreen: React.FC = () => {
                 </TouchableOpacity>
             </View>
             </View>
+
+            <Alert
+                visible={showLogoutAlert}
+                title="Logout"
+                message="Are you sure you want to logout?"
+                type="warning"
+                confirmText="Logout"
+                cancelText="Cancel"
+                onConfirm={confirmLogout}
+                onCancel={() => setShowLogoutAlert(false)}
+                onClose={() => setShowLogoutAlert(false)}
+            />
+
         </ScreenWrapper>
     );
 };
