@@ -29,7 +29,7 @@ namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Command
                 IsPublished = request.Article.IsPublished,
                 CreatedBy = request.Article.CreatedBy,
                 CreatedAt = DateTime.UtcNow,
-                
+                LikeCount = request.Article.LikeCount,
             };
 
             _context.ARTICLE.Add(article);
