@@ -12,14 +12,17 @@ public class AdminReportController : ControllerBase
         private readonly ILawyerDetailReportService _lawyerDetailReportService;
         private readonly IClientDetailReportService _clientDetailReportService;
         private readonly IMembershipRenewalReportService _membershipRenewalReportService;
+        private readonly IPlatformCommissionReportService _platformReportService;
 
         public AdminReportController(ILawyerDetailReportService lawyerDetailReportService,
             IClientDetailReportService clientDetailReportService,
-            IMembershipRenewalReportService membershipRenewalReportService)
+            IMembershipRenewalReportService membershipRenewalReportService,
+            IPlatformCommissionReportService platformReportService)
         {
             _lawyerDetailReportService = lawyerDetailReportService;
             _clientDetailReportService = clientDetailReportService;
             _membershipRenewalReportService = membershipRenewalReportService;
+            _platformReportService = platformReportService;
         }
         
         [HttpGet("lawyer-details")]
@@ -57,7 +60,7 @@ public class AdminReportController : ControllerBase
         [HttpGet("client-details")]
         public async Task<IActionResult> DownloadClientDetailReport()
         {
-            var userId = User.Identity?.Name ?? "Unknown";
+            var userId = User.Identity?.Name ?? "System";
 
             var fileBytes = await _clientDetailReportService.GenerateClientDetailReportAsync(userId);
 
@@ -73,7 +76,7 @@ public class AdminReportController : ControllerBase
         [HttpGet("membership-renewals")]
         public async Task<IActionResult> DownloadMembershipRenewalReport()
         {
-            var userId = User.Identity?.Name ?? "Unknown";
+            var userId = User.Identity?.Name ?? "System";
 
             var fileBytes = await _membershipRenewalReportService.GenerateMembershipRenewalReportAsync(userId);
 
@@ -84,5 +87,22 @@ public class AdminReportController : ControllerBase
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileName
             );
+        }
+        
+        [HttpGet("platform-commission")]
+        public async Task<IActionResult> DownloadPlatformCommissionReport()
+        {
+            var userId = User.Identity?.Name ?? "System";
+            
+            var fileBytes = await _platformReportService.GeneratePlatformCommissionReportAsync(userId);
+
+            var fileName = $"LawMate_PlatformCommissionReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+            return File(
+                fileBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName
+            );
+            
         }
     }
