@@ -10,10 +10,13 @@ namespace LawMate.API.Controllers.AdminModule;
 public class AdminReportController : ControllerBase
     {
         private readonly ILawyerDetailReportService _lawyerDetailReportService;
+        private readonly IClientDetailReportService _clientDetailReportService;
 
-        public AdminReportController(ILawyerDetailReportService lawyerDetailReportService)
+        public AdminReportController(ILawyerDetailReportService lawyerDetailReportService,
+            IClientDetailReportService clientDetailReportService)
         {
             _lawyerDetailReportService = lawyerDetailReportService;
+            _clientDetailReportService = clientDetailReportService;
         }
         
         [HttpGet("lawyer-details")]
@@ -46,5 +49,21 @@ public class AdminReportController : ControllerBase
             {
                 return StatusCode(500, new { message = "Internal server error." });
             }
+        }
+        
+        [HttpGet("client-details")]
+        public async Task<IActionResult> DownloadClientDetailReport()
+        {
+            var userId = User.Identity?.Name ?? "Unknown";
+
+            var fileBytes = await _clientDetailReportService.GenerateClientDetailReportAsync(userId);
+
+            var fileName = $"LawMate_ClientDetailReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+            return File(
+                fileBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName
+            );
         }
     }

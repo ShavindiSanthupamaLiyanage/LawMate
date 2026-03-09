@@ -28,6 +28,7 @@ namespace LawMate.Infrastructure
             services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
             services.AddScoped<ILawyerDetailReportService, LawyerDetailReportService>();
+            services.AddScoped<IClientDetailReportService, ClientDetailReportService>();
 
             return services;
         }
