@@ -3,10 +3,9 @@ import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity,
-    ActivityIndicator,
 } from 'react-native';
 import ClientLayout from '../../../components/ClientLayout';
+import Button from '../../../components/Button';
 import Toast from '../../../components/Toast';
 import { colors, spacing } from '../../../config/theme';
 
@@ -26,18 +25,15 @@ const formatDisplayTime = (isoString?: string): string => {
     const d = new Date(isoString);
     let hours = d.getHours();
     const minutes = String(d.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'A.M.' : 'A.M.';
     const suffix = d.getHours() >= 12 ? 'P.M.' : 'A.M.';
     hours = hours % 12 || 12;
     return `${String(hours).padStart(2, '0')}.${minutes} ${suffix}`;
 };
 
-// ─── Row Component ────────────────────────────────────────────────────────────
+// ─── Info Row ─────────────────────────────────────────────────────────────────
 
 const InfoRow: React.FC<{ label: string; value: React.ReactNode; isBadge?: boolean }> = ({
-    label,
-    value,
-    isBadge,
+    label, value, isBadge,
 }) => (
     <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>{label}</Text>
@@ -75,10 +71,7 @@ interface AppointmentConfirmScreenProps {
     };
 }
 
-const AppointmentConfirm: React.FC<AppointmentConfirmScreenProps> = ({
-    navigation,
-    route,
-}) => {
+const AppointmentConfirm: React.FC<AppointmentConfirmScreenProps> = ({ navigation, route }) => {
     const formData = route?.params?.formData ?? {};
     const [loading, setLoading] = useState(false);
     const [toastVisible, setToastVisible] = useState(false);
@@ -90,7 +83,6 @@ const AppointmentConfirm: React.FC<AppointmentConfirmScreenProps> = ({
 
     const handleSubmit = async () => {
         setLoading(true);
-        // Simulate API call
         await new Promise((res) => setTimeout(res, 800));
         setLoading(false);
         setToastVisible(true);
@@ -103,60 +95,54 @@ const AppointmentConfirm: React.FC<AppointmentConfirmScreenProps> = ({
 
     return (
         <>
-        <ClientLayout
-            title="Appointment Request"
-            showBackButton
-            onBackPress={() => navigation?.goBack()}
-            disableScroll
-        >
+            <ClientLayout
+                title="Appointment Request"
+                showBackButton
+                onBackPress={() => navigation?.goBack()}
+                disableScroll
+            >
+                <View style={styles.screen}>
+                    {/* Info Card */}
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>Appointment Info</Text>
+                        <View style={styles.divider} />
 
-            <View style={styles.screen}>
-                {/* Info Card */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Appointment Info</Text>
+                        <InfoRow label="Date" value={dateStr} />
+                        <View style={styles.rowDivider} />
 
-                    <View style={styles.divider} />
+                        <InfoRow label="Time" value={timeStr} />
+                        <View style={styles.rowDivider} />
 
-                    <InfoRow label="Date" value={dateStr} />
-                    <View style={styles.rowDivider} />
+                        <InfoRow label="Mode" value={formData.mode ?? '—'} />
+                        <View style={styles.rowDivider} />
 
-                    <InfoRow label="Time" value={timeStr} />
-                    <View style={styles.rowDivider} />
-
-                    <InfoRow label="Mode" value={formData.mode ?? '—'} />
-                    <View style={styles.rowDivider} />
-
-                    {formData.mode === 'Physical' && (
-                        <>
-                            <InfoRow label="Location" value={formData.location ?? '—'} />
-                            <View style={styles.rowDivider} />
-                        </>
-                    )}
-
-                    <InfoRow label="Payment fee" value="Rs.15000" />
-                    <View style={styles.rowDivider} />
-
-                    <InfoRow label="Status" value="Pending" isBadge />
-                </View>
-
-                {/* Submit Button */}
-                <View style={styles.footer}>
-                    <TouchableOpacity
-                        style={styles.submitButton}
-                        onPress={handleSubmit}
-                        activeOpacity={0.85}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.submitButtonText}>SUBMIT</Text>
+                        {formData.mode === 'Physical' && (
+                            <>
+                                <InfoRow label="Location" value={formData.location ?? '—'} />
+                                <View style={styles.rowDivider} />
+                            </>
                         )}
-                    </TouchableOpacity>
+
+                        <InfoRow label="Payment fee" value="Rs.15000" />
+                        <View style={styles.rowDivider} />
+
+                        <InfoRow label="Status" value="Pending" isBadge />
+                    </View>
+
+                    {/* Submit Button */}
+                    <View style={styles.footer}>
+                        <Button
+                            title="SUBMIT"
+                            variant="primary"
+                            onPress={handleSubmit}
+                            loading={loading}
+                            style={styles.fullWidth}
+                        />
+                    </View>
                 </View>
-            </View>
-        </ClientLayout>
-        {/* Toast */}
+            </ClientLayout>
+
+            {/* Toast rendered outside ClientLayout so it overlays everything */}
             <Toast
                 visible={toastVisible}
                 message="Appointment request submitted successfully."
@@ -164,7 +150,7 @@ const AppointmentConfirm: React.FC<AppointmentConfirmScreenProps> = ({
                 duration={2500}
                 onDismiss={handleToastDismiss}
             />
-            </>
+        </>
     );
 };
 
@@ -175,8 +161,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background ?? '#F2F2F7',
     },
-
-    // ── Card ──
     card: {
         margin: spacing.lg ?? 20,
         backgroundColor: '#FFFFFF',
@@ -204,8 +188,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F5F5',
         marginVertical: 4,
     },
-
-    // ── Info Row ──
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -225,8 +207,6 @@ const styles = StyleSheet.create({
         textAlign: 'right',
         flex: 1,
     },
-
-    // ── Badge ──
     badge: {
         backgroundColor: '#EDE9FB',
         borderRadius: 6,
@@ -238,25 +218,13 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
     },
-
-    // ── Footer ──
     footer: {
         paddingHorizontal: spacing.lg ?? 20,
         paddingBottom: spacing.lg ?? 20,
         marginTop: 'auto',
     },
-    submitButton: {
-        backgroundColor: '#4F3CC9',
-        borderRadius: 30,
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    submitButtonText: {
-        color: '#FFFFFF',
-        fontSize: 15,
-        fontWeight: '700',
-        letterSpacing: 1.2,
+    fullWidth: {
+        width: '100%',
     },
 });
 

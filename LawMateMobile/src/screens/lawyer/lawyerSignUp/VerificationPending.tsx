@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
 import ScreenWrapper from "../../../components/ScreenWrapper";
-import Button from "../../../components/Button";
 import InitialTopNavbar from "../../../components/InitialTopNavbar";
 
 import { useNavigation } from "@react-navigation/native";
@@ -13,24 +12,20 @@ export default function VerificationPending() {
     const navigation =
         useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-    const handleGoToPaymentSubmission = () => {
-        navigation.navigate("PaymentSubmission");
-    };
-
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
             <View style={styles.page}>
                 {/* ✅ Same header component */}
                 <InitialTopNavbar
                     title="Verification"
-                    onBack={() => navigation.goBack()}
+                    onBack={() => navigation.navigate('Login')}
                     showLogo={true}
                 />
 
                 <View style={styles.container}>
                     {/* Title */}
                     <Text style={styles.title}>
-                        Request{"\n"}Received
+                        Membership Details {"\n"}Received
                     </Text>
 
                     {/* Illustration */}
@@ -42,20 +37,11 @@ export default function VerificationPending() {
 
                     {/* Description */}
                     <Text style={styles.description}>
-                        We've received it and our team is currently reviewing the details.
+                        We've received your membership request  and our team is currently reviewing the details.
                         You’ll receive an email after the review is completed.
-                        Once verified, you can continue with LawMate.
+                        {"\n"} Once verified, you can continue with LawMate.
                     </Text>
 
-                    {/* ✅ TEMP BUTTON FOR TESTING */}
-                    {__DEV__ && (
-                        <Button
-                            title="PROCEED TO PAYMENT (TEST)"
-                            variant="primary"
-                            onPress={handleGoToPaymentSubmission}
-                            style={styles.button}
-                        />
-                    )}
                 </View>
             </View>
         </ScreenWrapper>
@@ -85,8 +71,8 @@ const styles = StyleSheet.create({
     },
 
     image: {
-        width: 300,
-        height: 300,
+        width: 400,
+        height: 400,
         marginBottom: spacing.xl,
     },
 
