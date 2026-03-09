@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     Image,
 } from "react-native";
-
+import { useNavigation } from "@react-navigation/native";
 // import LawyerList from "../userVerification/LawyerList";
 import SearchBar from "../../../components/SearchBar";
 import { colors, spacing, borderRadius } from "../../../config/theme";
@@ -23,7 +23,6 @@ interface Lawyer {
     image: string;
     status: StatusType;
 }
-
 const DATA: Lawyer[] = [
     {
         id: "1",
@@ -49,6 +48,7 @@ const DATA: Lawyer[] = [
 ];
 
 const LawyerVerificationScreen = () => {
+    const navigation = useNavigation<any>();
     const [search, setSearch] = useState("");
     const [selectedTab, setSelectedTab] = useState<StatusType>("ALL");
 
@@ -80,10 +80,19 @@ const LawyerVerificationScreen = () => {
 
     /* ---------- LIST ITEM ---------- */
     const renderItem = ({ item }: { item: Lawyer }) => {
+
         const statusStyle = getStatusStyle(item.status);
 
         return (
-            <View style={styles.card}>
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() =>
+                    navigation.navigate("LawyerProfile", {
+                        lawyer: item,
+                        mode: item.status === "Active" ? "manage" : "view",
+                    })
+                }
+            >
                 <Image source={{ uri: item.image }} style={styles.avatar} />
 
                 <View style={{ flex: 1 }}>
@@ -101,7 +110,7 @@ const LawyerVerificationScreen = () => {
                         {item.status}
                     </Text>
                 </View>
-            </View>
+            </TouchableOpacity>
         );
     };
 
