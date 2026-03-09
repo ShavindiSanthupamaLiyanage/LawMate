@@ -93,7 +93,7 @@ const ReportsScreen: React.FC = () => {
     };
 
     return (
-        <AdminLayout userName="Kavindu Gimsara"
+        <AdminLayout title="Reports"
                      onProfilePress={() => navigation.navigate('AdminProfile')}
         >
             <View style={styles.container}>

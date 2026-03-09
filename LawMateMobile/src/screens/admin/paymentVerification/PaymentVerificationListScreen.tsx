@@ -129,7 +129,7 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
     });
 
     return (
-        <AdminLayout userName="Payment Verification"
+        <AdminLayout title="Payment Verification"
                      onProfilePress={() => parentNavigation.navigate('AdminProfile')}
         >
             <View style={styles.container}>
