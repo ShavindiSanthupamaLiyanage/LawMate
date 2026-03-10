@@ -6,7 +6,7 @@ namespace LawMate.API.Controllers.AdminModule;
 
 [Route("api/admin/reports")]
 [ApiController]
-// [Authorize] 
+[Authorize] 
 public class AdminReportController : ControllerBase
     {
         private readonly ILawyerDetailReportService _lawyerDetailReportService;

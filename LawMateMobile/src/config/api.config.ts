@@ -123,6 +123,14 @@ export const ENDPOINTS = {
     ADMIN: {
         USERS: '/admin/users',
         STATISTICS: '/admin/statistics',
+        REPORTS: {
+            LAWYER_DETAILS: '/admin/reports/lawyer-details',
+            CLIENT_DETAILS: '/admin/reports/client-details',
+            MEMBERSHIP_RENEWALS: '/admin/reports/membership-renewals',
+            PLATFORM_COMMISSION: '/admin/reports/platform-commission',
+            MONTHLY_REVENUE: '/admin/reports/monthly-revenue',
+            FINANCIAL_SUMMARY: '/admin/reports/financial-summary',
+        },
     },
     USER: {
         GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
