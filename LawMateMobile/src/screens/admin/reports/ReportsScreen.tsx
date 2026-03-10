@@ -13,6 +13,8 @@ import ReportCard from './ReportCard';
 import YearMonthPicker from '../../../components/YearMonthPicker';
 import { useToast } from '../../../context/ToastContext';
 import {useNavigation} from "@react-navigation/native";
+import {ReportType} from "../../../interfaces/adminReport.interface";
+import {AdminReportService} from "../../../services/adminReportService";
 
 interface Report {
     id: string;
@@ -27,52 +29,36 @@ const ReportsScreen: React.FC = () => {
     const { showToast } = useToast();
     const navigation = useNavigation<any>();
 
-    const reports: Report[] = [
-        {
-            id: '1',
-            icon: 'people-outline',
-            title: 'Lawyer Detail Report',
-        },
-        {
-            id: '2',
-            icon: 'person-outline',
-            title: 'Client Detail Report',
-        },
-        {
-            id: '3',
-            icon: 'ribbon-outline',
-            title: 'Member Renewal Report',
-        },
-        {
-            id: '4',
-            icon: 'analytics',
-            title: 'Platform Commission Report',
-        },
-        {
-            id: '5',
-            icon: 'bar-chart-outline',
-            title: 'Monthly Revenue Report',
-        },
-        {
-            id: '6',
-            icon: 'pie-chart-outline',
-            title: 'Financial Summary Report',
-        },
-    ];
+    const reportTypeMap: Record<string, ReportType> = {
+        'Lawyer Detail Report': 'lawyer-details',
+        'Client Detail Report': 'client-details',
+        'Member Renewal Report': 'membership-renewals',
+        'Platform Commission Report': 'platform-commission',
+        'Monthly Revenue Report': 'monthly-revenue',
+        'Financial Summary Report': 'financial-summary',
+    };
 
-    const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
+    const [loadingReportId, setLoadingReportId] = useState<string | null>(null);
 
-    const handleDownload = (reportTitle: string) => {
-        if (selectedMonth === null || selectedYear === null) {
-            showToast('Please select year and month first', 'warning');
-            return;
+    // const months = [
+    //     'January', 'February', 'March', 'April', 'May', 'June',
+    //     'July', 'August', 'September', 'October', 'November', 'December'
+    // ];
+
+    const handleDownload = async (reportTitle: string, reportId: string) => {
+        try {
+            setLoadingReportId(reportId);
+            const reportType = reportTypeMap[reportTitle];
+            await AdminReportService.downloadReport(reportType);
+            showToast('Report downloaded successfully', 'success');
+        } catch (error: any) {
+            console.error('Report download error:', error);
+            console.error('Error message:', error?.message);
+            console.error('Error stack:', error?.stack);
+            showToast('Failed to download the report', 'error');
+        } finally {
+            setLoadingReportId(null);
         }
-
-        console.log('Downloading:', reportTitle, 'for', months[selectedMonth], selectedYear);
-        showToast('Report downloaded successfully', 'success');
     };
 
     const handleDateSelect = () => {
@@ -91,6 +77,15 @@ const ReportsScreen: React.FC = () => {
         const monthStr = (selectedMonth + 1).toString().padStart(2, '0');
         return `${monthStr} ${selectedYear}`;
     };
+
+    const reports: Report[] = [
+        { id: '1', icon: 'people-outline',    title: 'Lawyer Detail Report' },
+        { id: '2', icon: 'person-outline',    title: 'Client Detail Report' },
+        { id: '3', icon: 'ribbon-outline',    title: 'Member Renewal Report' },
+        { id: '4', icon: 'analytics',         title: 'Platform Commission Report' },
+        { id: '5', icon: 'bar-chart-outline', title: 'Monthly Revenue Report' },
+        { id: '6', icon: 'pie-chart-outline', title: 'Financial Summary Report' },
+    ];
 
     return (
         <AdminLayout title="Reports"
@@ -125,7 +120,8 @@ const ReportsScreen: React.FC = () => {
                             key={report.id}
                             icon={report.icon}
                             title={report.title}
-                            onDownload={() => handleDownload(report.title)}
+                            isLoading={loadingReportId === report.id}
+                            onDownload={() => handleDownload(report.title, report.id)}
                         />
                     ))}
 
