@@ -14,18 +14,21 @@ public class AdminReportController : ControllerBase
         private readonly IMembershipRenewalReportService _membershipRenewalReportService;
         private readonly IPlatformCommissionReportService _platformReportService;
         private readonly IMonthlyRevenueReportService _monthlyRevenueReportService;
+        private readonly IFinancialSummaryReportService _financialSummaryReportService;
 
         public AdminReportController(ILawyerDetailReportService lawyerDetailReportService,
             IClientDetailReportService clientDetailReportService,
             IMembershipRenewalReportService membershipRenewalReportService,
             IPlatformCommissionReportService platformReportService,
-            IMonthlyRevenueReportService monthlyRevenueReportService)
+            IMonthlyRevenueReportService monthlyRevenueReportService,
+            IFinancialSummaryReportService financialSummaryReportService)
         {
             _lawyerDetailReportService = lawyerDetailReportService;
             _clientDetailReportService = clientDetailReportService;
             _membershipRenewalReportService = membershipRenewalReportService;
             _platformReportService = platformReportService;
             _monthlyRevenueReportService = monthlyRevenueReportService;
+            _financialSummaryReportService = financialSummaryReportService;
         }
         
         [HttpGet("lawyer-details")]
@@ -122,6 +125,21 @@ public class AdminReportController : ControllerBase
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileName
             );
+        }
+        
+        [HttpGet("financial-summary")]
+        public async Task<IActionResult> DownloadFinancialSummaryReport()
+        {
+            var userId = User.Identity?.Name ?? "System";
             
+            var fileBytes = await _financialSummaryReportService.GenerateFinancialSummaryReportAsync(userId);
+
+            var fileName = $"LawMate_Financial_Summary_Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+            return File(
+                fileBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName
+            );
         }
     }

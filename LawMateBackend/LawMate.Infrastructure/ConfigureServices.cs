@@ -32,6 +32,7 @@ namespace LawMate.Infrastructure
             services.AddScoped<IMembershipRenewalReportService, MembershipRenewalReportService>();
             services.AddScoped<IPlatformCommissionReportService, PlatformCommissionReportService>();
             services.AddScoped<IMonthlyRevenueReportService, MonthlyRevenueReportService>();
+            services.AddScoped<IFinancialSummaryReportService, FinancialSummaryReportService>();
             return services;
         }
     }
