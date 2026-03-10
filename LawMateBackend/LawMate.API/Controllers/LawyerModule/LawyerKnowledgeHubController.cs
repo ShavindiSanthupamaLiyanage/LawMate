@@ -62,4 +62,5 @@ public class LawyerKnowledgeHubController : ControllerBase
         var result = await _mediator.Send(new DeleteArticleCommand(articleId));
         return result ? NoContent() : NotFound();
     }
+    
 }
