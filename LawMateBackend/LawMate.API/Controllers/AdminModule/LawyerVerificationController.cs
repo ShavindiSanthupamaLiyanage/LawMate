@@ -1,4 +1,4 @@
-﻿using LawMate.Application.AdminModule.LawyerVerification;
+﻿﻿using LawMate.Application.AdminModule.LawyerVerification;
 using LawMate.Application.AdminModule.LawyerVerification.Commands;
 using LawMate.Domain.Common.Enums;
 using MediatR;
@@ -64,7 +64,7 @@ public class LawyerVerificationController : ControllerBase
     
     [HttpPost("{userId}/accept")] public async Task<IActionResult> Accept(string userId)
     {
-        var adminId = User.Identity.Name;
+        var adminId = User.Identity?.Name ?? string.Empty;
         return Ok(await _mediator.Send(
             new AcceptLawyerVerificationCommand
             {
@@ -76,7 +76,7 @@ public class LawyerVerificationController : ControllerBase
         string userId,
         [FromBody] string reason)
     {
-        var adminId = User.Identity.Name;
+        var adminId = User.Identity?.Name ?? string.Empty;
         return Ok(await _mediator.Send(
             new RejectLawyerVerificationCommand
             {

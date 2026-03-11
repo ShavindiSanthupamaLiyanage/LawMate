@@ -1,5 +1,6 @@
 using LawMate.Application.AdminModule.AdminRegistration.Commands;
 using LawMate.Infrastructure;
+using LawMate.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -90,6 +91,8 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

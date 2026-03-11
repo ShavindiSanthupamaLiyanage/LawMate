@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿﻿using FluentAssertions;
 using LawMate.API.Controllers.LawyerModule;
 using LawMate.Application.LawyerModule.LawyerRegistration.Command;
 using LawMate.Application.LawyerModule.LawyerRegistration.Queries;
@@ -155,10 +155,10 @@ public class LawyerRegistrationControllerTests
         okResult.StatusCode.Should().Be(200);
 
         // Deconstruct tuple
-        var (userResult, lawyerResult) = ((USER_DETAIL User, LAWYER_DETAILS Lawyer))okResult.Value;
+        var (userResult, lawyerResult) = ((USER_DETAIL User, LAWYER_DETAILS Lawyer)?)okResult.Value ?? ((null, null))!;
 
-        lawyerResult.UserId.Should().Be("U1");
-        userResult.UserId.Should().Be("U1");
+        lawyerResult?.UserId.Should().Be("U1");
+        userResult?.UserId.Should().Be("U1");
     }
     
     // UPDATE MISMATCH
@@ -203,7 +203,7 @@ public class LawyerRegistrationControllerTests
 
         // Assert the returned user
         var returnedUser = okResult.Value as USER_DETAIL;
-        returnedUser.UserId.Should().Be("U1");
+        returnedUser?.UserId.Should().Be("U1");
     }
     
     // CHANGE PROFILE IMAGE MISMATCH

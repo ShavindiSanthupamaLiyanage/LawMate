@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LawMate.API.Controllers.Common
@@ -7,7 +7,7 @@ namespace LawMate.API.Controllers.Common
     [ApiController]
     public class ApiControllerBase : ControllerBase
     {
-        private ISender _mediator;
+        private ISender? _mediator;
         protected ISender Mediator => _mediator ??= HttpContext.RequestServices.GetRequiredService<ISender>();
 
     }

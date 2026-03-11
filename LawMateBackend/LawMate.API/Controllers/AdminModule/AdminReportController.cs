@@ -1,4 +1,4 @@
-﻿using LawMate.Application.Common.Interfaces.AdminReports;
+﻿﻿using LawMate.Application.Common.Interfaces.AdminReports;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -57,7 +57,7 @@ public class AdminReportController : ControllerBase
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new { message = "Internal server error." });
             }

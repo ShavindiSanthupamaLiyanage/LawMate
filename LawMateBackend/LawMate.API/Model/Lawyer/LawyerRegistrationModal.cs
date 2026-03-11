@@ -1,11 +1,11 @@
-﻿using LawMate.Domain.Common.Enums;
+﻿﻿using LawMate.Domain.Common.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace LawMate.API.Model.Lawyer
 {
     public class LawyerRegistrationModal
     {
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
 
         // USER_DETAIL
         public Prefix Prefix { get; set; }

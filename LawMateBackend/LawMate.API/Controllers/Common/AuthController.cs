@@ -1,4 +1,4 @@
-﻿using LawMate.API.Model.Common;
+﻿﻿using LawMate.API.Model.Common;
 using LawMate.Application.Common.Interfaces;
 using LawMate.Application.Common.Utilities;
 using Microsoft.AspNetCore.Authorization;
@@ -72,7 +72,7 @@ namespace LawMate.API.Controllers.Common
             
             // Match password against any account
             var matchedUser = users
-                .FirstOrDefault(u => u.Password == CryptoUtil.Encrypt(request.Password, u.UserId));
+                .FirstOrDefault(u => u.Password == CryptoUtil.Encrypt(request.Password ?? string.Empty, u.UserId ?? string.Empty));
 
             if (matchedUser == null)
             {
