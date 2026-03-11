@@ -1,4 +1,4 @@
-﻿using LawMate.Application;
+﻿﻿using LawMate.Application;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.Json;
@@ -43,6 +43,17 @@ namespace LawMate.API.Middlewares
                 var traceCode = Guid.NewGuid();
                 //_logger.LogError("Exception : {@TraceCode} {@Error} ", traceCode ,error.Message);
                 //_logger.LogError("Exception : {@TraceCode} {Error} ", traceCode ,error);
+                response.ContentType = "application/json";
+                await response.WriteAsync(result);
+            }
+            catch (KeyNotFoundException error)
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                result = JsonSerializer.Serialize(Result.Failure(error.Message), new JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                _logger.LogError("Exception : {@Error}", error);
                 response.ContentType = "application/json";
                 await response.WriteAsync(result);
             }
