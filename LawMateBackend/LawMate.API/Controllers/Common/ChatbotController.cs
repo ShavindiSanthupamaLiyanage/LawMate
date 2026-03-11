@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using LawMate.API.Model.Chatbot;
+using LawMate.API.Services.Chatbot;
 
 namespace LawMate.API.Controllers.Common
 {
@@ -7,21 +8,22 @@ namespace LawMate.API.Controllers.Common
     [Route("api/chatbot")]
     public class ChatbotController : ControllerBase
     {
+        private readonly OpenAiChatbotService _openAiChatbotService;
+
+        public ChatbotController(OpenAiChatbotService openAiChatbotService)
+        {
+            _openAiChatbotService = openAiChatbotService;
+        }
+
         [HttpPost("classify")]
-        public IActionResult ClassifyIssue([FromBody] ChatbotClassificationRequest request)
+        public async Task<IActionResult> ClassifyIssue([FromBody] ChatbotClassificationRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.IssueText))
             {
                 return BadRequest(new { message = "IssueText is required." });
             }
 
-            var response = new ChatbotClassificationResponse
-            {
-                SuggestedLawyerCategory = "Employment Law",
-                ShortReason = "The issue appears related to workplace rights and unpaid salary.",
-                Disclaimer = "This chatbot only helps identify the most relevant lawyer category based on the information provided. It does not provide legal advice or legal conclusions."
-            };
-
+            var response = await _openAiChatbotService.ClassifyIssueAsync(request.IssueText);
             return Ok(response);
         }
     }
