@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -7,13 +7,16 @@ import {
     TouchableOpacity,
     Modal,
     Platform,
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Toast from '../../../components/Toast';
 import Button from '../../../components/Button';
+import { CalendarService } from '../../../services/calendarService';
 
 export interface AvailabilitySlot {
     id: string;
@@ -41,13 +44,9 @@ const to12h = (t: string) => {
 const SetAvailabilityScreen: React.FC = () => {
     const navigation = useNavigation<any>();
 
-    // TODO: get api - fetch slots
-    const [slots, setSlots] = useState<AvailabilitySlot[]>([
-        { id: '1', date: new Date(2026, 2, 10), startTime: '10:00', price: 5000, duration: 30, booked: false },
-        { id: '2', date: new Date(2026, 2, 10), startTime: '10:30', price: 5000, duration: 30, booked: false },
-        { id: '3', date: new Date(2026, 2, 15), startTime: '14:00', price: 7500, duration: 45, booked: false },
-        { id: '4', date: new Date(2026, 2, 15), startTime: '14:45', price: 7500, duration: 45, booked: true },
-    ]);
+    const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Which slot card is expanded (shows edit/delete)
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -66,6 +65,49 @@ const SetAvailabilityScreen: React.FC = () => {
 
     // Toast
     const [toastVisible, setToastVisible] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
+    /**
+     * Fetch availability slots from API
+     */
+    const fetchSlots = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            console.log('Loading availability slots...');
+
+            const slotsData = await CalendarService.getAvailabilitySlots();
+            setSlots(slotsData);
+
+            console.log('Slots loaded:', slotsData.length);
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to load slots';
+            console.error('Error fetching slots:', errorMsg);
+            Alert.alert(
+                'Failed to Load Slots',
+                errorMsg,
+                [{ text: 'Retry', onPress: fetchSlots }, { text: 'Dismiss' }]
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    /**
+     * Load slots when screen mounts
+     */
+    useEffect(() => {
+        fetchSlots();
+    }, [fetchSlots]);
+
+    /**
+     * Refresh slots when screen comes into focus
+     */
+    useFocusEffect(
+        useCallback(() => {
+            fetchSlots();
+        }, [fetchSlots])
+    );
 
     const openAddModal = () => {
         setEditingId(null);
@@ -88,30 +130,83 @@ const SetAvailabilityScreen: React.FC = () => {
     };
 
     // confirm add / edit
-    const handleConfirm = () => {
-        const timeStr = `${String(slotTime.getHours()).padStart(2,'0')}:${String(slotTime.getMinutes()).padStart(2,'0')}`;
-        if (editingId) {
-            // TODO: patch api - update slot
-            setSlots(prev => prev.map(s => s.id === editingId
-                ? { ...s, date: slotDate, startTime: timeStr, duration: slotDuration, price: slotPrice }
-                : s
-            ));
-        } else {
-            // TODO: post api - create slot
-            setSlots(prev => [...prev, {
-                id: Date.now().toString(),
-                date: slotDate, startTime: timeStr,
-                duration: slotDuration, price: slotPrice, booked: false,
-            }]);
+    const handleConfirm = async () => {
+        if (slotPrice < 1) {
+            Alert.alert('Validation Error', 'Please enter a valid price');
+            return;
         }
-        setModalVisible(false);
-        setToastVisible(true);
+
+        try {
+            setIsSaving(true);
+            const timeStr = `${String(slotTime.getHours()).padStart(2,'0')}:${String(slotTime.getMinutes()).padStart(2,'0')}`;
+
+            const slotData = {
+                date: slotDate,
+                startTime: timeStr,
+                duration: slotDuration,
+                price: slotPrice,
+                booked: false,
+            };
+
+            if (editingId) {
+                console.log('Updating slot:', editingId);
+                await CalendarService.updateAvailabilitySlot(editingId, slotData);
+                setToastMessage('Slot updated successfully!');
+            } else {
+                console.log('Creating new slot...');
+                await CalendarService.createAvailabilitySlot(slotData);
+                setToastMessage('Slot created successfully!');
+            }
+
+            setToastType('success');
+            setToastVisible(true);
+            setModalVisible(false);
+
+            // Refresh slots
+            await fetchSlots();
+        } catch (error: any) {
+            console.error('Error saving slot:', error);
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to save slot';
+            setToastMessage(errorMsg);
+            setToastType('error');
+            setToastVisible(true);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
-    const handleDelete = (id: string) => {
-        // TODO: delete api - remove slot
-        setSlots(prev => prev.filter(s => s.id !== id));
-        if (selectedId === id) setSelectedId(null);
+    const handleDelete = async (id: string) => {
+        Alert.alert(
+            'Delete Slot',
+            'Are you sure you want to delete this availability slot?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setIsSaving(true);
+                            console.log('Deleting slot:', id);
+                            await CalendarService.deleteAvailabilitySlot(id);
+                            setToastMessage('Slot deleted successfully!');
+                            setToastType('success');
+                            setToastVisible(true);
+                            if (selectedId === id) setSelectedId(null);
+                            await fetchSlots();
+                        } catch (error: any) {
+                            console.error('Error deleting slot:', error);
+                            const errorMsg = error.response?.data?.message || error.message || 'Failed to delete slot';
+                            setToastMessage(errorMsg);
+                            setToastType('error');
+                            setToastVisible(true);
+                        } finally {
+                            setIsSaving(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -129,54 +224,69 @@ const SetAvailabilityScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                {slots.map(slot => {
-                    const isSelected = selectedId === slot.id;
-                    return (
-                        <TouchableOpacity
-                            key={slot.id}
-                            activeOpacity={0.85}
-                            onPress={() => setSelectedId(isSelected ? null : slot.id)}
-                            style={styles.slotCard}
-                        >
-                            <View style={styles.slotRow}>
-                                {/* icon */}
-                                <View style={styles.slotIconWrap}>
-                                    <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                {isLoading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color={colors.primary} />
+                        <Text style={styles.loadingText}>Loading slots...</Text>
+                    </View>
+                ) : slots.length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                        <Ionicons name="calendar-outline" size={48} color={colors.textSecondary} />
+                        <Text style={styles.emptyText}>No availability slots yet</Text>
+                        <Text style={styles.emptySubtext}>Tap "Add New" to create your first slot</Text>
+                    </View>
+                ) : (
+                    slots.map(slot => {
+                        const isSelected = selectedId === slot.id;
+                        return (
+                            <TouchableOpacity
+                                key={slot.id}
+                                activeOpacity={0.85}
+                                onPress={() => setSelectedId(isSelected ? null : slot.id)}
+                                style={styles.slotCard}
+                            >
+                                <View style={styles.slotRow}>
+                                    {/* icon */}
+                                    <View style={styles.slotIconWrap}>
+                                        <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                                    </View>
+                                    {/* info */}
+                                    <View style={styles.slotInfo}>
+                                        <Text style={styles.slotDateTxt}>
+                                            Available on {fmtDate(slot.date)}
+                                        </Text>
+                                        <Text style={styles.slotTimeTxt}>{to12h(slot.startTime)}</Text>
+                                    </View>
+                                    {/* duration badge */}
+                                    <View style={styles.slotBadge}>
+                                        <Text style={styles.badgeDur}>{slot.duration} M</Text>
+                                        <Text style={styles.badgePer}>PER SLOT</Text>
+                                    </View>
                                 </View>
-                                {/* info */}
-                                <View style={styles.slotInfo}>
-                                    <Text style={styles.slotDateTxt}>
-                                        Available on {fmtDate(slot.date)}
-                                    </Text>
-                                    <Text style={styles.slotTimeTxt}>{to12h(slot.startTime)}</Text>
-                                </View>
-                                {/* duration badge */}
-                                <View style={styles.slotBadge}>
-                                    <Text style={styles.badgeDur}>{slot.duration} M</Text>
-                                    <Text style={styles.badgePer}>PER SLOT</Text>
-                                </View>
-                            </View>
 
-                            {/* edit / delete — only when selected */}
-                            {isSelected && (
-                                <View style={styles.slotActions}>
-                                    <Button
-                                        title="Edit"
-                                        variant="accept"
-                                        onPress={() => { openEditModal(slot); setSelectedId(null); }}
-                                        style={styles.actionBtnStyle}
-                                    />
-                                    <Button
-                                        title="Delete"
-                                        variant="reject"
-                                        onPress={() => handleDelete(slot.id)}
-                                        style={styles.actionBtnStyle}
-                                    />
-                                </View>
-                            )}
-                        </TouchableOpacity>
-                    );
-                })}
+                                {/* edit / delete — only when selected */}
+                                {isSelected && (
+                                    <View style={styles.slotActions}>
+                                        <Button
+                                            title="Edit"
+                                            variant="accept"
+                                            onPress={() => { openEditModal(slot); setSelectedId(null); }}
+                                            style={styles.actionBtnStyle}
+                                            disabled={isSaving}
+                                        />
+                                        <Button
+                                            title="Delete"
+                                            variant="reject"
+                                            onPress={() => handleDelete(slot.id)}
+                                            style={styles.actionBtnStyle}
+                                            disabled={isSaving}
+                                        />
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        );
+                    })
+                )}
             </ScrollView>
 
             {/* Bottom: BACK + ADD NEW */}
@@ -186,12 +296,14 @@ const SetAvailabilityScreen: React.FC = () => {
                     variant="transparent"
                     onPress={() => navigation.goBack()}
                     style={styles.btnStyle}
+                    disabled={isSaving}
                 />
                 <Button
                     title="ADD NEW"
                     variant="primary"
                     onPress={openAddModal}
                     style={styles.btnStyle}
+                    disabled={isSaving}
                 />
             </View>
 
@@ -279,12 +391,14 @@ const SetAvailabilityScreen: React.FC = () => {
                                 variant="transparent"
                                 onPress={() => setModalVisible(false)}
                                 style={styles.sheetBtnStyle}
+                                disabled={isSaving}
                             />
                             <Button
-                                title={editingId ? 'UPDATE' : 'CONFIRM'}
+                                title={isSaving ? 'SAVING...' : 'CONFIRM'}
                                 variant="primary"
                                 onPress={handleConfirm}
                                 style={styles.sheetBtnStyle}
+                                disabled={isSaving}
                             />
                         </View>
                     </View>
@@ -312,8 +426,8 @@ const SetAvailabilityScreen: React.FC = () => {
             {/* Toast */}
             <Toast
                 visible={toastVisible}
-                message="Availability Updated Successfully"
-                type="success"
+                message={toastMessage}
+                type={toastType}
                 onDismiss={() => setToastVisible(false)}
             />
         </View>
@@ -338,6 +452,38 @@ const styles = StyleSheet.create({
 
     scroll: { flex: 1 },
     scrollContent: { padding: spacing.lg, paddingBottom: 120 },
+
+    /* loading / empty state */
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 300,
+    },
+    loadingText: {
+        marginTop: spacing.md,
+        fontSize: fontSize.sm,
+        color: colors.textSecondary,
+        fontWeight: fontWeight.medium,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 300,
+    },
+    emptyText: {
+        marginTop: spacing.md,
+        fontSize: fontSize.md,
+        color: colors.textPrimary,
+        fontWeight: fontWeight.semibold,
+    },
+    emptySubtext: {
+        marginTop: spacing.sm,
+        fontSize: fontSize.sm,
+        color: colors.textSecondary,
+        textAlign: 'center',
+    },
 
     /* slot card */
     slotCard: {

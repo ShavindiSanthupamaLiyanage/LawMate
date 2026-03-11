@@ -9,6 +9,8 @@ import {
     Modal,
     FlatList,
     Platform,
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +18,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Toast from '../../../components/Toast';
 import Button from '../../../components/Button';
+import { CalendarService } from '../../../services/calendarService';
 
 const CASE_TYPES = [
     'Criminal Law', 'Family Law', 'Property Law', 'Corporate Law',
@@ -134,6 +137,9 @@ const AddAppointmentScreen: React.FC = () => {
 
     // Toast
     const [toastVisible, setToastVisible] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [toastType, setToastType] = useState<'success' | 'error'>('success');
+    const [isSaving, setIsSaving] = useState(false);
 
     const set = (field: keyof AppointmentData, val: any) =>
         setForm(prev => ({ ...prev, [field]: val }));
@@ -157,12 +163,75 @@ const AddAppointmentScreen: React.FC = () => {
         return '';
     };
 
-    const handleSave = () => {
-        if (!form.clientName.trim() || !form.email.trim() || !form.caseType || !form.date || !form.price.trim()) {
+    const handleSave = async () => {
+        // Validation
+        if (!form.clientName.trim()) {
+            Alert.alert('Validation Error', 'Please enter client name');
             return;
         }
-        // TODO: post api - save appointment
-        setToastVisible(true);
+        if (!form.email.trim()) {
+            Alert.alert('Validation Error', 'Please enter client email');
+            return;
+        }
+        if (!form.caseType) {
+            Alert.alert('Validation Error', 'Please select a case type');
+            return;
+        }
+        if (!form.date || !form.time) {
+            Alert.alert('Validation Error', 'Please select date and time');
+            return;
+        }
+        if (!form.price.trim() || isNaN(Number(form.price))) {
+            Alert.alert('Validation Error', 'Please enter a valid price');
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+
+            // Combine date and time
+            const appointmentDateTime = new Date(form.date);
+            appointmentDateTime.setHours(form.time.getHours(), form.time.getMinutes());
+
+            // Parse duration from string (e.g., "30 min" -> 30)
+            const durationMinutes = parseInt(form.duration) || 30;
+
+            // Create appointment payload
+            const appointmentPayload = {
+                clientName: form.clientName.trim(),
+                email: form.email.trim(),
+                contactNumber: form.contactNumber.trim() || undefined,
+                caseType: form.caseType,
+                dateTime: appointmentDateTime,
+                duration: durationMinutes,
+                status: form.status.toLowerCase() as 'pending' | 'confirmed' | 'completed',
+                mode: form.mode.toLowerCase() as 'physical' | 'virtual',
+                price: Number(form.price),
+                notes: form.notes.trim() || undefined,
+            };
+
+            console.log('📝 Saving appointment:', appointmentPayload);
+
+            // Call API
+            await CalendarService.createAppointment(appointmentPayload);
+
+            setToastMessage('Appointment saved successfully!');
+            setToastType('success');
+            setToastVisible(true);
+
+            // Navigate back after short delay
+            setTimeout(() => {
+                navigation.goBack();
+            }, 1500);
+        } catch (error: any) {
+            console.error('Failed to save appointment:', error);
+            const errorMsg = error.response?.data?.message || error.message || 'Failed to save appointment';
+            setToastMessage(errorMsg);
+            setToastType('error');
+            setToastVisible(true);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -249,12 +318,14 @@ const AddAppointmentScreen: React.FC = () => {
                     variant="transparent"
                     onPress={() => navigation.goBack()}
                     style={styles.btnStyle}
+                    disabled={isSaving}
                 />
                 <Button
-                    title="SAVE"
+                    title={isSaving ? 'SAVING...' : 'SAVE'}
                     variant="primary"
                     onPress={handleSave}
                     style={styles.btnStyle}
+                    disabled={isSaving}
                 />
             </View>
 
@@ -285,9 +356,9 @@ const AddAppointmentScreen: React.FC = () => {
             {/* Success Toast */}
             <Toast
                 visible={toastVisible}
-                message="Appointment Saved Successfully"
-                type="success"
-                onDismiss={() => { setToastVisible(false); navigation.goBack(); }}
+                message={toastMessage}
+                type={toastType}
+                onDismiss={() => setToastVisible(false)}
             />
         </View>
     );

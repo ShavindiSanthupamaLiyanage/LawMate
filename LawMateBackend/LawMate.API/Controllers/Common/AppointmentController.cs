@@ -1,5 +1,6 @@
 using LawMate.Application.Common.Bookings.Queries;
 using LawMate.Application.LawyerModule.Appointments.Commands;
+using LawMate.Application.LawyerModule.Appointments.Queries;
 using LawMate.Domain.DTOs.Booking;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,20 @@ public class AppointmentController : ControllerBase
     public AppointmentController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    /// <summary>
+    /// Get all appointments for the logged-in lawyer.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var lawyerId = User.FindFirst("UserId")?.Value;
+        if (string.IsNullOrEmpty(lawyerId))
+            return Unauthorized();
+
+        var result = await _mediator.Send(new GetLawyerAppointmentsQuery(lawyerId));
+        return Ok(result);
     }
 
     /// <summary>

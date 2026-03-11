@@ -20,6 +20,20 @@ public class LawyerAvailabilityController : ControllerBase
     }
 
     /// <summary>
+    /// Get all availability slots for the logged-in lawyer.
+    /// </summary>
+    [HttpGet("availability")]
+    public async Task<IActionResult> GetAllAvailability()
+    {
+        var lawyerId = User.FindFirst("UserId")?.Value;
+        if (string.IsNullOrEmpty(lawyerId))
+            return Unauthorized();
+
+        var result = await _mediator.Send(new GetLawyerAvailabilityQuery(lawyerId));
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Get all future availability slots for a specific lawyer.
     /// </summary>
     [HttpGet("{lawyerId}/availability")]
