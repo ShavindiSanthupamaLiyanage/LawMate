@@ -67,7 +67,8 @@ export default function ClientSignUpScreen() {
         showSuccess("Account created successfully.");
         setTimeout(() => {
             navigation.replace('ClientTabs', {
-                screen: 'Dashboard',
+                screen: 'ClientTabNavigator',
+                params: { screen: 'Dashboard' }
             });
         }, 2000);
     };
