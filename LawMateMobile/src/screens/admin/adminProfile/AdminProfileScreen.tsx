@@ -122,7 +122,7 @@ const AdminProfileScreen: React.FC = () => {
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.7}
                 >
-                    <Ionicons name="arrow-back" size={24} color={colors.white} />
+                    <Ionicons name="chevron-back" size={24} color={colors.white} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Admin Profile</Text>
                 <View style={styles.backButton} />
