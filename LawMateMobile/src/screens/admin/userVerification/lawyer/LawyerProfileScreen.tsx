@@ -8,10 +8,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { colors, spacing } from "../../../config/theme";
-import AdminLayout from "../../../components/AdminLayout";
-import Alert from "../../../components/Alert";
-import Button from "../../../components/Button";
+import { colors, spacing } from "../../../../config/theme";
+import AdminLayout from "../../../../components/AdminLayout";
+import Alert from "../../../../components/Alert";
+import Button from "../../../../components/Button";
 
 type Lawyer = {
     name: string;
@@ -58,7 +58,13 @@ const LawyerProfileScreen = () => {
     const status = lawyer.status.toLowerCase();
 
     return (
-        <AdminLayout title="Lawyer Profile" showBackButton disableScroll>
+        <AdminLayout
+            title="Lawyer Profile"
+            showBackButton
+            disableScroll
+            onBackPress={() => navigation.navigate("LawyerVerification")}
+            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+        >
             <ScrollView style={styles.container}>
                 <View style={styles.profileCard}>
                     <Image source={{ uri: lawyer.image }} style={styles.avatar} />
