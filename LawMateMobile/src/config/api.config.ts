@@ -48,38 +48,39 @@ import { Platform } from "react-native";
 import Constants from "expo-constants";
 
 const getBaseUrl = () => {
-    if (!__DEV__) {
-        // Production
-        return 'https://lawmate-api.azurewebsites.net/api';
-    }
+  if (!__DEV__) {
+    // Production
+    return "https://lawmate-api.azurewebsites.net/api";
+  }
 
-    // When using tunnel, Metro runs on exp.direct but your API is still local.
-    // Use the debuggerHost to derive the machine's IP dynamically.
-    const debuggerHost = Constants.expoConfig?.hostUri
-        ?? Constants.manifest2?.extra?.expoGo?.debuggerHost
-        ?? Constants.manifest?.debuggerHost;
+  // When using tunnel, Metro runs on exp.direct but your API is still local.
+  // Use the debuggerHost to derive the machine's IP dynamically.
+  const debuggerHost =
+    Constants.expoConfig?.hostUri ??
+    Constants.manifest2?.extra?.expoGo?.debuggerHost ??
+    Constants.manifest?.debuggerHost;
 
-    if (debuggerHost) {
-        // Extract just the IP/hostname, strip the port
-        const host = debuggerHost.split(':')[0];
-        return `http://${host}:5102/api`;
-    }
+  if (debuggerHost) {
+    // Extract just the IP/hostname, strip the port
+    const host = debuggerHost.split(":")[0];
+    return `http://${host}:5102/api`;
+  }
 
-    // Emulator/Simulator
-    if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:5102/api';
-    }
+  // Emulator/Simulator
+  if (Platform.OS === "android") {
+    return "http://10.0.2.2:5102/api";
+  }
 
-    return 'http://localhost:5102/api';
+  return "http://localhost:5102/api";
 };
 
 export const API_CONFIG = {
-    BASE_URL: getBaseUrl(),
-    TIMEOUT: 30000,
-    HEADERS: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    },
+  BASE_URL: getBaseUrl(),
+  TIMEOUT: 30000,
+  HEADERS: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 };
 
 /**
@@ -87,67 +88,69 @@ export const API_CONFIG = {
  * All API routes are defined here for easy maintenance
  */
 export const ENDPOINTS = {
-    // Authentication
-    AUTH: {
-        LOGIN: '/auth/login',
-        LOGOUT: '/auth/logout',
-        REFRESH_TOKEN: '/auth/refresh',
-        FORGOT_PASSWORD: '/auth/forgot-password',
-        REQUEST_RESET_PASSWORD: '/auth/request-reset-password',
-        VERIFY_RESET_TOKEN: '/auth/verify-reset-token',
-        RESET_PASSWORD_WITH_TOKEN: '/auth/reset-password-with-token',
-    },
+  // Authentication
+  AUTH: {
+    LOGIN: "/auth/login",
+    LOGOUT: "/auth/logout",
+    REFRESH_TOKEN: "/auth/refresh",
+    FORGOT_PASSWORD: "/auth/forgot-password",
+    REQUEST_RESET_PASSWORD: "/auth/request-reset-password",
+    VERIFY_RESET_TOKEN: "/auth/verify-reset-token",
+    RESET_PASSWORD_WITH_TOKEN: "/auth/reset-password-with-token",
+  },
 
-    // Lawyer endpoints
-    LAWYER: {
-        REGISTER: "/lawyers",
-        MEMBERSHIP_PAYMENT: (lawyerId: string) => `/lawyers/${lawyerId}/membership-payment`,
-        PROFILE: '/lawyer/profile',
-        UPDATE_PROFILE: '/lawyer/profile',
-        CASES: '/lawyer/cases',
-        CASE_DETAIL: (caseId: string) => `/lawyer/cases/${caseId}`,
-        APPOINTMENTS: '/lawyer/appointments',
-        CLIENTS: '/lawyer/clients',
-    },
+  // Lawyer endpoints
+  LAWYER: {
+    REGISTER: "/lawyers",
+    MEMBERSHIP_PAYMENT: (lawyerId: string) =>
+      `/lawyers/${lawyerId}/membership-payment`,
+    PROFILE: "/lawyer/profile",
+    UPDATE_PROFILE: "/lawyer/profile",
+    CASES: "/lawyer/cases",
+    CASE_DETAIL: (caseId: string) => `/lawyer/cases/${caseId}`,
+    APPOINTMENTS: "/lawyer/appointments",
+    CLIENTS: "/lawyer/clients",
+  },
 
-    // Client endpoints
-    CLIENT: {
-        PROFILE: '/client/profile',
-        UPDATE_PROFILE: '/client/profile',
-        APPOINTMENTS: '/client/appointments',
-        LAWYERS: '/client/lawyers',
-        CASES: '/client/cases',
-    },
+  // Client endpoints
+  CLIENT: {
+    PROFILE: "/client/profile",
+    UPDATE_PROFILE: "/client/profile",
+    APPOINTMENTS: "/client/appointments",
+    LAWYERS: "/client/lawyers",
+    CASES: "/client/cases",
+  },
 
-    // Admin endpoints
-    ADMIN: {
-        USERS: '/admin/users',
-        STATISTICS: '/admin/statistics',
-        REPORTS: {
-            LAWYER_DETAILS: '/admin/reports/lawyer-details',
-            CLIENT_DETAILS: '/admin/reports/client-details',
-            MEMBERSHIP_RENEWALS: '/admin/reports/membership-renewals',
-            PLATFORM_COMMISSION: '/admin/reports/platform-commission',
-            MONTHLY_REVENUE: '/admin/reports/monthly-revenue',
-            FINANCIAL_SUMMARY: '/admin/reports/financial-summary',
-        },
+  // Admin endpoints
+  ADMIN: {
+    USERS: "/admin/users",
+    STATISTICS: "/admin/statistics",
+    REPORTS: {
+      LAWYER_DETAILS: "/admin/reports/lawyer-details",
+      CLIENT_DETAILS: "/admin/reports/client-details",
+      MEMBERSHIP_RENEWALS: "/admin/reports/membership-renewals",
+      PLATFORM_COMMISSION: "/admin/reports/platform-commission",
+      MONTHLY_REVENUE: "/admin/reports/monthly-revenue",
+      FINANCIAL_SUMMARY: "/admin/reports/financial-summary",
     },
-    USER: {
-        GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
-    },
-    CONTACT: {
-        SEND: '/contactUs/send',
-    },
-    BOOKING: {
-        GET_LAWYER_APPOINTMENTS: (lawyerId: string) => `/bookings/lawyer/${lawyerId}`,
-        GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,
-        CREATE: '/bookings',
-        UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
-    },
-    AVAILABILITY: {
-        GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
-        CREATE: '/availability',
-        UPDATE: (slotId: number) => `/availability/${slotId}`,
-        DELETE: (slotId: number) => `/availability/${slotId}`,
-    },
+  },
+  USER: {
+    GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
+  },
+  CONTACT: {
+    SEND: "/contactUs/send",
+  },
+  BOOKING: {
+    GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>
+      `/bookings/lawyer/${lawyerId}`,
+    GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,
+    CREATE: "/bookings",
+    UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
+  },
+  AVAILABILITY: {
+    GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
+    CREATE: "/availability",
+    UPDATE: (slotId: number) => `/availability/${slotId}`,
+    DELETE: (slotId: number) => `/availability/${slotId}`,
+  },
 };
