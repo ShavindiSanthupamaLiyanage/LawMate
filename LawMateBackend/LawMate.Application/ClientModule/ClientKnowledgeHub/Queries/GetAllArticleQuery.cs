@@ -2,31 +2,27 @@
 using LawMate.Domain.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
-namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Queries
+namespace LawMate.Application.ClientModule.ClientKnowledgeHub.Queries
 {
-    public record GetArticlesByLawyerQuery(string LawyerId) : IRequest<List<ArticleDto>>;
+    public record GetAllArticleQuery : IRequest<List<ArticleDto>>;
 
-    public class GetArticlesByLawyerQueryHandler
-        : IRequestHandler<GetArticlesByLawyerQuery, List<ArticleDto>>
+    public class GetAllArticleQueryHandler 
+        : IRequestHandler<GetAllArticleQuery, List<ArticleDto>>
     {
         private readonly IApplicationDbContext _context;
 
-        public GetArticlesByLawyerQueryHandler(IApplicationDbContext context)
+        public GetAllArticleQueryHandler(IApplicationDbContext context)
         {
             _context = context;
         }
 
         public async Task<List<ArticleDto>> Handle(
-            GetArticlesByLawyerQuery request,
+            GetAllArticleQuery request,
             CancellationToken cancellationToken)
         {
             return await _context.ARTICLE
-                .Where(a => a.LawyerId == request.LawyerId) // now both are string
+                .Where(a => a.IsPublished)   // clients should only see published articles
                 .OrderByDescending(a => a.CreatedAt)
                 .Select(a => new ArticleDto
                 {
@@ -41,8 +37,8 @@ namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Queries
                     CreatedAt = a.CreatedAt,
                     ModifiedBy = a.ModifiedBy,
                     ModifiedAt = a.ModifiedAt,
-                LikeCount =  a.LikeCount,
-
+                    LikeCount = a.LikeCount
+                   
                 })
                 .ToListAsync(cancellationToken);
         }
