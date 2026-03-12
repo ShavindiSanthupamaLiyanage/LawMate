@@ -12,9 +12,10 @@ interface ReportCardProps {
     icon: keyof typeof Ionicons.glyphMap;
     title: string;
     onDownload: () => void;
+    isLoading?: boolean;
 }
 
-const ReportCard: React.FC<ReportCardProps> = ({ icon, title, onDownload }) => {
+const ReportCard: React.FC<ReportCardProps> = ({ icon, title, onDownload, isLoading }) => {
     return (
         <View style={styles.card}>
             <View style={styles.iconContainer}>
@@ -29,6 +30,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ icon, title, onDownload }) => {
                 style={styles.downloadButton}
                 onPress={onDownload}
                 activeOpacity={0.7}
+                disabled={isLoading}
             >
                 <Text style={styles.downloadText}>Download</Text>
             </TouchableOpacity>
