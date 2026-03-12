@@ -8,7 +8,6 @@ import {
     Modal,
     TextInput,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
 import {
@@ -18,14 +17,12 @@ import {
     fontWeight,
     borderRadius,
 } from "../../../config/theme";
-import ScreenWrapper from "../../../components/ScreenWrapper";
 import Toast, { ToastType } from "../../../components/Toast";
 import UploadCard from "../../../components/UploadCard";
 import Button from "../../../components/Button";
 import { PaymentVerificationStackParamList } from "./PaymentVerificationStack";
 import { PaymentStatus } from "./PaymentVerificationCard";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import AdminLayout from "../../../components/AdminLayout";
 
 type Props = {
     navigation: NativeStackNavigationProp<
@@ -43,8 +40,6 @@ const REJECT_REASONS = [
     "Other",
 ];
 
-// ─── Info Row ─────────────────────────────────────────────────────────────────
-
 function InfoRow({ label, value }: { label: string; value: string }) {
     return (
         <View style={styles.infoRow}>
@@ -53,8 +48,6 @@ function InfoRow({ label, value }: { label: string; value: string }) {
         </View>
     );
 }
-
-// ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function PaymentVerificationViewScreen({
                                                           navigation,
@@ -98,19 +91,10 @@ export default function PaymentVerificationViewScreen({
     const isPending = status === "Pending";
 
     return (
-        <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    style={styles.backBtn}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    <Ionicons name="arrow-back" size={22} color={colors.white} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Payment Verification</Text>
-                <View style={{ width: 32 }} />
-            </View>
+        <AdminLayout title="View Payment Details"
+                     showBackButton
+                     onBackPress={() => navigation.goBack()}
+                     onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}>
 
             <ScrollView
                 contentContainerStyle={styles.content}
@@ -258,7 +242,7 @@ export default function PaymentVerificationViewScreen({
                 type={toast.type}
                 onDismiss={hideToast}
             />
-        </ScreenWrapper>
+        </AdminLayout>
     );
 }
 

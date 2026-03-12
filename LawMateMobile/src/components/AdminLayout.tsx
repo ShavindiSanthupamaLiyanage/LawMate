@@ -8,7 +8,7 @@ interface AdminLayoutProps {
     children: React.ReactNode;
     userName?: string;
     profileImage?: string;
-    title: string;
+    title?: string;
     onNotificationPress?: () => void;
     onProfilePress?: () => void;
     showBackButton?: boolean;
