@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,8 @@ import {
     TouchableOpacity,
     Modal,
     Platform,
+    ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +16,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Toast from '../../../components/Toast';
 import Button from '../../../components/Button';
+import {
+    getLawyerAvailabilitySlots,
+    createAvailabilitySlot,
+    updateAvailabilitySlot,
+    deleteAvailabilitySlot,
+} from '../../../services/calendarService';
+import { StorageService } from '../../../utils/storage';
 
 export interface AvailabilitySlot {
     id: string;
@@ -41,13 +50,9 @@ const to12h = (t: string) => {
 const SetAvailabilityScreen: React.FC = () => {
     const navigation = useNavigation<any>();
 
-    // TODO: get api - fetch slots
-    const [slots, setSlots] = useState<AvailabilitySlot[]>([
-        { id: '1', date: new Date(2026, 2, 10), startTime: '10:00', price: 5000, duration: 30, booked: false },
-        { id: '2', date: new Date(2026, 2, 10), startTime: '10:30', price: 5000, duration: 30, booked: false },
-        { id: '3', date: new Date(2026, 2, 15), startTime: '14:00', price: 7500, duration: 45, booked: false },
-        { id: '4', date: new Date(2026, 2, 15), startTime: '14:45', price: 7500, duration: 45, booked: true },
-    ]);
+    const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [lawyerId, setLawyerId] = useState<string | null>(null);
 
     // Which slot card is expanded (shows edit/delete)
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -59,6 +64,7 @@ const SetAvailabilityScreen: React.FC = () => {
     const [slotTime, setSlotTime]         = useState<Date>(new Date());
     const [slotDuration, setSlotDuration] = useState(30);
     const [slotPrice, setSlotPrice]       = useState(5000);
+    const [submitting, setSubmitting]     = useState(false);
 
     // Date / time pickers (native)
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -66,6 +72,42 @@ const SetAvailabilityScreen: React.FC = () => {
 
     // Toast
     const [toastVisible, setToastVisible] = useState(false);
+
+    useEffect(() => {
+        const initialize = async () => {
+            try {
+                const userData = await StorageService.getUserData();
+                if (userData?.userId) {
+                    setLawyerId(userData.userId);
+                    await fetchSlots(userData.userId);
+                }
+            } catch (error) {
+                console.error('Error initializing:', error);
+                Alert.alert('Error', 'Failed to load availability slots');
+            } finally {
+                setLoading(false);
+            }
+        };
+        initialize();
+    }, []);
+
+    const fetchSlots = async (lawyerId: string) => {
+        try {
+            const slotsData = await getLawyerAvailabilitySlots(lawyerId);
+            const mappedSlots = slotsData.map(dto => ({
+                id: dto.id,
+                date: new Date(dto.date),
+                startTime: dto.startTime,
+                price: dto.price,
+                duration: dto.duration,
+                booked: dto.booked,
+            }));
+            setSlots(mappedSlots);
+        } catch (error) {
+            console.error('Error fetching slots:', error);
+            Alert.alert('Error', 'Failed to load availability slots');
+        }
+    };
 
     const openAddModal = () => {
         setEditingId(null);
@@ -88,31 +130,80 @@ const SetAvailabilityScreen: React.FC = () => {
     };
 
     // confirm add / edit
-    const handleConfirm = () => {
-        const timeStr = `${String(slotTime.getHours()).padStart(2,'0')}:${String(slotTime.getMinutes()).padStart(2,'0')}`;
-        if (editingId) {
-            // TODO: patch api - update slot
-            setSlots(prev => prev.map(s => s.id === editingId
-                ? { ...s, date: slotDate, startTime: timeStr, duration: slotDuration, price: slotPrice }
-                : s
-            ));
-        } else {
-            // TODO: post api - create slot
-            setSlots(prev => [...prev, {
-                id: Date.now().toString(),
-                date: slotDate, startTime: timeStr,
-                duration: slotDuration, price: slotPrice, booked: false,
-            }]);
+    const handleConfirm = async () => {
+        if (!lawyerId) {
+            Alert.alert('Error', 'Lawyer ID not found');
+            return;
         }
-        setModalVisible(false);
-        setToastVisible(true);
+
+        const timeStr = `${String(slotTime.getHours()).padStart(2,'0')}:${String(slotTime.getMinutes()).padStart(2,'0')}`;
+        
+        try {
+            setSubmitting(true);
+
+            if (editingId) {
+          
+                await updateAvailabilitySlot(parseInt(editingId), {
+                    date: slotDate.toISOString(),
+                    startTime: timeStr,
+                    duration: slotDuration,
+                    price: slotPrice,
+                });
+
+        
+                setSlots(prev => prev.map(s => s.id === editingId
+                    ? { ...s, date: slotDate, startTime: timeStr, duration: slotDuration, price: slotPrice }
+                    : s
+                ));
+            } else {
+         
+                const response = await createAvailabilitySlot({
+                    lawyerId,
+                    date: slotDate.toISOString(),
+                    startTime: timeStr,
+                    duration: slotDuration,
+                    price: slotPrice,
+                });
+
+      
+                setSlots(prev => [...prev, {
+                    id: response.id,
+                    date: slotDate,
+                    startTime: timeStr,
+                    duration: slotDuration,
+                    price: slotPrice,
+                    booked: false,
+                }]);
+            }
+
+            setModalVisible(false);
+            setToastVisible(true);
+        } catch (error: any) {
+            console.error('Error saving slot:', error);
+            Alert.alert('Error', error.response?.data?.message || 'Failed to save availability slot');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
-    const handleDelete = (id: string) => {
-        // TODO: delete api - remove slot
-        setSlots(prev => prev.filter(s => s.id !== id));
-        if (selectedId === id) setSelectedId(null);
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteAvailabilitySlot(parseInt(id));
+            setSlots(prev => prev.filter(s => s.id !== id));
+            if (selectedId === id) setSelectedId(null);
+        } catch (error: any) {
+            console.error('Error deleting slot:', error);
+            Alert.alert('Error', error.response?.data?.message || 'Failed to delete availability slot');
+        }
     };
+
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.loadingContainer]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -281,9 +372,10 @@ const SetAvailabilityScreen: React.FC = () => {
                                 style={styles.sheetBtnStyle}
                             />
                             <Button
-                                title={editingId ? 'UPDATE' : 'CONFIRM'}
+                                title={submitting ? 'SAVING...' : (editingId ? 'UPDATE' : 'CONFIRM')}
                                 variant="primary"
                                 onPress={handleConfirm}
+                                disabled={submitting}
                                 style={styles.sheetBtnStyle}
                             />
                         </View>
@@ -322,6 +414,7 @@ const SetAvailabilityScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
+    loadingContainer: { justifyContent: 'center', alignItems: 'center' },
 
     header: {
         backgroundColor: colors.primary,
