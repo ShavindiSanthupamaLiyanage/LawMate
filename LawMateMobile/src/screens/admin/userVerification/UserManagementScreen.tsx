@@ -15,7 +15,10 @@ import { useNavigation } from "@react-navigation/native";
 const UserManagementScreen = () => {
     const navigation = useNavigation<any>();
     return (
-        <AdminLayout title="User Management">
+        <AdminLayout
+            title="User Management"
+            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+        >
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.content}

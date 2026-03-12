@@ -113,8 +113,10 @@ export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
   );
 
   return (
-      // <ScreenWrapper backgroundColor={colors.background} edges={["bottom"]}>
-      <AdminLayout userName="Finanace Managenent">
+      <AdminLayout title="View Finance Details"
+                   showBackButton
+                   onBackPress={() => navigation.goBack()}
+                   onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}>
         <ScrollView
             style={styles.container}
             showsVerticalScrollIndicator={false}

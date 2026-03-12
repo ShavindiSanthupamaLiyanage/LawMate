@@ -64,7 +64,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({
                 onPress={onBackPress}
                 activeOpacity={0.7}
               >
-                <Ionicons name="arrow-back" size={22} color={colors.white} />
+                <Ionicons name="chevron-back" size={22} color={colors.white} />
               </TouchableOpacity>
             )}
 
