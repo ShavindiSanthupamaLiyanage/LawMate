@@ -251,7 +251,11 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation }) => {
     };
 
     return (
-        <ClientLayout title="Search Lawyer" disableScroll>
+        <ClientLayout
+            title="Search Lawyer"
+            disableScroll
+            onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
+        >
             <View style={styles.screen}>
                 <View style={styles.body}>{renderContent()}</View>
 
