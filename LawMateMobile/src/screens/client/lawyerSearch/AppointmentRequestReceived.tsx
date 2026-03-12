@@ -3,11 +3,10 @@ import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity,
     Image,
 } from 'react-native';
 import ClientLayout from '../../../components/ClientLayout';
-import { colors, spacing } from '../../../config/theme';
+import { spacing } from '../../../config/theme';
 import Button from '../../../components/Button';
 
 interface AppointmentRequestReceivedScreenProps {
