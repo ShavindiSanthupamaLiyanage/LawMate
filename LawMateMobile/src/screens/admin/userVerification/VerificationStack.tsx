@@ -8,6 +8,8 @@ import LawyerProfileScreen from "./LawyerProfileScreen";
 import LawyerProfessionalDetailsScreen from "./LawyerProfessionalDetailsScreen";
 import AvailabilityScreen from "./AvailabilityScreen";
 import LawyerPersonalDetailsScreen from "./LawyerPersonalDetailsScreen";
+import ClientProfileScreen from "./ClientProfileScreen";
+import ClientPersonalDetailsScreen from "./ClientPersonalDetailsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -47,6 +49,16 @@ const VerificationStack = () => {
                 name="LawyerPersonal"
                 component={LawyerPersonalDetailsScreen}
             />
+                {/* Client Screens */}
+                <Stack.Screen
+                    name="ClientProfile"
+                    component={ClientProfileScreen}
+                />
+
+                <Stack.Screen
+                    name="ClientPersonalDetails"
+                    component={ClientPersonalDetailsScreen}
+                />
         </Stack.Navigator>
     );
 };
