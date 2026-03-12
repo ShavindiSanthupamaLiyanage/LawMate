@@ -10,7 +10,7 @@ interface ClientLayoutProps {
     profileImage?: string;
     onNotificationPress?: () => void;
     onProfilePress?: () => void;
-    title: string;
+    title?: string;
     showBackButton?: boolean;
     onBackPress?: () => void;
     hideRightSection?: boolean;

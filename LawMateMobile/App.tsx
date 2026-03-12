@@ -54,7 +54,7 @@ import AppointmentRequest from './src/screens/client/lawyerSearch/AppointmentReq
 import AppointmentForm from './src/screens/client/lawyerSearch/AppointmentForm';
 import AppointmentConfirm from './src/screens/client/lawyerSearch/AppointmentConfirm';
 import AppointmentRequestReceived from './src/screens/client/lawyerSearch/AppointmentRequestReceived';
-import ContactsScreen from "./src/screens/client/contacts/ContactsScreen";
+import ContactsScreen from "./src/screens/client/clientContacts/ContactsScreen";
 
 // Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
@@ -236,21 +236,21 @@ function ClientTabNavigator() {
             headerShown: false,
         }}>
             <ClientTab.Screen
-                name="Requests"
-                component={ClientRequestsStackNavigator}
-                options={{
-                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-                        <TabIcon iconName="mail-outline" color={color} focused={focused} />
-                    ),
-                }}
-            />
-
-            <ClientTab.Screen
                 name="Lawyers"
                 component={LawyerSearchStackNavigator}
                 options={{
                     tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
                         <TabIcon iconName="search-outline" color={color} focused={focused} />
+                    ),
+                }}
+            />
+
+            <ClientTab.Screen
+                name="Requests"
+                component={ClientRequestsStackNavigator}
+                options={{
+                    tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+                        <TabIcon iconName="mail-outline" color={color} focused={focused} />
                     ),
                 }}
             />
