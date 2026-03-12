@@ -50,7 +50,7 @@ import Constants from "expo-constants";
 const getBaseUrl = () => {
     if (!__DEV__) {
         // Production
-        return 'https://your-production-api.com/api';
+        return 'https://lawmate-api.azurewebsites.net/api';
     }
 
     // When using tunnel, Metro runs on exp.direct but your API is still local.
