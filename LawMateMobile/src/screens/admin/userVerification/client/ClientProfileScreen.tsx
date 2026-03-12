@@ -8,9 +8,9 @@ import {
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { spacing, colors, fontSize, fontWeight, borderRadius } from "../../../config/theme";
-import AdminLayout from "../../../components/AdminLayout";
-import Button from "../../../components/Button";
+import { spacing, colors, fontSize, fontWeight, borderRadius } from "../../../../config/theme";
+import AdminLayout from "../../../../components/AdminLayout";
+import Button from "../../../../components/Button";
 
 const ClientProfileScreen = () => {
     const route = useRoute<any>();
@@ -24,7 +24,11 @@ const ClientProfileScreen = () => {
     };
 
     return (
-        <AdminLayout title="Client Profile" showBackButton>
+        <AdminLayout title="Client Profile"
+                     showBackButton
+                     onBackPress={() => navigation.navigate("ClientVerification")}
+                     onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+        >
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
