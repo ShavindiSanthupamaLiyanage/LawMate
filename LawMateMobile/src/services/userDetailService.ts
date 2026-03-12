@@ -1,7 +1,8 @@
 import apiClient from "../api/client";
 import {ENDPOINTS} from "../config/api.config";
+import {UserCountsDto} from "../interfaces/userDetails.interface";
 
-export class UserService {
+export class UserDetailService {
 
     static async getUserByNic(nic: string): Promise<{ email: string; userId: string } | null> {
         try {
@@ -11,5 +12,10 @@ export class UserService {
             if (error?.response?.status === 404) return null;
             throw error;
         }
+    }
+
+    static async getUserCounts(): Promise<UserCountsDto> {
+        const response = await apiClient.get(ENDPOINTS.ADMIN.USER_COUNTS);
+        return response.data;
     }
 }

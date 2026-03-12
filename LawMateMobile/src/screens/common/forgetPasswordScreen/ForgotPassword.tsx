@@ -17,7 +17,7 @@ import Input from '../../../components/Input';
 import {useToast} from "../../../context/ToastContext";
 import ScreenWrapper from "../../../components/ScreenWrapper";
 import {AuthService} from "../../../services/authService";
-import {UserService} from "../../../services/userService";
+import {UserDetailService} from "../../../services/userDetailService";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -65,7 +65,7 @@ const ForgotPasswordScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         setLoading(true);
         try {
             // Step 1: Check if NIC exists and email matches
-            const user = await UserService.getUserByNic(nic.trim());
+            const user = await UserDetailService.getUserByNic(nic.trim());
 
             if (!user) {
                 showError('No account found with this NIC.');

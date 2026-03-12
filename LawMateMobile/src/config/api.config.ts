@@ -122,6 +122,7 @@ export const ENDPOINTS = {
     // Admin endpoints
     ADMIN: {
         USERS: '/admin/users',
+        USER_COUNTS: '/users/counts',
         STATISTICS: '/admin/statistics',
         REPORTS: {
             LAWYER_DETAILS: '/admin/reports/lawyer-details',
