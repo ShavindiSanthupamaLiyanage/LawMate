@@ -1,68 +1,125 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { colors } from '../../../config/theme';
 import LawyerLayout from '../../../components/LawyerLayout';
 import CalendarComponent, { Appointment, AvailabilitySlot } from './CalendarComponent';
+import { getLawyerAppointments, getLawyerAvailabilitySlots } from '../../../services/calendarService';
+import { AppointmentDto, AvailabilitySlotDto } from '../../../interfaces/calendar.interface';
+import { StorageService } from '../../../utils/storage';
 
 const CalendarScreen: React.FC = () => {
     const navigation = useNavigation<any>();
 
-    // TODO: get api - fetch appointments
-    const [appointments, _setAppointments] = useState<Appointment[]>([
-        {
-            id: '1',
-            clientName: 'John Silva',
-            email: 'john.silva@email.com',
-            contactNumber: '0728527717',
-            caseType: 'Criminal Law',
-            dateTime: new Date(2026, 2, 7, 11, 0, 0),
-            duration: 30,
-            status: 'confirmed',
-            mode: 'physical',
-            price: 5000,
-            appointmentId: 'APT-0001',
-            paymentStatus: 'Verified Payment',
-        },
-        {
-            id: '2',
-            clientName: 'Amara Perera',
-            email: 'amara.p@email.com',
-            contactNumber: '0711234567',
-            caseType: 'Family Law',
-            dateTime: new Date(2026, 2, 12, 14, 0, 0),
-            duration: 45,
-            status: 'pending',
-            mode: 'virtual',
-            price: 7500,
-            appointmentId: 'APT-0002',
-            paymentStatus: 'Pending',
-        },
-        {
-            id: '3',
-            clientName: 'Kamal Fernando',
-            email: 'kamal.f@email.com',
-            contactNumber: '0779876543',
-            caseType: 'Property Law',
-            dateTime: new Date(2026, 2, 20, 9, 30, 0),
-            duration: 60,
-            status: 'confirmed',
-            mode: 'physical',
-            price: 10000,
-            appointmentId: 'APT-0003',
-            paymentStatus: 'Verified Payment',
-            notes: 'Land dispute - bring title deeds',
-        },
-    ]);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [availabilitySlots, setAvailabilitySlots] = useState<AvailabilitySlot[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [lawyerId, setLawyerId] = useState<string | null>(null);
 
-    // TODO: get api - fetch availability slots
-    const [availabilitySlots, _setAvailabilitySlots] = useState<AvailabilitySlot[]>([
-        { id: '1', date: new Date(2026, 2, 10), startTime: '10:00', price: 5000, duration: 30, booked: false },
-        { id: '2', date: new Date(2026, 2, 10), startTime: '10:30', price: 5000, duration: 30, booked: false },
-        { id: '3', date: new Date(2026, 2, 15), startTime: '14:00', price: 7500, duration: 45, booked: false },
-        { id: '4', date: new Date(2026, 2, 15), startTime: '14:45', price: 7500, duration: 45, booked: true },
-    ]);
+  
+    useEffect(() => {
+        const fetchLawyerId = async () => {
+            try {
+                const userData = await StorageService.getUserData();
+                if (userData?.userId) {
+                    setLawyerId(userData.userId);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+        fetchLawyerId();
+    }, []);
 
+ 
+    useFocusEffect(
+        React.useCallback(() => {
+            if (lawyerId) {
+                fetchCalendarData();
+            }
+        }, [lawyerId])
+    );
+
+    const fetchCalendarData = async () => {
+        if (!lawyerId) return;
+
+        try {
+            setLoading(true);
+
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            const [appointmentsData, slotsData] = await Promise.all([
+                getLawyerAppointments(lawyerId, startOfMonth, endOfMonth),
+                getLawyerAvailabilitySlots(lawyerId, startOfMonth, endOfMonth),
+            ]);
+
+            const mappedAppointments = appointmentsData.map(mapAppointmentDtoToFrontend);
+            const mappedSlots = slotsData.map(mapSlotDtoToFrontend);
+
+            setAppointments(mappedAppointments);
+            setAvailabilitySlots(mappedSlots);
+        } catch (error) {
+            console.error('Error fetching calendar data:', error);
+     
+        } finally {
+            setLoading(false);
+        }
+    };
+
+  
+    const mapAppointmentDtoToFrontend = (dto: AppointmentDto): Appointment => {
+    
+        const statusMap: Record<string, 'pending' | 'confirmed' | 'completed'> = {
+            'Pending': 'pending',
+            'Accepted': 'confirmed',
+            'Verified': 'completed',
+            'Rejected': 'pending',
+            'Suspended': 'pending',
+        };
+
+        return {
+            id: dto.bookingId.toString(),
+            clientName: dto.clientName,
+            email: dto.email,
+            contactNumber: dto.contactNumber,
+            caseType: dto.caseType,
+            dateTime: new Date(dto.dateTime),
+            duration: dto.duration,
+            status: statusMap[dto.status] || 'pending',
+            mode: dto.mode.toLowerCase() as 'physical' | 'virtual',
+            price: dto.price,
+            notes: dto.notes,
+            appointmentId: dto.appointmentId,
+            paymentStatus: dto.paymentStatusDisplay,
+        };
+    };
+
+
+    const mapSlotDtoToFrontend = (dto: AvailabilitySlotDto): AvailabilitySlot => ({
+        id: dto.id,
+        date: new Date(dto.date),
+        startTime: dto.startTime,
+        price: dto.price,
+        duration: dto.duration,
+        booked: dto.booked,
+    });
+
+    if (loading) {
+        return (
+            <LawyerLayout
+                title="Calendar"
+                onNotificationPress={() => {}}
+                onProfilePress={() => navigation.navigate('LawyerProfile')}
+                disableScroll
+            >
+                <View style={[styles.wrapper, styles.centered]}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            </LawyerLayout>
+        );
+    }
     return (
         <LawyerLayout
             title="Calendar"
@@ -86,6 +143,10 @@ const styles = StyleSheet.create({
     wrapper: {
         flex: 1,
         backgroundColor: colors.background,
+    },
+    centered: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
 
