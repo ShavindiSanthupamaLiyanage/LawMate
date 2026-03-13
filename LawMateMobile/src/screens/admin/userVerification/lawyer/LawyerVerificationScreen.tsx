@@ -1,16 +1,17 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
     View,
     Text,
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    Image,
+    Image, ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import SearchBar from "../../../../components/SearchBar";
-import { colors, spacing, borderRadius } from "../../../../config/theme";
+import {colors, spacing, borderRadius, fontWeight, fontSize} from "../../../../config/theme";
 import AdminLayout from "../../../../components/AdminLayout";
+import {UserDetailService} from "../../../../services/userDetailService";
 
 
 type StatusType = "ALL" | "Pending" | "Active" | "Rejected";
@@ -19,40 +20,43 @@ interface Lawyer {
     id: string;
     name: string;
     barId: string;
-    image: string;
+    image: string | null;
     status: StatusType;
 }
-const DATA: Lawyer[] = [
-    {
-        id: "1",
-        name: "Maya Wickramage",
-        barId: "Bar ID: SL/2017/2345",
-        image: "https://i.pravatar.cc/150?img=5",
-        status: "Pending",
-    },
-    {
-        id: "2",
-        name: "Tharindu Bandara",
-        barId: "Bar ID: SL/2017/2346",
-        image: "https://i.pravatar.cc/150?img=8",
-        status: "Active",
-    },
-    {
-        id: "3",
-        name: "Namal Kumar",
-        barId: "Bar ID: SL/2017/2347",
-        image: "https://i.pravatar.cc/150?img=12",
-        status: "Rejected",
-    },
-];
+
+const mapStatus = (status: number): StatusType => {
+    switch (status) {
+        case 0: return "Pending";
+        case 1: return "Active";
+        case 2: return "Rejected";
+        default: return "Pending";
+    }
+};
 
 const LawyerVerificationScreen = () => {
     const navigation = useNavigation<any>();
     const [search, setSearch] = useState("");
     const [selectedTab, setSelectedTab] = useState<StatusType>("ALL");
+    const [lawyers, setLawyers] = useState<Lawyer[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        UserDetailService.getAllLawyerVerifications()
+            .then(data => {
+                setLawyers(data.map(l => ({
+                    id: l.userId,
+                    name: l.lawyerName,
+                    barId: `Bar ID: ${l.barAssociationRegNo}`,
+                    image: l.profileImage ? `data:image/jpeg;base64,${l.profileImage}` : null,
+                    status: mapStatus(l.verificationStatus),
+                })));
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
 
     /* ---------- FILTER LOGIC ---------- */
-    const filteredData = DATA.filter(item => {
+    const filteredData = lawyers.filter(item => {
         const matchSearch = item.name
             .toLowerCase()
             .includes(search.toLowerCase());
@@ -92,7 +96,16 @@ const LawyerVerificationScreen = () => {
                     })
                 }
             >
-                <Image source={{ uri: item.image }} style={styles.avatar} />
+                {item.image
+                    ? <Image source={{ uri: item.image }} style={styles.avatar} />
+                    : (
+                        <View style={styles.avatarFallback}>
+                            <Text style={styles.avatarInitials}>
+                                {item.name.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase()}
+                            </Text>
+                        </View>
+                    )
+                }
 
                 <View style={{ flex: 1 }}>
                     <Text style={styles.name}>{item.name}</Text>
@@ -154,6 +167,7 @@ const LawyerVerificationScreen = () => {
                 </View>
 
                 {/* LIST */}
+                {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />}
                 <FlatList
                     data={filteredData}
                     keyExtractor={item => item.id}
@@ -209,6 +223,27 @@ const styles = StyleSheet.create({
         marginRight: spacing.md,
     },
 
+    avatarFallback: {
+        width: 45,
+        height: 45,
+        borderRadius: 22,
+        marginRight: spacing.md,
+        backgroundColor: colors.primaryLight,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+
+    avatarInitials: {
+        color: colors.white,
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.bold,
+    },
+
     name: {
         fontWeight: "600",
         fontSize: 15,
@@ -216,7 +251,7 @@ const styles = StyleSheet.create({
 
     barId: {
         color: "#777",
-        fontSize: 12,
+        fontSize: fontSize.xs,
         marginTop: 2,
     },
 
