@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LawMate.Application.AdminModule;
 using LawMate.Application.Common.Interfaces.AdminReports;
 using LawMate.Infrastructure.Services.Reports;
 
@@ -33,6 +34,7 @@ namespace LawMate.Infrastructure
             services.AddScoped<IPlatformCommissionReportService, PlatformCommissionReportService>();
             services.AddScoped<IMonthlyRevenueReportService, MonthlyRevenueReportService>();
             services.AddScoped<IFinancialSummaryReportService, FinancialSummaryReportService>();
+            services.AddScoped<IFinanceService, FinanceService>();
             return services;
         }
     }
