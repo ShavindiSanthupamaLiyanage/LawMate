@@ -10,6 +10,18 @@ namespace LawMate.API.Services.Chatbot
     {
         private readonly ResponsesClient _client;
 
+        private static readonly HashSet<string> AllowedCategories = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Family Law",
+            "Criminal Law",
+            "Property Law",
+            "Employment Law",
+            "Civil Law / Civil Disputes",
+            "Business / Commercial Law",
+            "General Consultation",
+            "Not a Legal Matter"
+        };
+
         public OpenAiChatbotService()
         {
             var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
@@ -35,13 +47,16 @@ Your job is only to classify the client's issue into exactly one lawyer category
 - Civil Law / Civil Disputes
 - Business / Commercial Law
 - General Consultation
+- Not a Legal Matter
 
 Rules:
 - Do not provide legal advice.
 - Do not provide legal conclusions.
 - Do not recommend actions.
 - Do not predict outcomes.
-- If the issue is unclear, incomplete, or overlaps multiple areas, return "General Consultation".
+- If the issue is unclear, incomplete, or overlaps multiple legal areas, return "General Consultation".
+- If the issue is not legal in nature and does not appear to require a lawyer, return "Not a Legal Matter".
+- Keep the reason short, simple, and user-friendly.
 - Return valid JSON only with these exact fields:
   suggested_lawyer_category
   short_reason
@@ -68,11 +83,20 @@ Client issue:
                 throw new Exception("Failed to parse OpenAI response.");
             }
 
+            var category = parsed.suggested_lawyer_category?.Trim() ?? "General Consultation";
+
+            if (!AllowedCategories.Contains(category))
+            {
+                category = "General Consultation";
+            }
+
             return new ChatbotClassificationResponse
             {
-                SuggestedLawyerCategory = parsed.suggested_lawyer_category ?? "General Consultation",
-                ShortReason = parsed.short_reason ?? "The issue is unclear or may involve more than one legal area.",
-                Disclaimer = parsed.disclaimer ?? "This chatbot only helps identify the most relevant lawyer category based on the information provided. It does not provide legal advice or legal conclusions."
+                SuggestedLawyerCategory = category,
+                ShortReason = parsed.short_reason?.Trim()
+                    ?? "The issue is unclear or may involve more than one legal area.",
+                Disclaimer = parsed.disclaimer?.Trim()
+                    ?? "This chatbot only helps identify the most relevant lawyer category based on the information provided. It does not provide legal advice or legal conclusions."
             };
         }
 
