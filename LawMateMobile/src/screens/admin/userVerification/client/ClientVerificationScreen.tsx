@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
     View,
     Text,
@@ -6,53 +6,63 @@ import {
     FlatList,
     TouchableOpacity,
     Image,
+    ActivityIndicator,
 } from "react-native";
-
 import SearchBar from "../../../../components/SearchBar";
 import {colors, spacing, borderRadius, fontWeight, fontSize} from "../../../../config/theme";
 import AdminLayout from "../../../../components/AdminLayout";
 import { useNavigation } from "@react-navigation/native";
+import {ClientService} from "../../../../services/clientVerificationService";
 
 type StatusType = "ALL" | "Active" | "Rejected";
 
 interface Client {
-    id: string;
-    name: string;
-    email: string;
-    image: string;
-    status: StatusType;
+    id:               string;
+    prefix:           number;
+    name:             string;
+    nic:              string;
+    email:            string;
+    gender:           number;
+    contactNumber:    string;
+    state:            number;
+    registrationDate: string;
+    address:          string;
+    district:         number;
+    preferredLanguage: number;
+    image:            string | null;
+    status:           StatusType;
 }
-
-const DATA: Client[] = [
-    {
-        id: "1",
-        name: "Nisal Perera",
-        email: "nisal@gmail.com",
-        image: "https://i.pravatar.cc/150?img=10",
-        status: "Rejected",
-    },
-    {
-        id: "2",
-        name: "Nisha Perera",
-        email: "nisha@gmail.com",
-        image: "https://i.pravatar.cc/150?img=12",
-        status: "Active",
-    },
-    {
-        id: "3",
-        name: "Kamal Silva",
-        email: "kamal@gmail.com",
-        image: "https://i.pravatar.cc/150?img=7",
-        status: "Active",
-    },
-];
 
 const ClientVerificationScreen = () => {
     const [search, setSearch] = useState("");
     const [selectedTab, setSelectedTab] = useState<StatusType>("ALL");
     const navigation = useNavigation<any>();
+    const [clients, setClients] = useState<Client[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const filteredData = DATA.filter((item) => {
+    useEffect(() => {
+        ClientService.getAll()
+            .then(data => setClients(data.map(c => ({
+                id:               c.userId,
+                prefix:           c.prefix,
+                name:             `${c.firstName} ${c.lastName}`,
+                nic:              c.nic,
+                email:            c.email,
+                gender:           c.gender,
+                contactNumber:    c.contactNumber,
+                state:            c.state,
+                registrationDate: c.registrationDate,
+                address:          c.address,
+                district:         c.district,
+                preferredLanguage: c.prefferedLanguage,
+                image:            c.profileImage ? `data:image/jpeg;base64,${c.profileImage}` : null,
+                status:           c.state === 1 ? "Active" : "Rejected",
+            }))))
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
+
+    const filteredData = clients.filter((item) => {
         const matchSearch = item.name
             .toLowerCase()
             .includes(search.toLowerCase());
@@ -74,7 +84,6 @@ const ClientVerificationScreen = () => {
         }
     };
     const openProfile = (client: Client) => {
-        // Navigate to ClientProfile within ClientTabs stack
         navigation.navigate("ClientProfile", {
             client,
             viewOnly: true,
@@ -86,11 +95,18 @@ const ClientVerificationScreen = () => {
 
         return (
             <TouchableOpacity style={styles.card} onPress={() => openProfile(item)}>
-                <Image source={{ uri: item.image }} style={styles.avatar} />
+                {item.image
+                    ? <Image source={{ uri: item.image }} style={styles.avatar} />
+                    : <View style={[styles.avatar, styles.avatarFallback]}>
+                        <Text style={styles.avatarInitials}>
+                            {item.name.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase()}
+                        </Text>
+                    </View>
+                }
 
                 <View style={{ flex: 1 }}>
                     <Text style={styles.name}>{item.name}</Text>
-                    <Text style={styles.email}>{item.email}</Text>
+                    <Text style={styles.nic}>{item.nic}</Text>
                 </View>
 
                 <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
@@ -134,6 +150,7 @@ const ClientVerificationScreen = () => {
                     ))}
                 </View>
 
+                {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />}
                 <FlatList
                     data={filteredData}
                     keyExtractor={(item) => item.id}
@@ -199,7 +216,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
 
-    email: {
+    nic: {
         color: "#777",
         fontSize: 12,
         marginTop: 2,
@@ -209,5 +226,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
+    },
+    avatarFallback: {
+        backgroundColor: colors.primaryLight,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    avatarInitials: {
+        color: colors.white,
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.bold,
     },
 });
