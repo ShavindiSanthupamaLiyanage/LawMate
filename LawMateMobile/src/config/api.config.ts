@@ -112,45 +112,35 @@ export const ENDPOINTS = {
     CLIENTS: "/lawyer/clients",
   },
 
-  // Client endpoints
-  CLIENT: {
-    PROFILE: "/client/profile",
-    UPDATE_PROFILE: "/client/profile",
-    APPOINTMENTS: "/client/appointments",
-    LAWYERS: "/client/lawyers",
-    CASES: "/client/cases",
-  },
-
-  // Admin endpoints
-  ADMIN: {
-    USERS: "/admin/users",
-    STATISTICS: "/admin/statistics",
-    REPORTS: {
-      LAWYER_DETAILS: "/admin/reports/lawyer-details",
-      CLIENT_DETAILS: "/admin/reports/client-details",
-      MEMBERSHIP_RENEWALS: "/admin/reports/membership-renewals",
-      PLATFORM_COMMISSION: "/admin/reports/platform-commission",
-      MONTHLY_REVENUE: "/admin/reports/monthly-revenue",
-      FINANCIAL_SUMMARY: "/admin/reports/financial-summary",
+    // Client endpoints
+    CLIENT: {
+        REGISTER: '/clients',
+        PROFILE: '/client/profile',
+        UPDATE_PROFILE: '/client/profile',
+        APPOINTMENTS: '/client/appointments',
+        LAWYERS: '/client/lawyers',
+        CASES: '/client/cases',
     },
-  },
-  USER: {
-    GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
-  },
-  CONTACT: {
-    SEND: "/contactUs/send",
-  },
-  BOOKING: {
-    GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>
-      `/bookings/lawyer/${lawyerId}`,
-    GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,
-    CREATE: "/bookings",
-    UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
-  },
-  AVAILABILITY: {
-    GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
-    CREATE: "/availability",
-    UPDATE: (slotId: number) => `/availability/${slotId}`,
-    DELETE: (slotId: number) => `/availability/${slotId}`,
-  },
+
+    // Admin endpoints
+    ADMIN: {
+        USERS: '/admin/users',
+        USER_COUNTS: '/users/counts',
+        STATISTICS: '/admin/statistics',
+        LAWYER_VERIFICATION: '/lawyer-verification/all',
+        REPORTS: {
+            LAWYER_DETAILS: '/admin/reports/lawyer-details',
+            CLIENT_DETAILS: '/admin/reports/client-details',
+            MEMBERSHIP_RENEWALS: '/admin/reports/membership-renewals',
+            PLATFORM_COMMISSION: '/admin/reports/platform-commission',
+            MONTHLY_REVENUE: '/admin/reports/monthly-revenue',
+            FINANCIAL_SUMMARY: '/admin/reports/financial-summary',
+        },
+    },
+    USER: {
+        GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
+    },
+    CONTACT: {
+        SEND: '/contactUs/send',
+    },
 };
