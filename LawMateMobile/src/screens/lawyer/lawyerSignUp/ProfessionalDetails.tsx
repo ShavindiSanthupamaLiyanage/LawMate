@@ -19,8 +19,8 @@ import {
     FileAsset,
     LawyerProfessionalDetails,
 } from "../../../interfaces/lawyerRegistration.interface";
-import {AreaOfPracticeOptions, DistrictsByProvince, ProvinceOptions} from "../../../emun/enumOptions";
-import {District, Province} from "../../../emun/enum";
+import {AreaOfPracticeOptions, DistrictsByProvince, ProvinceOptions} from "../../../enum/enumOptions";
+import {District, Province} from "../../../enum/enum";
 
 interface Props {
     values: LawyerProfessionalDetails;
