@@ -1,5 +1,6 @@
 ﻿using LawMate.Application.AdminModule.LawyerVerification;
 using LawMate.Application.AdminModule.LawyerVerification.Commands;
+using LawMate.Application.AdminModule.LawyerVerification.Queries;
 using LawMate.Domain.Common.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,15 @@ public class LawyerVerificationController : ControllerBase
     {
         _mediator = mediator;
     }
+    
+    [Authorize]
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllLawyerVerification()
+    {
+        var result = await _mediator.Send(new GetAllLawyerVerificationQuery());
+        return Ok(result);
+    }
+    
     [HttpGet("pending")] public async Task<IActionResult> GetPending()
     {
         return Ok(await _mediator.Send(
