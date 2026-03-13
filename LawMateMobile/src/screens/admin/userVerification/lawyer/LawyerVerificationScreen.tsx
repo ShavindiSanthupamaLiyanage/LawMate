@@ -152,14 +152,11 @@ const LawyerVerificationScreen = () => {
                             ]}
                             onPress={() => setSelectedTab(tab as StatusType)}
                         >
-                            <Text
-                                style={{
-                                    color:
-                                        selectedTab === tab
-                                            ? colors.white
-                                            : colors.textPrimary,
-                                }}
-                            >
+                            <Text style={{
+                                color: selectedTab === tab ? colors.primary : colors.textSecondary,
+                                fontWeight: selectedTab === tab ? fontWeight.semibold : fontWeight.medium,
+                                fontSize: fontSize.sm,
+                            }}>
                                 {tab}
                             </Text>
                         </TouchableOpacity>
@@ -184,28 +181,27 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: spacing.md,
     },
-
-    /* Tabs */
     tabs: {
         flexDirection: "row",
+        backgroundColor: colors.borderLight,
+        borderRadius: borderRadius.lg,
         marginVertical: spacing.md,
-        backgroundColor: "#ECECEC",
-        borderRadius: borderRadius.full,
         padding: 4,
     },
-
     tab: {
         flex: 1,
-        paddingVertical: 8,
+        paddingVertical: spacing.sm,
         alignItems: "center",
-        borderRadius: borderRadius.full,
+        borderRadius: borderRadius.md,
     },
-
     activeTab: {
-        backgroundColor: colors.primary,
+        backgroundColor: colors.white,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
-
-    /* Card */
     card: {
         flexDirection: "row",
         alignItems: "center",
@@ -215,14 +211,12 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
         elevation: 2,
     },
-
     avatar: {
         width: 45,
         height: 45,
         borderRadius: 22,
         marginRight: spacing.md,
     },
-
     avatarFallback: {
         width: 45,
         height: 45,
@@ -237,24 +231,20 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
     },
-
     avatarInitials: {
         color: colors.white,
         fontSize: fontSize.sm,
         fontWeight: fontWeight.bold,
     },
-
     name: {
         fontWeight: "600",
         fontSize: 15,
     },
-
     barId: {
         color: "#777",
         fontSize: fontSize.xs,
         marginTop: 2,
     },
-
     statusBadge: {
         paddingHorizontal: 12,
         paddingVertical: 6,
