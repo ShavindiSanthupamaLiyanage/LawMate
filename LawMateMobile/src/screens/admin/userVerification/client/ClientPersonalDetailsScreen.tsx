@@ -18,8 +18,8 @@ import {
     fontSize,
     fontWeight,
     borderRadius
-} from '../../../config/theme';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+} from '../../../../config/theme';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
 
 interface PersonalData {
     name: string;

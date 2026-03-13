@@ -99,5 +99,40 @@ namespace LawMate.API.Controllers.AdminModule
             _logger.Info($"Admin found | UserId: {userId}");
             return Ok(result);
         }
+        
+        [Authorize]
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> Update(string userId, [FromBody] UpdateAdminCommand command)
+        {
+            if (userId != command.UserId)
+                return BadRequest("UserId mismatch");
+
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+        
+        [Authorize]
+        [HttpPut("{userId}/profile-image")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ChangeProfileImage(
+            string userId,
+            [FromForm] ChangeAdminProfileImageCommand command)
+        {
+            if (userId != command.UserId)
+                return BadRequest("UserId mismatch");
+
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+        
+        [Authorize]
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> Delete(string userId)
+        {
+            await _mediator.Send(new DeleteAdminCommand(userId));
+            return NoContent();
+        }
     }
 }

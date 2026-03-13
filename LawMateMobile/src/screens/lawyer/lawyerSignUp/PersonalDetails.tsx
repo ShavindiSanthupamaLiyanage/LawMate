@@ -6,7 +6,7 @@ import SelectInput from "../../../components/SelectInput";
 import { colors, spacing } from "../../../config/theme";
 import { AntDesign } from "@expo/vector-icons";
 import { LawyerPersonalDetails } from "../../../interfaces/lawyerRegistration.interface";
-import {GenderOptions, PrefixOptions} from "../../../emun/enumOptions";
+import {GenderOptions, PrefixOptions} from "../../../enum/enumOptions";
 
 interface Props {
     values: LawyerPersonalDetails;

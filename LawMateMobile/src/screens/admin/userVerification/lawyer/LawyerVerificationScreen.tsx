@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
     View,
     Text,
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    Image,
+    Image, ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-// import LawyerList from "../userVerification/LawyerList";
-import SearchBar from "../../../components/SearchBar";
-import { colors, spacing, borderRadius } from "../../../config/theme";
-import AdminLayout from "../../../components/AdminLayout";
+import SearchBar from "../../../../components/SearchBar";
+import {colors, spacing, borderRadius, fontWeight, fontSize} from "../../../../config/theme";
+import AdminLayout from "../../../../components/AdminLayout";
+import {UserDetailService} from "../../../../services/userDetailService";
 
 
 type StatusType = "ALL" | "Pending" | "Active" | "Rejected";
@@ -20,40 +20,43 @@ interface Lawyer {
     id: string;
     name: string;
     barId: string;
-    image: string;
+    image: string | null;
     status: StatusType;
 }
-const DATA: Lawyer[] = [
-    {
-        id: "1",
-        name: "Maya Wickramage",
-        barId: "Bar ID: SL/2017/2345",
-        image: "https://i.pravatar.cc/150?img=5",
-        status: "Pending",
-    },
-    {
-        id: "2",
-        name: "Tharindu Bandara",
-        barId: "Bar ID: SL/2017/2346",
-        image: "https://i.pravatar.cc/150?img=8",
-        status: "Active",
-    },
-    {
-        id: "3",
-        name: "Namal Kumar",
-        barId: "Bar ID: SL/2017/2347",
-        image: "https://i.pravatar.cc/150?img=12",
-        status: "Rejected",
-    },
-];
+
+const mapStatus = (status: number): StatusType => {
+    switch (status) {
+        case 0: return "Pending";
+        case 1: return "Active";
+        case 2: return "Rejected";
+        default: return "Pending";
+    }
+};
 
 const LawyerVerificationScreen = () => {
     const navigation = useNavigation<any>();
     const [search, setSearch] = useState("");
     const [selectedTab, setSelectedTab] = useState<StatusType>("ALL");
+    const [lawyers, setLawyers] = useState<Lawyer[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        UserDetailService.getAllLawyerVerifications()
+            .then(data => {
+                setLawyers(data.map(l => ({
+                    id: l.userId,
+                    name: l.lawyerName,
+                    barId: `Bar ID: ${l.barAssociationRegNo}`,
+                    image: l.profileImage ? `data:image/jpeg;base64,${l.profileImage}` : null,
+                    status: mapStatus(l.verificationStatus),
+                })));
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
 
     /* ---------- FILTER LOGIC ---------- */
-    const filteredData = DATA.filter(item => {
+    const filteredData = lawyers.filter(item => {
         const matchSearch = item.name
             .toLowerCase()
             .includes(search.toLowerCase());
@@ -93,7 +96,16 @@ const LawyerVerificationScreen = () => {
                     })
                 }
             >
-                <Image source={{ uri: item.image }} style={styles.avatar} />
+                {item.image
+                    ? <Image source={{ uri: item.image }} style={styles.avatar} />
+                    : (
+                        <View style={styles.avatarFallback}>
+                            <Text style={styles.avatarInitials}>
+                                {item.name.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase()}
+                            </Text>
+                        </View>
+                    )
+                }
 
                 <View style={{ flex: 1 }}>
                     <Text style={styles.name}>{item.name}</Text>
@@ -115,7 +127,12 @@ const LawyerVerificationScreen = () => {
     };
 
     return (
-        <AdminLayout title="Lawyer Verification" disableScroll showBackButton>
+        <AdminLayout title="Lawyer Verification"
+                     disableScroll
+                     showBackButton
+                     onBackPress={() => navigation.navigate("UserManagement")}
+                     onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+        >
             <View style={styles.container}>
                 {/* SEARCH */}
                 <SearchBar
@@ -135,14 +152,11 @@ const LawyerVerificationScreen = () => {
                             ]}
                             onPress={() => setSelectedTab(tab as StatusType)}
                         >
-                            <Text
-                                style={{
-                                    color:
-                                        selectedTab === tab
-                                            ? colors.white
-                                            : colors.textPrimary,
-                                }}
-                            >
+                            <Text style={{
+                                color: selectedTab === tab ? colors.primary : colors.textSecondary,
+                                fontWeight: selectedTab === tab ? fontWeight.semibold : fontWeight.medium,
+                                fontSize: fontSize.sm,
+                            }}>
                                 {tab}
                             </Text>
                         </TouchableOpacity>
@@ -150,6 +164,7 @@ const LawyerVerificationScreen = () => {
                 </View>
 
                 {/* LIST */}
+                {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />}
                 <FlatList
                     data={filteredData}
                     keyExtractor={item => item.id}
@@ -166,28 +181,27 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: spacing.md,
     },
-
-    /* Tabs */
     tabs: {
         flexDirection: "row",
+        backgroundColor: colors.borderLight,
+        borderRadius: borderRadius.lg,
         marginVertical: spacing.md,
-        backgroundColor: "#ECECEC",
-        borderRadius: borderRadius.full,
         padding: 4,
     },
-
     tab: {
         flex: 1,
-        paddingVertical: 8,
+        paddingVertical: spacing.sm,
         alignItems: "center",
-        borderRadius: borderRadius.full,
+        borderRadius: borderRadius.md,
     },
-
     activeTab: {
-        backgroundColor: colors.primary,
+        backgroundColor: colors.white,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
-
-    /* Card */
     card: {
         flexDirection: "row",
         alignItems: "center",
@@ -197,25 +211,40 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
         elevation: 2,
     },
-
     avatar: {
         width: 45,
         height: 45,
         borderRadius: 22,
         marginRight: spacing.md,
     },
-
+    avatarFallback: {
+        width: 45,
+        height: 45,
+        borderRadius: 22,
+        marginRight: spacing.md,
+        backgroundColor: colors.primaryLight,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    avatarInitials: {
+        color: colors.white,
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.bold,
+    },
     name: {
         fontWeight: "600",
         fontSize: 15,
     },
-
     barId: {
         color: "#777",
-        fontSize: 12,
+        fontSize: fontSize.xs,
         marginTop: 2,
     },
-
     statusBadge: {
         paddingHorizontal: 12,
         paddingVertical: 6,

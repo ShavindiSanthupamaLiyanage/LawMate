@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {
     View,
     Text,
@@ -11,11 +11,32 @@ import AdminLayout from "../../../components/AdminLayout";
 import SummaryCard from ".//SummaryCard";
 import ActionItem from ".//ActionItem";
 import { useNavigation } from "@react-navigation/native";
+import {UserCountsDto} from "../../../interfaces/userDetails.interface";
+import {UserDetailService} from "../../../services/userDetailService";
 
 const UserManagementScreen = () => {
     const navigation = useNavigation<any>();
+
+    const [counts, setCounts] = useState<UserCountsDto>({
+        verifiedLawyers: 0,
+        pendingLawyers: 0,
+        inactiveLawyers: 0,
+        activeLawyers: 0,
+        activeClients: 0,
+        inactiveClients: 0,
+    });
+
+    useEffect(() => {
+        UserDetailService.getUserCounts()
+            .then(setCounts)
+            .catch(console.error);
+    }, []);
+
     return (
-        <AdminLayout title="User Management">
+        <AdminLayout
+            title="User Management"
+            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+        >
             <ScrollView
                 style={styles.container}
                 contentContainerStyle={styles.content}
@@ -30,42 +51,42 @@ const UserManagementScreen = () => {
                 <View style={styles.grid}>
                     <SummaryCard
                         title="Verified Lawyers"
-                        value="100"
+                        value={String(counts.verifiedLawyers)}
                         backgroundColor="#CDEFE1"
                         accentColor="#2EAD6B"
                     />
 
                     <SummaryCard
                         title="Pending Lawyers"
-                        value="203"
+                        value={String(counts.pendingLawyers)}
                         backgroundColor="#FDE6D6"
                         accentColor="#F38B2A"
                     />
 
                     <SummaryCard
                         title="Inactive Lawyers"
-                        value="23"
+                        value={String(counts.inactiveLawyers)}
                         backgroundColor="#F9D6D6"
                         accentColor="#C74848"
                     />
 
                     <SummaryCard
                         title="Active Lawyers"
-                        value="230"
+                        value={String(counts.activeLawyers)}
                         backgroundColor="#D9E6F7"
                         accentColor="#4A67C8"
                     />
 
                     <SummaryCard
                         title="Active Clients"
-                        value="503"
+                        value={String(counts.activeClients)}
                         backgroundColor="#D9E6F7"
                         accentColor="#4A67C8"
                     />
 
                     <SummaryCard
                         title="Suspended Clients"
-                        value="20"
+                        value={String(counts.inactiveClients)}
                         backgroundColor="#F9D6D6"
                         accentColor="#C74848"
                     />

@@ -91,7 +91,6 @@ const KnowledgeHub: React.FC = () => {
   return (
     <ClientLayout
       title="Knowledge Hub"
-      userName="Kavindu Gimsara"
       onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
     >
       <View style={styles.contentWrapper}>
