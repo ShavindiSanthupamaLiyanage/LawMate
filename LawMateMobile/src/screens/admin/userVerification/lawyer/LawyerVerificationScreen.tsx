@@ -181,7 +181,6 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: spacing.md,
     },
-
     tabs: {
         flexDirection: "row",
         backgroundColor: colors.borderLight,
@@ -189,14 +188,12 @@ const styles = StyleSheet.create({
         marginVertical: spacing.md,
         padding: 4,
     },
-
     tab: {
         flex: 1,
         paddingVertical: spacing.sm,
         alignItems: "center",
         borderRadius: borderRadius.md,
     },
-
     activeTab: {
         backgroundColor: colors.white,
         shadowColor: "#000",
@@ -205,7 +202,6 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
         elevation: 2,
     },
-
     card: {
         flexDirection: "row",
         alignItems: "center",
@@ -215,14 +211,12 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
         elevation: 2,
     },
-
     avatar: {
         width: 45,
         height: 45,
         borderRadius: 22,
         marginRight: spacing.md,
     },
-
     avatarFallback: {
         width: 45,
         height: 45,
@@ -237,24 +231,20 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
     },
-
     avatarInitials: {
         color: colors.white,
         fontSize: fontSize.sm,
         fontWeight: fontWeight.bold,
     },
-
     name: {
         fontWeight: "600",
         fontSize: 15,
     },
-
     barId: {
         color: "#777",
         fontSize: fontSize.xs,
         marginTop: 2,
     },
-
     statusBadge: {
         paddingHorizontal: 12,
         paddingVertical: 6,
