@@ -50,7 +50,7 @@ import Constants from "expo-constants";
 const getBaseUrl = () => {
     if (!__DEV__) {
         // Production
-        return 'https://your-production-api.com/api';
+        return 'https://lawmate-api.azurewebsites.net/api';
     }
 
     // When using tunnel, Metro runs on exp.direct but your API is still local.
@@ -122,7 +122,17 @@ export const ENDPOINTS = {
     // Admin endpoints
     ADMIN: {
         USERS: '/admin/users',
+        USER_COUNTS: '/users/counts',
         STATISTICS: '/admin/statistics',
+        LAWYER_VERIFICATION: '/lawyer-verification/all',
+        REPORTS: {
+            LAWYER_DETAILS: '/admin/reports/lawyer-details',
+            CLIENT_DETAILS: '/admin/reports/client-details',
+            MEMBERSHIP_RENEWALS: '/admin/reports/membership-renewals',
+            PLATFORM_COMMISSION: '/admin/reports/platform-commission',
+            MONTHLY_REVENUE: '/admin/reports/monthly-revenue',
+            FINANCIAL_SUMMARY: '/admin/reports/financial-summary',
+        },
     },
     USER: {
         GET_BY_NIC: (nic: string) => `/users/${nic}/email`,

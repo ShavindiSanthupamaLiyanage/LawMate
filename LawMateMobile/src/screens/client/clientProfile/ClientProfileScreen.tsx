@@ -6,13 +6,15 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert,
+    Alert as RNAlert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import Alert from '../../../components/Alert';
+import { AuthService } from '../../../services/authService';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -42,9 +44,9 @@ const SubMenuItem: React.FC<SubItemProps> = ({ title, onPress }) => (
 
 const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout, hasSubItems, isExpanded, onToggle }) => (
     <>
-        <TouchableOpacity 
-            style={styles.menuItem} 
-            onPress={hasSubItems ? onToggle : onPress} 
+        <TouchableOpacity
+            style={styles.menuItem}
+            onPress={hasSubItems ? onToggle : onPress}
             activeOpacity={0.7}
         >
             <View style={styles.menuLeft}>
@@ -65,6 +67,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 const ClientProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
+    const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
     // TODO: Replace with actual API data
     const profileData = {
@@ -85,25 +88,13 @@ const ClientProfileScreen: React.FC = () => {
     };
 
     const handleLogout = () => {
-        Alert.alert(
-            'Logout',
-            'Are you sure you want to logout?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Logout',
-                    onPress: () => {
-                        // TODO: Call logout API and clear auth tokens
-                        navigation.navigate('Login');
-                    },
-                    style: 'destructive',
-                },
-            ],
-            { cancelable: false }
-        );
+        setShowLogoutAlert(true);
+    };
+
+    const confirmLogout = async () => {
+        setShowLogoutAlert(false);
+        await AuthService.logout();
+        navigation.navigate('Welcome'); // or whatever your welcome screen is named
     };
 
     const handleEditProfile = () => {
@@ -131,13 +122,13 @@ const ClientProfileScreen: React.FC = () => {
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.7}
                 >
-                    <Ionicons name="arrow-back" size={24} color={colors.white} />
+                    <Ionicons name="chevron-back" size={24} color={colors.white} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Client Profile</Text>
                 <View style={styles.backButton} />
             </LinearGradient>
 
-            <ScrollView 
+            <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
@@ -145,7 +136,7 @@ const ClientProfileScreen: React.FC = () => {
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
                     <View style={styles.curvedBackground} />
-                    
+
                     <View style={styles.profileImageContainer}>
                         {profileData.profileImage ? (
                             <Image
@@ -160,7 +151,7 @@ const ClientProfileScreen: React.FC = () => {
                     </View>
 
                     <Text style={styles.profileName}>{profileData.name}</Text>
-                    
+
                     <View style={styles.badgeContainer}>
                         <Ionicons name="person-circle-outline" size={14} color={colors.primary} />
                         <Text style={styles.userId}>{profileData.userId}</Text>
@@ -196,7 +187,7 @@ const ClientProfileScreen: React.FC = () => {
                         title="Personal Details"
                         onPress={() => navigation.navigate('ClientPersonalDetails')}
                     />
-                    
+
                     <MenuItem
                         icon="bookmark-outline"
                         title="My Bookings"
@@ -209,15 +200,15 @@ const ClientProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Active Bookings"
-                                onPress={() => Alert.alert('Active', 'View active bookings')}
+                                onPress={() => RNAlert.alert('Active', 'View active bookings')}
                             />
                             <SubMenuItem
                                 title="Completed Bookings"
-                                onPress={() => Alert.alert('Completed', 'View completed bookings')}
+                                onPress={() => RNAlert.alert('Completed', 'View completed bookings')}
                             />
                             <SubMenuItem
                                 title="Cancelled Bookings"
-                                onPress={() => Alert.alert('Cancelled', 'View cancelled bookings')}
+                                onPress={() => RNAlert.alert('Cancelled', 'View cancelled bookings')}
                             />
                         </>
                     )}
@@ -234,11 +225,11 @@ const ClientProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="View Favorites"
-                                onPress={() => Alert.alert('Favorites', 'View favorite lawyers')}
+                                onPress={() => RNAlert.alert('Favorites', 'View favorite lawyers')}
                             />
                             <SubMenuItem
                                 title="Recently Booked"
-                                onPress={() => Alert.alert('Recent', 'View recently booked lawyers')}
+                                onPress={() => RNAlert.alert('Recent', 'View recently booked lawyers')}
                             />
                         </>
                     )}
@@ -255,11 +246,11 @@ const ClientProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="My Reviews"
-                                onPress={() => Alert.alert('My Reviews', 'View your reviews')}
+                                onPress={() => RNAlert.alert('My Reviews', 'View your reviews')}
                             />
                             <SubMenuItem
                                 title="Pending Reviews"
-                                onPress={() => Alert.alert('Pending', 'Leave pending reviews')}
+                                onPress={() => RNAlert.alert('Pending', 'Leave pending reviews')}
                             />
                         </>
                     )}
@@ -276,15 +267,15 @@ const ClientProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Payment Methods"
-                                onPress={() => Alert.alert('Methods', 'Manage payment methods')}
+                                onPress={() => RNAlert.alert('Methods', 'Manage payment methods')}
                             />
                             <SubMenuItem
                                 title="Billing History"
-                                onPress={() => Alert.alert('History', 'View billing history')}
+                                onPress={() => RNAlert.alert('History', 'View billing history')}
                             />
                             <SubMenuItem
                                 title="Invoices"
-                                onPress={() => Alert.alert('Invoices', 'View invoices')}
+                                onPress={() => RNAlert.alert('Invoices', 'View invoices')}
                             />
                         </>
                     )}
@@ -301,15 +292,15 @@ const ClientProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="Account Security"
-                                onPress={() => Alert.alert('Security', 'Manage account security')}
+                                onPress={() => RNAlert.alert('Security', 'Manage account security')}
                             />
                             <SubMenuItem
                                 title="Privacy Settings"
-                                onPress={() => Alert.alert('Privacy', 'Manage privacy settings')}
+                                onPress={() => RNAlert.alert('Privacy', 'Manage privacy settings')}
                             />
                             <SubMenuItem
                                 title="Notification Settings"
-                                onPress={() => Alert.alert('Notifications', 'Configure notifications')}
+                                onPress={() => RNAlert.alert('Notifications', 'Configure notifications')}
                             />
                         </>
                     )}
@@ -326,11 +317,11 @@ const ClientProfileScreen: React.FC = () => {
                         <>
                             <SubMenuItem
                                 title="FAQ"
-                                onPress={() => Alert.alert('FAQ', 'View frequently asked questions')}
+                                onPress={() => RNAlert.alert('FAQ', 'View frequently asked questions')}
                             />
                             <SubMenuItem
                                 title="Contact Support"
-                                onPress={() => Alert.alert('Support', 'Contact customer support')}
+                                onPress={() => RNAlert.alert('Support', 'Contact customer support')}
                             />
                         </>
                     )}
@@ -363,6 +354,19 @@ const ClientProfileScreen: React.FC = () => {
                 </TouchableOpacity>
             </View>
             </View>
+
+            <Alert
+                visible={showLogoutAlert}
+                title="Logout"
+                message="Are you sure you want to logout?"
+                type="warning"
+                confirmText="Logout"
+                cancelText="Cancel"
+                onConfirm={confirmLogout}
+                onCancel={() => setShowLogoutAlert(false)}
+                onClose={() => setShowLogoutAlert(false)}
+            />
+
         </ScreenWrapper>
     );
 };

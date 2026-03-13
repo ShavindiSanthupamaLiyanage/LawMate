@@ -8,9 +8,10 @@ import {
     Image,
 } from "react-native";
 
-import SearchBar from "../../../components/SearchBar";
-import { colors, spacing, borderRadius } from "../../../config/theme";
-import AdminLayout from "../../../components/AdminLayout";
+import SearchBar from "../../../../components/SearchBar";
+import { colors, spacing, borderRadius } from "../../../../config/theme";
+import AdminLayout from "../../../../components/AdminLayout";
+import { useNavigation } from "@react-navigation/native";
 
 type StatusType = "ALL" | "Active" | "Rejected";
 
@@ -49,6 +50,7 @@ const DATA: Client[] = [
 const ClientVerificationScreen = () => {
     const [search, setSearch] = useState("");
     const [selectedTab, setSelectedTab] = useState<StatusType>("ALL");
+    const navigation = useNavigation<any>();
 
     const filteredData = DATA.filter((item) => {
         const matchSearch = item.name
@@ -71,12 +73,19 @@ const ClientVerificationScreen = () => {
                 return {};
         }
     };
+    const openProfile = (client: Client) => {
+        // Navigate to ClientProfile within ClientTabs stack
+        navigation.navigate("ClientProfile", {
+            client,
+            viewOnly: true,
+        });
+    };
 
     const renderItem = ({ item }: { item: Client }) => {
         const statusStyle = getStatusStyle(item.status);
 
         return (
-            <View style={styles.card}>
+            <TouchableOpacity style={styles.card} onPress={() => openProfile(item)}>
                 <Image source={{ uri: item.image }} style={styles.avatar} />
 
                 <View style={{ flex: 1 }}>
@@ -84,21 +93,19 @@ const ClientVerificationScreen = () => {
                     <Text style={styles.email}>{item.email}</Text>
                 </View>
 
-                <View
-                    style={[
-                        styles.statusBadge,
-                        { backgroundColor: statusStyle.backgroundColor },
-                    ]}
-                >
-                    <Text style={{ color: statusStyle.color }}>
-                        {item.status}
-                    </Text>
+                <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
+                    <Text style={{ color: statusStyle.color }}>{item.status}</Text>
                 </View>
-            </View>
+            </TouchableOpacity>
         );
     };
     return (
-        <AdminLayout title="Client Verification" disableScroll showBackButton>
+        <AdminLayout title="Client Verification"
+                     disableScroll
+                     showBackButton
+                     onBackPress={() => navigation.navigate("UserManagement")}
+                     onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+        >
             <View style={styles.container}>
                 <SearchBar
                     value={search}

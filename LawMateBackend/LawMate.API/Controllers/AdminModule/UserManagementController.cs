@@ -1,4 +1,5 @@
-﻿using LawMate.Application.Common.UserDetails.Queries;
+﻿using LawMate.Application.AdminModule.UserManagement.Queries;
+using LawMate.Application.Common.UserDetails.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -49,4 +50,9 @@ public class UserController : ControllerBase
     [HttpGet("{userId}/role")]
     public async Task<IActionResult> GetUserRole(string userId)
         => Ok(await _mediator.Send(new GetUserRoleQuery(userId)));
+    
+    [Authorize]
+    [HttpGet("counts")]
+    public async Task<IActionResult> GetUserCounts()
+        => Ok(await _mediator.Send(new GetUserCountsQuery()));
 }

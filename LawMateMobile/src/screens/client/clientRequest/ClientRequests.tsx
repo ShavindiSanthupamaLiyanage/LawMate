@@ -3,6 +3,7 @@ import { FlatList } from 'react-native';
 import ClientLayout from '../../../components/ClientLayout';
 import ClientRequestTabs from './ClientRequestTabs';
 import ClientRequestCard from './ClientRequestCard';
+import {useNavigation} from "@react-navigation/native";
 
 type Request = {
   id: string;
@@ -39,8 +40,14 @@ const ClientRequests: React.FC = () => {
     return req.status === activeTab;
   });
 
+  const navigation = useNavigation<any>();
+
   return (
-    <ClientLayout title="Requests" disableScroll>
+    <ClientLayout
+        title="Requests"
+        disableScroll
+        onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
+    >
       <FlatList
         data={filteredRequests}
         keyExtractor={item => item.id}

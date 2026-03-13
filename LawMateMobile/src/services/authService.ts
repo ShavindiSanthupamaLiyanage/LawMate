@@ -80,15 +80,6 @@ export class AuthService {
         try {
             console.log('Logging out...');
 
-            // Optional: Call backend logout endpoint
-            // This is useful if you want to invalidate the token on the server
-            try {
-                await apiClient.post(ENDPOINTS.AUTH.LOGOUT);
-            } catch (error) {
-                // Continue with logout even if API call fails
-                console.warn('Backend logout failed, continuing with local logout');
-            }
-
             // Clear all local storage
             await StorageService.clearAll();
 

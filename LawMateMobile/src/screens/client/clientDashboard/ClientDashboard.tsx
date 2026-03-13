@@ -161,9 +161,8 @@ const ClientDashboard: React.FC = () => {
 
     return (
         <ClientLayout
-            title="Dashboard"
+            // title="Dashboard"
             userName="Kavindi Gimsara"
-            disableScroll
             onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
         >
             <View style={{ flex: 1 }}>
