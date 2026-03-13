@@ -124,6 +124,7 @@ export const ENDPOINTS = {
         USERS: '/admin/users',
         USER_COUNTS: '/users/counts',
         STATISTICS: '/admin/statistics',
+        LAWYER_VERIFICATION: '/lawyer-verification/all',
         REPORTS: {
             LAWYER_DETAILS: '/admin/reports/lawyer-details',
             CLIENT_DETAILS: '/admin/reports/client-details',
