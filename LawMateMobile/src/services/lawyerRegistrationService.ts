@@ -7,7 +7,7 @@ import {
     UserRole,
     State,
     VerificationStatus,
-} from "../emun/enum";
+} from "../enum/enum";
 import {StorageService} from "../utils/storage";
 
 

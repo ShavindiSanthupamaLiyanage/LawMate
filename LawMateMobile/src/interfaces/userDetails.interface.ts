@@ -15,3 +15,20 @@ export interface LawyerVerificationListDto {
     verificationStatus: number; // 0=Pending, 1=Active, 2=Rejected
     profileImage: string | null;
 }
+
+export interface GetClientDto {
+    userId:            string;
+    prefix:            number;
+    firstName:         string;
+    lastName:          string;
+    nic:               string;
+    email:             string;
+    gender:            number;
+    contactNumber:     string;
+    state:             number;
+    registrationDate:  string;
+    profileImage:      string | null;
+    address:           string;
+    district:          number;
+    prefferedLanguage: number;
+}
