@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import SearchBar from "../../../../components/SearchBar";
-import { colors, spacing, borderRadius } from "../../../../config/theme";
+import {colors, spacing, borderRadius, fontWeight, fontSize} from "../../../../config/theme";
 import AdminLayout from "../../../../components/AdminLayout";
 import { useNavigation } from "@react-navigation/native";
 
@@ -123,14 +123,11 @@ const ClientVerificationScreen = () => {
                             ]}
                             onPress={() => setSelectedTab(tab as StatusType)}
                         >
-                            <Text
-                                style={{
-                                    color:
-                                        selectedTab === tab
-                                            ? colors.white
-                                            : colors.textPrimary,
-                                }}
-                            >
+                            <Text style={{
+                                color: selectedTab === tab ? colors.primary : colors.textSecondary,
+                                fontWeight: selectedTab === tab ? fontWeight.semibold : fontWeight.medium,
+                                fontSize: fontSize.sm,
+                            }}>
                                 {tab}
                             </Text>
                         </TouchableOpacity>
@@ -158,21 +155,26 @@ const styles = StyleSheet.create({
 
     tabs: {
         flexDirection: "row",
+        backgroundColor: colors.borderLight,
+        borderRadius: borderRadius.lg,
         marginVertical: spacing.md,
-        backgroundColor: "#ECECEC",
-        borderRadius: borderRadius.full,
         padding: 4,
     },
 
     tab: {
         flex: 1,
-        paddingVertical: 8,
+        paddingVertical: spacing.sm,
         alignItems: "center",
-        borderRadius: borderRadius.full,
+        borderRadius: borderRadius.md,
     },
 
     activeTab: {
-        backgroundColor: colors.primary,
+        backgroundColor: colors.white,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
 
     card: {
