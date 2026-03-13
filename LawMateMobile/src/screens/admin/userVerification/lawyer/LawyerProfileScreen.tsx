@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
     View,
     Text,
@@ -10,8 +10,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { colors, spacing } from "../../../../config/theme";
 import AdminLayout from "../../../../components/AdminLayout";
-import Alert from "../../../../components/Alert";
 import Button from "../../../../components/Button";
+import {useToast} from "../../../../context/ToastContext";
 
 type Lawyer = {
     name: string;
@@ -32,27 +32,14 @@ const LawyerProfileScreen = () => {
     const route = useRoute<RouteProp<AdminStackParamList, "LawyerProfile">>();
     const { lawyer } = route.params;
 
-    // Alert state
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertType, setAlertType] = useState<"success" | "warning" | "error" | "info">("info");
-    const [alertMessage, setAlertMessage] = useState("");
+    const { showSuccess, showError } = useToast();
 
-    // ACCEPT LAWYER
     const handleAccept = () => {
-        setAlertType("success");
-        setAlertMessage("Lawyer has been accepted successfully.");
-        setAlertVisible(true);
-
-        // TODO: API call to accept lawyer
+        showSuccess("Lawyer has been verified successfully.");
     };
 
-    // SUSPEND LAWYER
     const handleSuspend = () => {
-        setAlertType("warning");
-        setAlertMessage("Lawyer has been suspended.");
-        setAlertVisible(true);
-
-        // TODO: API call to suspend lawyer
+        showError("Lawyer has been rejected.");
     };
 
     const status = lawyer.status.toLowerCase();
@@ -92,7 +79,6 @@ const LawyerProfileScreen = () => {
                     </Text>
                 </View>
 
-                {/* MENU ITEMS */}
                 <View style={styles.menuCard}>
                     <Ionicons name="person-outline" size={22} color={colors.primary} />
                     <Text
@@ -146,17 +132,6 @@ const LawyerProfileScreen = () => {
                     </View>
                 )}
             </ScrollView>
-
-
-            {/* CUSTOM ALERT MODAL */}
-            <Alert
-                visible={alertVisible}
-                title="Admin Action"
-                message={alertMessage}
-                type={alertType}
-                confirmText="OK"
-                onClose={() => setAlertVisible(false)}
-            />
         </AdminLayout>
     );
 };

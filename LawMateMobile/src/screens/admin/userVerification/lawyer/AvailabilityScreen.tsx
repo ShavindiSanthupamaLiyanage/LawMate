@@ -1,38 +1,21 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Switch, Text } from 'react-native';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../../config/theme';
 import AdminLayout from '../../../../components/AdminLayout';
-import {Ionicons} from "@expo/vector-icons";
+
+// ── mock data — replace with real API data ────────────────────────────────────
+const SLOTS = [
+    { id: '1', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
+    { id: '2', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
+    { id: '3', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
+    { id: '4', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
+    { id: '5', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
+];
 
 const AvailabilityScreen: React.FC = () => {
     const navigation = useNavigation();
-    const [availability, setAvailability] = useState({
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true,
-        saturday: false,
-        sunday: false,
-    });
-
-    const days = [
-        { key: 'monday', label: 'Monday', time: '09:00 AM - 05:00 PM' },
-        { key: 'tuesday', label: 'Tuesday', time: '09:00 AM - 05:00 PM' },
-        { key: 'wednesday', label: 'Wednesday', time: '09:00 AM - 05:00 PM' },
-        { key: 'thursday', label: 'Thursday', time: '09:00 AM - 05:00 PM' },
-        { key: 'friday', label: 'Friday', time: '09:00 AM - 05:00 PM' },
-        { key: 'saturday', label: 'Saturday', time: '10:00 AM - 03:00 PM' },
-        { key: 'sunday', label: 'Sunday', time: 'Closed' },
-    ];
-
-    const toggleDay = (day: keyof typeof availability) => {
-        setAvailability(prev => ({
-            ...prev,
-            [day]: !prev[day]
-        }));
-    };
+    const [slots] = useState(SLOTS);
 
     return (
         <AdminLayout
@@ -42,32 +25,24 @@ const AvailabilityScreen: React.FC = () => {
             onBackPress={() => navigation.goBack()}
             onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
         >
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                <View style={styles.infoBox}>
-                    <Ionicons name="information-circle" size={20} color={colors.primary} />
-                    <Text style={styles.infoText}>
-                        Set your available working hours. Your calendar will be updated accordingly.
-                    </Text>
-                </View>
-                <View style={styles.daysContainer}>
-                    {days.map((day) => (
-                        <View key={day.key} style={styles.dayRow}>
-                            <View style={styles.dayInfo}>
-                                <Text style={styles.dayLabel}>{day.label}</Text>
-                                <Text style={styles.dayTime}>
-                                    {availability[day.key as keyof typeof availability] ? day.time : 'Not Available'}
-                                </Text>
-                            </View>
-                            <Switch
-                                value={availability[day.key as keyof typeof availability]}
-                                onValueChange={() => toggleDay(day.key as keyof typeof availability)}
-                                trackColor={{ false: colors.borderLight, true: colors.primaryLight }}
-                                thumbColor={availability[day.key as keyof typeof availability] ? colors.primary : colors.textSecondary}
-                            />
+            <ScrollView
+                style={styles.content}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {slots.map((slot) => (
+                    <View key={slot.id} style={styles.card}>
+                        <View style={styles.cardLeft}>
+                            <Text style={styles.dateText}>{slot.date}</Text>
+                            <Text style={styles.timeText}>{slot.time}</Text>
                         </View>
-                    ))}
-                </View>
-                <View style={styles.bottomSpacing} />
+                        <View style={styles.badge}>
+                            <Text style={styles.badgeText}>
+                                {slot.minutesPerSlot} M PER SLOT
+                            </Text>
+                        </View>
+                    </View>
+                ))}
             </ScrollView>
         </AdminLayout>
     );
@@ -78,55 +53,47 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: spacing.lg,
     },
-    infoBox: {
-        flexDirection: 'row',
-        backgroundColor: colors.gradient,
-        padding: spacing.md,
-        borderRadius: borderRadius.md,
-        marginBottom: spacing.lg,
-        alignItems: 'flex-start',
+    listContent: {
+        paddingVertical: spacing.md,
+        gap: spacing.sm,
     },
-    infoText: {
-        fontSize: fontSize.sm,
-        color: colors.primary,
-        marginLeft: spacing.md,
-        flex: 1,
-        fontWeight: fontWeight.medium,
-    },
-    daysContainer: {
-        backgroundColor: colors.white,
-        borderRadius: borderRadius.lg,
-        padding: spacing.lg,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        marginBottom: spacing.lg,
-    },
-    dayRow: {
+    card: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        backgroundColor: colors.white,
+        borderRadius: borderRadius.md,
+        paddingHorizontal: spacing.lg,
         paddingVertical: spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.borderLight,
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 2,
     },
-    dayInfo: {
-        flex: 1,
+    cardLeft: {
+        gap: spacing.xs,
     },
-    dayLabel: {
+    dateText: {
         fontSize: fontSize.md,
-        fontWeight: fontWeight.semibold,
+        fontWeight: fontWeight.bold,
         color: colors.textPrimary,
-        marginBottom: spacing.xs,
     },
-    dayTime: {
+    timeText: {
         fontSize: fontSize.sm,
         color: colors.textSecondary,
     },
-    bottomSpacing: {
-        height: spacing.xl,
+    badge: {
+        backgroundColor: colors.lightGradient,
+        borderRadius: borderRadius.sm,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.xs,
+    },
+    badgeText: {
+        fontSize: fontSize.xs,
+        fontWeight: fontWeight.semibold,
+        color: colors.primary,
+        letterSpacing: 0.5,
     },
 });
 
