@@ -112,6 +112,7 @@ export const ENDPOINTS = {
 
     // Client endpoints
     CLIENT: {
+        REGISTER: '/clients',
         PROFILE: '/client/profile',
         UPDATE_PROFILE: '/client/profile',
         APPOINTMENTS: '/client/appointments',
