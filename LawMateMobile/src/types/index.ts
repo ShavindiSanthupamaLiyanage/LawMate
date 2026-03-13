@@ -43,13 +43,7 @@ export type RootStackParamList = {
     PaymentVerification:undefined;
     ViewTransactions: undefined;
     EarningsReport: undefined;
-    // LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
-    // ClientTabs: NavigatorScreenParams<ClientTabParamList>;
-    // AdminTabs: NavigatorScreenParams<AdminTabParamList>;
     AppointmentView:{ request: any };
-    // LawyerTabs: NavigatorScreenParams<LawyerTabParamList>;
-    // ClientTabs: NavigatorScreenParams<ClientTabParamList>;
-    // AdminTabs: NavigatorScreenParams<AdminTabParamList>;
     LawyerTabs: NavigatorScreenParams<LawyerStackParamList>;
     ClientTabs: NavigatorScreenParams<ClientStackParamList>;
     AdminTabs: NavigatorScreenParams<AdminStackParamList>;

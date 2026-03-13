@@ -41,6 +41,8 @@ namespace LawMate.API.Controllers.Common
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            try
+            {
             _logger.Info($"Login attempt | NIC: {request.NIC }");
 
             if (string.IsNullOrEmpty(request.NIC ) || string.IsNullOrEmpty(request.Password))
@@ -118,6 +120,17 @@ namespace LawMate.API.Controllers.Common
                 isDualAccount = matchedUser.IsDualAccount,
                 accountStatus = matchedUser.State
             });
+            
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new 
+                { 
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message,
+                    type = ex.GetType().Name
+                });
+            }
         }
 
         [AllowAnonymous]

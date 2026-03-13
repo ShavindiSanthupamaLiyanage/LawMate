@@ -28,7 +28,8 @@ namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Command
                 Language = Enum.Parse<Language>(request.Article.Language),
                 IsPublished = request.Article.IsPublished,
                 CreatedBy = request.Article.CreatedBy,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                LikeCount = request.Article.LikeCount,
             };
 
             _context.ARTICLE.Add(article);

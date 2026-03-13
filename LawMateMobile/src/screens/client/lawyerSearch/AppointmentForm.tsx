@@ -12,7 +12,7 @@ import {
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import ClientLayout from '../../../components/ClientLayout';
 import Button from '../../../components/Button';
-import { colors, spacing } from '../../../config/theme';
+import { spacing } from '../../../config/theme';
 
 interface AppointmentFormData {
     name: string;
