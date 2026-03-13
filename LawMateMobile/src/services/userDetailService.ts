@@ -1,6 +1,6 @@
 import apiClient from "../api/client";
 import {ENDPOINTS} from "../config/api.config";
-import {UserCountsDto} from "../interfaces/userDetails.interface";
+import {LawyerVerificationListDto, UserCountsDto} from "../interfaces/userDetails.interface";
 
 export class UserDetailService {
 
@@ -16,6 +16,11 @@ export class UserDetailService {
 
     static async getUserCounts(): Promise<UserCountsDto> {
         const response = await apiClient.get(ENDPOINTS.ADMIN.USER_COUNTS);
+        return response.data;
+    }
+
+    static async getAllLawyerVerifications(): Promise<LawyerVerificationListDto[]> {
+        const response = await apiClient.get(ENDPOINTS.ADMIN.LAWYER_VERIFICATION);
         return response.data;
     }
 }

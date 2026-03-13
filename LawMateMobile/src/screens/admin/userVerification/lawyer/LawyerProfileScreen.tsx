@@ -15,7 +15,7 @@ import Button from "../../../../components/Button";
 
 type Lawyer = {
     name: string;
-    image: string;
+    image: string | null;
     barId: string;
     status: "pending" | "active" | "suspended";
 };
@@ -67,7 +67,16 @@ const LawyerProfileScreen = () => {
         >
             <ScrollView style={styles.container}>
                 <View style={styles.profileCard}>
-                    <Image source={{ uri: lawyer.image }} style={styles.avatar} />
+                    {lawyer.image
+                        ? <Image source={{ uri: lawyer.image }} style={styles.avatar} />
+                        : (
+                            <View style={styles.avatarFallback}>
+                                <Text style={styles.avatarInitials}>
+                                    {lawyer.name.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase()}
+                                </Text>
+                            </View>
+                        )
+                    }
                     <Text style={styles.name}>{lawyer.name}</Text>
                     <Text style={styles.barId}>{lawyer.barId}</Text>
 
@@ -122,14 +131,14 @@ const LawyerProfileScreen = () => {
                     <View style={styles.buttonRow}>
                         {status === "pending" && (
                             <Button
-                                title="ACCEPT"
+                                title="VERIFY"
                                 variant="accept"
                                 onPress={handleAccept}
                                 style={{ flex: 1, marginRight: 10 }}
                             />
                         )}
                         <Button
-                            title="SUSPEND"
+                            title="REJECT"
                             variant="reject"
                             onPress={handleSuspend}
                             style={{ flex: 1, marginLeft: status === "pending" ? 10 : 0 }}
@@ -170,6 +179,27 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 40,
         marginBottom: 10,
+    },
+
+    avatarFallback: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        marginBottom: 10,
+        backgroundColor: colors.primaryLight,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+
+    avatarInitials: {
+        color: colors.white,
+        fontSize: 24,
+        fontWeight: "600",
     },
 
     name: {
