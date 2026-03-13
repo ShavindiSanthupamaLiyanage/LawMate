@@ -1,6 +1,5 @@
 ﻿using LawMate.Application.ClientModule.ClientRegistration.Commands;
 using LawMate.Application.ClientModule.ClientRegistration.Queries;
-using LawMate.Application.ClientModule.ClientRegistration.Commands;
 using LawMate.Domain.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -69,6 +68,21 @@ namespace LawMate.API.Controllers.ClientModule
         [Authorize]
         [HttpPut("{userId}")]
         public async Task<IActionResult> Update(string userId, [FromBody] UpdateClientCommand command)
+        {
+            if (userId != command.UserId)
+                return BadRequest("UserId mismatch");
+
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        // ✅ PUT: api/clients/{userId}/profile-image (Upload/change profile image)
+        [Authorize]
+        [HttpPut("{userId}/profile-image")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ChangeProfileImage(
+            string userId,
+            [FromForm] ChangeClientProfileImageCommand command)
         {
             if (userId != command.UserId)
                 return BadRequest("UserId mismatch");
