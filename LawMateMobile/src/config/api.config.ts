@@ -43,36 +43,29 @@
 //         'Accept': 'application/json',
 //     },
 // };
-
 import { Platform } from "react-native";
 import Constants from "expo-constants";
-
 const getBaseUrl = () => {
     if (!__DEV__) {
         // Production
         return 'https://lawmate-api.azurewebsites.net/api';
     }
-
     // When using tunnel, Metro runs on exp.direct but your API is still local.
     // Use the debuggerHost to derive the machine's IP dynamically.
     const debuggerHost = Constants.expoConfig?.hostUri
         ?? Constants.manifest2?.extra?.expoGo?.debuggerHost
         ?? Constants.manifest?.debuggerHost;
-
     if (debuggerHost) {
         // Extract just the IP/hostname, strip the port
         const host = debuggerHost.split(':')[0];
         return `http://${host}:5102/api`;
     }
-
     // Emulator/Simulator
     if (Platform.OS === 'android') {
         return 'http://10.0.2.2:5102/api';
     }
-
     return 'http://localhost:5102/api';
 };
-
 export const API_CONFIG = {
     BASE_URL: getBaseUrl(),
     TIMEOUT: 30000,
@@ -81,7 +74,6 @@ export const API_CONFIG = {
         'Accept': 'application/json',
     },
 };
-
 /**
  * API Endpoints
  * All API routes are defined here for easy maintenance
@@ -97,7 +89,6 @@ export const ENDPOINTS = {
         VERIFY_RESET_TOKEN: '/auth/verify-reset-token',
         RESET_PASSWORD_WITH_TOKEN: '/auth/reset-password-with-token',
     },
-
     // Lawyer endpoints
     LAWYER: {
         REGISTER: "/lawyers",
@@ -109,7 +100,6 @@ export const ENDPOINTS = {
         APPOINTMENTS: '/lawyer/appointments',
         CLIENTS: '/lawyer/clients',
     },
-
     // Client endpoints
     CLIENT: {
         REGISTER: '/clients',
@@ -119,7 +109,6 @@ export const ENDPOINTS = {
         LAWYERS: '/client/lawyers',
         CASES: '/client/cases',
     },
-
     // Admin endpoints
     ADMIN: {
         USERS: '/admin/users',
@@ -141,4 +130,17 @@ export const ENDPOINTS = {
     CONTACT: {
         SEND: '/contactUs/send',
     },
+    
+     BOOKING: {
+    GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>`/bookings/lawyer/${lawyerId}`,
+    GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,
+    CREATE: "/bookings",
+    UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
+  },
+  AVAILABILITY: {
+    GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
+    CREATE: "/availability",
+    UPDATE: (slotId: number) => `/availability/${slotId}`,
+    DELETE: (slotId: number) => `/availability/${slotId}`,
+  },
 };
