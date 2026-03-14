@@ -1,3 +1,24 @@
+/**
+ * API Configuration
+ *
+ * IMPORTANT: Replace 192.168.1.100 with YOUR computer's local IP address
+ *
+ * To find your IP:
+ * - Windows: Open CMD and type 'ipconfig'
+ * - Mac/Linux: Open Terminal and type 'ifconfig' or 'ip addr show'
+ *
+ * Look for IPv4 Address (something like 192.168.x.x or 10.0.x.x)
+ */
+// import {Platform} from "react-native";
+// // import { API_BASE_URL } from '@env';
+//
+// const getBaseUrl = () => {
+//     if (!__DEV__) {
+//         // Production
+//         return 'https://your-production-api.com/api';
+//     }
+//
+//     // Development - check environment
 //     // You can set this manually when testing on real device
 //     const USE_REAL_DEVICE = true;  //Change to true for real device
 //
