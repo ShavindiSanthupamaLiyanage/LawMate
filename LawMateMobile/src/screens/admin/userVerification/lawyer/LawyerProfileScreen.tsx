@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
     View,
     Text,
@@ -8,14 +8,14 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { colors, spacing } from "../../../config/theme";
-import AdminLayout from "../../../components/AdminLayout";
-import Alert from "../../../components/Alert";
-import Button from "../../../components/Button";
+import { colors, spacing } from "../../../../config/theme";
+import AdminLayout from "../../../../components/AdminLayout";
+import Button from "../../../../components/Button";
+import {useToast} from "../../../../context/ToastContext";
 
 type Lawyer = {
     name: string;
-    image: string;
+    image: string | null;
     barId: string;
     status: "pending" | "active" | "suspended";
 };
@@ -32,36 +32,38 @@ const LawyerProfileScreen = () => {
     const route = useRoute<RouteProp<AdminStackParamList, "LawyerProfile">>();
     const { lawyer } = route.params;
 
-    // Alert state
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertType, setAlertType] = useState<"success" | "warning" | "error" | "info">("info");
-    const [alertMessage, setAlertMessage] = useState("");
+    const { showSuccess, showError } = useToast();
 
-    // ACCEPT LAWYER
     const handleAccept = () => {
-        setAlertType("success");
-        setAlertMessage("Lawyer has been accepted successfully.");
-        setAlertVisible(true);
-
-        // TODO: API call to accept lawyer
+        showSuccess("Lawyer has been verified successfully.");
     };
 
-    // SUSPEND LAWYER
     const handleSuspend = () => {
-        setAlertType("warning");
-        setAlertMessage("Lawyer has been suspended.");
-        setAlertVisible(true);
-
-        // TODO: API call to suspend lawyer
+        showError("Lawyer has been rejected.");
     };
 
     const status = lawyer.status.toLowerCase();
 
     return (
-        <AdminLayout title="Lawyer Profile" showBackButton disableScroll>
+        <AdminLayout
+            title="Lawyer Profile"
+            showBackButton
+            disableScroll
+            onBackPress={() => navigation.navigate("LawyerVerification")}
+            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+        >
             <ScrollView style={styles.container}>
                 <View style={styles.profileCard}>
-                    <Image source={{ uri: lawyer.image }} style={styles.avatar} />
+                    {lawyer.image
+                        ? <Image source={{ uri: lawyer.image }} style={styles.avatar} />
+                        : (
+                            <View style={styles.avatarFallback}>
+                                <Text style={styles.avatarInitials}>
+                                    {lawyer.name.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase()}
+                                </Text>
+                            </View>
+                        )
+                    }
                     <Text style={styles.name}>{lawyer.name}</Text>
                     <Text style={styles.barId}>{lawyer.barId}</Text>
 
@@ -77,7 +79,6 @@ const LawyerProfileScreen = () => {
                     </Text>
                 </View>
 
-                {/* MENU ITEMS */}
                 <View style={styles.menuCard}>
                     <Ionicons name="person-outline" size={22} color={colors.primary} />
                     <Text
@@ -116,14 +117,14 @@ const LawyerProfileScreen = () => {
                     <View style={styles.buttonRow}>
                         {status === "pending" && (
                             <Button
-                                title="ACCEPT"
+                                title="VERIFY"
                                 variant="accept"
                                 onPress={handleAccept}
                                 style={{ flex: 1, marginRight: 10 }}
                             />
                         )}
                         <Button
-                            title="SUSPEND"
+                            title="REJECT"
                             variant="reject"
                             onPress={handleSuspend}
                             style={{ flex: 1, marginLeft: status === "pending" ? 10 : 0 }}
@@ -131,17 +132,6 @@ const LawyerProfileScreen = () => {
                     </View>
                 )}
             </ScrollView>
-
-
-            {/* CUSTOM ALERT MODAL */}
-            <Alert
-                visible={alertVisible}
-                title="Admin Action"
-                message={alertMessage}
-                type={alertType}
-                confirmText="OK"
-                onClose={() => setAlertVisible(false)}
-            />
         </AdminLayout>
     );
 };
@@ -164,6 +154,27 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 40,
         marginBottom: 10,
+    },
+
+    avatarFallback: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        marginBottom: 10,
+        backgroundColor: colors.primaryLight,
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+
+    avatarInitials: {
+        color: colors.white,
+        fontSize: 24,
+        fontWeight: "600",
     },
 
     name: {

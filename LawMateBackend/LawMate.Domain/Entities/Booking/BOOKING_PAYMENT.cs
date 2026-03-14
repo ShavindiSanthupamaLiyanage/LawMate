@@ -8,6 +8,8 @@ public class BOOKING_PAYMENT : AuditEntity
 {
     [Required]
     public int BookingId { get; set; }
+    
+    public string? LawyerId { get; set; }
     public string? TransactionId { get; set; }
     [Required]
     public decimal Amount { get; set; }
@@ -18,4 +20,8 @@ public class BOOKING_PAYMENT : AuditEntity
     public string? RejectionReason { get; set; }
     public string? VerifiedBy { get; set; }
     public DateTime? VerifiedAt { get; set; }
+    public int PlatformCommission { get; set; }
+    public int LawyerFee { get; set; }
+    public bool IsPaid { get; set; }
+    public string? SlipNumber { get; set; }
 }

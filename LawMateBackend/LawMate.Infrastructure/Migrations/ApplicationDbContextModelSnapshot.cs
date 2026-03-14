@@ -277,6 +277,15 @@ namespace LawMate.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LawyerFee")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LawyerId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -287,7 +296,13 @@ namespace LawMate.Infrastructure.Migrations
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("PlatformCommission")
+                        .HasColumnType("int");
+
                     b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SlipNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TransactionId")

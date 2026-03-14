@@ -2,12 +2,14 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import UserManagementScreen from ".//UserManagementScreen";
-import LawyerVerificationScreen from "./LawyerVerificationScreen";
-import ClientVerificationScreen from "./ClientVerificationScreen";
-import LawyerProfileScreen from "./LawyerProfileScreen";
-import LawyerProfessionalDetailsScreen from "./LawyerProfessionalDetailsScreen";
-import AvailabilityScreen from "./AvailabilityScreen";
-import LawyerPersonalDetailsScreen from "./LawyerPersonalDetailsScreen";
+import LawyerVerificationScreen from "./lawyer/LawyerVerificationScreen";
+import ClientVerificationScreen from "./client/ClientVerificationScreen";
+import LawyerProfileScreen from "./lawyer/LawyerProfileScreen";
+import LawyerProfessionalDetailsScreen from "./lawyer/LawyerProfessionalDetailsScreen";
+import AvailabilityScreen from "./lawyer/AvailabilityScreen";
+import LawyerPersonalDetailsScreen from "./lawyer/LawyerPersonalDetailsScreen";
+import ClientProfileScreen from "./client/ClientProfileScreen";
+import ClientPersonalDetailsScreen from "./client/ClientPersonalDetailsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -47,6 +49,16 @@ const VerificationStack = () => {
                 name="LawyerPersonal"
                 component={LawyerPersonalDetailsScreen}
             />
+                {/* Client Screens */}
+                <Stack.Screen
+                    name="ClientProfile"
+                    component={ClientProfileScreen}
+                />
+
+                <Stack.Screen
+                    name="ClientPersonalDetails"
+                    component={ClientPersonalDetailsScreen}
+                />
         </Stack.Navigator>
     );
 };

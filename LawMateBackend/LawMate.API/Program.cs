@@ -61,7 +61,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("MobileAppPolicy", builder =>
     {
         builder
-            .AllowAnyOrigin()      // For development
+            .AllowAnyOrigin()      
             .AllowAnyMethod()
             .AllowAnyHeader();
     });
@@ -92,17 +92,38 @@ builder.Services.AddScoped<OpenAiChatbotService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.Use(async (context, next) =>
 {
+    try { await next(); }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new 
+        { 
+            error = ex.Message,
+            inner = ex.InnerException?.Message,
+            type = ex.GetType().FullName,
+            stack = ex.StackTrace
+        });
+    }
+});
+
+
+// Configure the HTTP request pipeline.
+// if (app.Environment.IsDevelopment())
+// {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+// }
+
+var assetsPath = Path.Combine(builder.Environment.ContentRootPath, "Assets");
+if (!Directory.Exists(assetsPath))
+    Directory.CreateDirectory(assetsPath);
 
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "Assets")),
+    FileProvider = new PhysicalFileProvider(assetsPath),
     RequestPath = "/assets"
 });
 
