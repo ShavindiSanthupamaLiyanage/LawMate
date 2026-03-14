@@ -143,4 +143,17 @@ export const ENDPOINTS = {
     CONTACT: {
         SEND: '/contactUs/send',
     },
+    
+     BOOKING: {
+    GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>`/bookings/lawyer/${lawyerId}`,
+    GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,
+    CREATE: "/bookings",
+    UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
+  },
+  AVAILABILITY: {
+    GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
+    CREATE: "/availability",
+    UPDATE: (slotId: number) => `/availability/${slotId}`,
+    DELETE: (slotId: number) => `/availability/${slotId}`,
+  },
 };
