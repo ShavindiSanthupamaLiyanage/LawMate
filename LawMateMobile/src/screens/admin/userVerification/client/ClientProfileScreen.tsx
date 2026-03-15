@@ -18,14 +18,11 @@ import {
     LanguageOptions,
 } from "../../../../enum/enumOptions";
 
-// ── helper ────────────────────────────────────────────────────────────────────
-
 const findLabel = (
     options: { label: string; value: number }[],
     value: number
 ): string => options.find(o => o.value === value)?.label ?? "—";
 
-// ── component ─────────────────────────────────────────────────────────────────
 
 const ClientProfileScreen = () => {
     const route = useRoute<any>();
@@ -116,7 +113,11 @@ const ClientProfileScreen = () => {
 
                     <View style={styles.detailRow}>
                         <Text style={styles.label}>District</Text>
-                        <Text style={styles.value}>{findLabel(DistrictOptions, client.district)}</Text>
+                        <Text style={styles.value}>
+                            {typeof client.district === 'string'
+                                ? client.district
+                                : findLabel(DistrictOptions, client.district)}
+                        </Text>
                     </View>
 
                     <View style={styles.detailRow}>

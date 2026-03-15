@@ -375,7 +375,14 @@ export default function ClientSignUpScreen() {
             copyToCacheDirectory: true,
         });
         if (result.assets && result.assets.length > 0) {
-            update({ profilePic: result.assets[0].name });
+            const asset = result.assets[0];
+            update({
+                profilePic: {
+                    uri:      asset.uri,
+                    name:     asset.name,
+                    mimeType: asset.mimeType ?? 'image/jpeg',
+                }
+            });
         }
     };
 
@@ -544,7 +551,7 @@ export default function ClientSignUpScreen() {
                         <View style={styles.uploadSection}>
                             <UploadCard
                                 title="Profile Picture"
-                                fileName={form.profilePic ?? undefined}
+                                fileName={form.profilePic?.name ?? undefined}
                                 onPress={pickFile}
                             />
                         </View>
