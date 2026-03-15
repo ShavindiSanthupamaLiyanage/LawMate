@@ -48,7 +48,7 @@ public class AcceptLawyerVerificationCommandHandler
 
         if (user != null)
         {
-            user.State = State.Active;
+            user.State = State.Pending;
         }
 
         await _context.SaveChangesAsync(cancellationToken);

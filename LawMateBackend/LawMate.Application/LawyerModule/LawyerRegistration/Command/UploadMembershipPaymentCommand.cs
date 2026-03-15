@@ -94,6 +94,14 @@ public class UploadMembershipPaymentCommandHandler
 
         _context.MEMBERSHIP_PAYMENT.Add(payment);
 
+        var user = await _context.USER_DETAIL
+            .FirstOrDefaultAsync(x => x.UserId == request.LawyerId, cancellationToken);
+
+        if (user != null)
+        {
+            user.State = State.Active;
+        }
+        
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.Info($"Membership payment uploaded | LawyerId: {request.LawyerId} | TransactionId: {payment.TransactionId}");
