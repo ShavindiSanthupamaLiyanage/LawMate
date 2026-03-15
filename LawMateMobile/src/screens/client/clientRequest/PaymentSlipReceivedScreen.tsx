@@ -1,11 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ClientLayout from '../../../components/ClientLayout';
 import Button from '../../../components/Button';
 
+type ClientRequestsStackParamList = {
+  ClientRequestsList: undefined;
+  ClientAppointmentView: undefined;
+  PaymentSlipScreen: undefined;
+  PaymentSlipReceivedScreen: undefined;
+};
+
+type NavigationProp = NativeStackNavigationProp<ClientRequestsStackParamList, 'PaymentSlipReceivedScreen'>;
+
+
 const PaymentSlipReceivedScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
 
   return (
     <ClientLayout title="FIXIO - Get Started" hideRightSection>

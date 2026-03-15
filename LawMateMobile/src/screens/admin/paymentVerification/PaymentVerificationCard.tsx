@@ -13,7 +13,8 @@ export type PaymentStatus = "Pending" | "Approved" | "Rejected";
 export interface PaymentVerificationItem {
     id: string;
     name: string;
-    email: string;
+    email?: string;
+    paymentType: 'Membership' | 'Booking';
     avatar?: string;
     amount: string;
     paymentDate: string;
@@ -70,7 +71,7 @@ const PaymentVerificationCard: React.FC<PaymentVerificationCardProps> = ({
                         {item.name}
                     </Text>
                     <Text style={styles.subText} numberOfLines={1}>
-                        {item.email}
+                        {item.paymentType === 'Membership' ? '📋 Membership Payment' : '📅 Booking Payment'}
                     </Text>
                     <Text style={styles.transNo}>Trans ID: {item.transNo}</Text>
                 </View>

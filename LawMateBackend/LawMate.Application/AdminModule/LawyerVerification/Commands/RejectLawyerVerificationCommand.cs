@@ -16,10 +16,17 @@ public class RejectLawyerVerificationCommandHandler
     : IRequestHandler<RejectLawyerVerificationCommand, string>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly IEmailTemplateService _templateService;
 
-    public RejectLawyerVerificationCommandHandler(IApplicationDbContext context)
+    public RejectLawyerVerificationCommandHandler(
+        IApplicationDbContext context,
+        IEmailService emailService,
+        IEmailTemplateService templateService)
     {
         _context = context;
+        _emailService = emailService;
+        _templateService = templateService;
     }
 
     public async Task<string> Handle(
@@ -37,9 +44,27 @@ public class RejectLawyerVerificationCommandHandler
         lawyer.VerifiedAt = DateTime.UtcNow;
         lawyer.RejectedReason = request.RejectedReason;
 
+        var user = await _context.USER_DETAIL
+            .FirstOrDefaultAsync(x => x.UserId == request.UserId, cancellationToken);
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Send rejection email
+        if (user != null)
+        {
+            var template = _templateService.LoadTemplate("LawyerRejected.html");
+
+            template = template
+                .Replace("{{Name}}", user.FirstName)
+                .Replace("{{RejectedReason}}", request.RejectedReason)
+                .Replace("{{LogoUrl}}", "https://yourdomain.com/logo.png");
+
+            await _emailService.SendAsync(
+                user.Email,
+                "LawMate Lawyer Verification Rejected",
+                template);
+        }
 
         return "Lawyer rejected successfully";
     }
 }
-

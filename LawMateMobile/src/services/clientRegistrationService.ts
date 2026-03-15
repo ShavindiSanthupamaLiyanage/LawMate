@@ -50,41 +50,40 @@ const LanguageName: Record<number, string> = {
     [Language.Tamil]:   "Tamil",
 };
 
-// ── DTO builder ───────────────────────────────────────────────────────────────
-
-const buildClientDto = (details: ClientRegistrationDetails) => ({
-    prefix:            PrefixName[details.prefix]   ?? String(details.prefix),
-    firstName:         details.firstName,
-    lastName:          details.lastName,
-    gender:            GenderName[details.gender]   ?? String(details.gender),
-    address:           details.address,
-    district:          DistrictName[details.district] ?? String(details.district),
-    nic:               details.nic,
-    contactNumber:     details.mobileContact,
-    preferredLanguage: LanguageName[details.language] ?? String(details.language),
-    email:             details.email,
-    password:          details.password,
-    profileImage:      details.profilePic ?? null,
-});
-
-// ── service ───────────────────────────────────────────────────────────────────
+const appendFile = (
+    form: FormData,
+    field: string,
+    asset: { uri: string; name: string; mimeType?: string } | null | undefined
+) => {
+    if (!asset) return;
+    form.append(field, {
+        uri: asset.uri,
+        name: asset.name,
+        type: asset.mimeType ?? 'application/octet-stream',
+    } as unknown as Blob);
+};
 
 export const registerClient = async (
     details: ClientRegistrationDetails
 ): Promise<string> => {
     console.log("=== [registerClient] START ===");
-    console.log("[registerClient] Raw form data:", JSON.stringify({
-        ...details,
-        password:        "***HIDDEN***",
-        confirmPassword: "***HIDDEN***",
-    }, null, 2));
 
-    const dto = buildClientDto(details);
+    const data = new FormData();
+    data.append('Prefix',            PrefixName[details.prefix]    ?? String(details.prefix));
+    data.append('FirstName',         details.firstName);
+    data.append('LastName',          details.lastName);
+    data.append('Gender',            GenderName[details.gender]    ?? String(details.gender));
+    data.append('Address',           details.address);
+    data.append('District',          DistrictName[details.district] ?? String(details.district));
+    data.append('NIC',               details.nic);
+    data.append('ContactNumber',     details.mobileContact);
+    data.append('PreferredLanguage', LanguageName[details.language] ?? String(details.language));
+    data.append('Email',             details.email);
+    data.append('Password',          details.password);
 
-    console.log("[registerClient] Built DTO:", JSON.stringify({
-        ...dto,
-        password: "***HIDDEN***",
-    }, null, 2));
+    if (details.profilePic) {
+        appendFile(data, 'ProfileImage', details.profilePic);
+    }
 
     const url = `${API_CONFIG.BASE_URL}${ENDPOINTS.CLIENT.REGISTER}`;
     console.log("[registerClient] POST →", url);
@@ -92,43 +91,32 @@ export const registerClient = async (
     let response: Response;
     try {
         response = await fetch(url, {
-            method:  "POST",
-            headers: API_CONFIG.HEADERS,
-            body:    JSON.stringify(dto),
+            method: 'POST',
+            body:   data,
+            // NO Content-Type header — fetch sets multipart/form-data + boundary automatically
         });
     } catch (networkError) {
-        console.error("[registerClient] Network error:", networkError);
         throw new Error("Network error. Please check your connection and try again.");
     }
 
     console.log("[registerClient] Response status:", response.status);
-
     const rawText = await response.text();
-    console.log("[registerClient] Raw response body:", rawText);
+    console.log("[registerClient] Raw response:", rawText);
 
-    if (!rawText || rawText.trim() === "") {
-        throw new Error(`Server returned an empty response (HTTP ${response.status})`);
-    }
+    if (!rawText?.trim()) throw new Error(`Empty response (HTTP ${response.status})`);
 
     let json: any;
-    try {
-        json = JSON.parse(rawText);
-        console.log("[registerClient] Parsed JSON:", JSON.stringify(json, null, 2));
-    } catch {
-        throw new Error(`Unexpected server response (HTTP ${response.status}): ${rawText.slice(0, 200)}`);
+    try { json = JSON.parse(rawText); } catch {
+        throw new Error(`Unexpected response (HTTP ${response.status}): ${rawText.slice(0, 200)}`);
     }
 
     if (!response.ok) {
-        const validationErrors = json?.errors
-            ? Object.values(json.errors).flat().join(" ")
-            : null;
-        const errorMsg = validationErrors
-            ?? json?.error ?? json?.message ?? json?.Message
-            ?? `Registration failed (HTTP ${response.status}).`;
-        console.error("[registerClient] Registration failed:", errorMsg);
-        throw new Error(errorMsg);
+        const msg = json?.errors
+            ? Object.values(json.errors).flat().join(' ')
+            : json?.error ?? json?.message ?? json?.Message ?? `Registration failed (HTTP ${response.status})`;
+        throw new Error(msg);
     }
 
-    console.log("[registerClient] Registration successful! ClientId:", json.clientId);
+    console.log("[registerClient] Success! ClientId:", json.clientId);
     return json.clientId as string;
 };
