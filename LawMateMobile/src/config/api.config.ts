@@ -108,6 +108,7 @@ export const ENDPOINTS = {
         CASE_DETAIL: (caseId: string) => `/lawyer/cases/${caseId}`,
         APPOINTMENTS: '/lawyer/appointments',
         CLIENTS: '/lawyer/clients',
+        GET_BY_USER_ID: (userId: string) => `/lawyers/${userId}`,
     },
 
     // Client endpoints

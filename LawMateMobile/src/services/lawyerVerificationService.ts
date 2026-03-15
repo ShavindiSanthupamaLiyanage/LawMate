@@ -59,4 +59,13 @@ export const lawyerVerificationService = {
 
         return JSON.parse(rawText);
     },
+
+    getByUserId: async (userId: string) => {
+        const response = await fetch(
+            `${API_CONFIG.BASE_URL}${ENDPOINTS.LAWYER.GET_BY_USER_ID(userId)}`,
+            { method: 'GET', headers: await getAuthHeaders() }
+        );
+        if (!response.ok) throw new Error('Failed to fetch lawyer details');
+        return response.json();
+    },
 };

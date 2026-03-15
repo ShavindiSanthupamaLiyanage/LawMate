@@ -115,7 +115,11 @@ const LawyerProfileScreen = () => {
                     <Ionicons name="person-outline" size={22} color={colors.primary} />
                     <Text
                         style={styles.menuText}
-                        onPress={() => navigation.navigate("LawyerPersonal", { viewOnly: true })}
+                        onPress={() => navigation.navigate("LawyerPersonal",
+                            {
+                                viewOnly: true,
+                                userId: lawyer.userId
+                            })}
                     >
                         Personal Details
                     </Text>
@@ -126,7 +130,11 @@ const LawyerProfileScreen = () => {
                     <Ionicons name="briefcase-outline" size={22} color={colors.primary} />
                     <Text
                         style={styles.menuText}
-                        onPress={() => navigation.navigate("LawyerProfessional")}
+                        onPress={() => navigation.navigate("LawyerProfessional",
+                            {
+                                viewOnly: true,
+                                userId: lawyer.userId
+                            })}
                     >
                         Professional Details
                     </Text>
