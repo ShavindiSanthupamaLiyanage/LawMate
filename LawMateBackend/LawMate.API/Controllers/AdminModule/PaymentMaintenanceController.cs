@@ -1,0 +1,75 @@
+﻿using LawMate.Application.AdminModule.PaymentMaintenance.Commands;
+using LawMate.Application.AdminModule.PaymentMaintenance.Queries;
+using LawMate.Domain.Common.Enums;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace LawMate.API.Controllers.AdminModule;
+
+[ApiController]
+[Route("api/admin/payments")]
+[Authorize]
+public class PaymentMaintenanceController : ControllerBase
+{
+    private readonly IMediator _mediator;
+
+    public PaymentMaintenanceController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllPayments()
+    {
+        var result = await _mediator.Send(new GetPaymentsQuery());
+        return Ok(result);
+    }
+
+    [HttpGet("pending")]
+    public async Task<IActionResult> GetPendingPayments()
+    {
+        var result = await _mediator.Send(new GetPaymentsQuery
+        {
+            Status = VerificationStatus.Pending
+        });
+
+        return Ok(result);
+    }
+
+    [HttpGet("accepted")]
+    public async Task<IActionResult> GetAcceptedPayments()
+    {
+        var result = await _mediator.Send(new GetPaymentsQuery
+        {
+            Status = VerificationStatus.Verified
+        });
+
+        return Ok(result);
+    }
+
+    [HttpGet("rejected")]
+    public async Task<IActionResult> GetRejectedPayments()
+    {
+        var result = await _mediator.Send(new GetPaymentsQuery
+        {
+            Status = VerificationStatus.Rejected
+        });
+
+        return Ok(result);
+    }
+
+    [HttpPost("membership/update")]
+    public async Task<IActionResult> UpdateMembershipPayment(UpdateMembershipPaymentStatusCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPost("booking/update")]
+    public async Task<IActionResult> UpdateBookingPayment(UpdateBookingPaymentStatusCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+}

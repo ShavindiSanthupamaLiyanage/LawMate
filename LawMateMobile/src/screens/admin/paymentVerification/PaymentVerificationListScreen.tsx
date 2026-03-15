@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity,
+    TouchableOpacity, ActivityIndicator,
 } from "react-native";
 import {
     colors,
@@ -21,6 +21,7 @@ import PaymentVerificationCard, {
 } from "../paymentVerification/PaymentVerificationCard";
 import {AdminTabParamList} from "../../../types";
 import {useNavigation} from "@react-navigation/native";
+import {PaymentDto, paymentService} from "../../../services/paymentService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,74 +37,6 @@ type Props = {
     >;
 };
 
-// ─── Dummy Data ───────────────────────────────────────────────────────────────
-
-const dummyData: PaymentVerificationItem[] = [
-    {
-        id: "1",
-        name: "Kavinda Gunesekara",
-        email: "kavinda@gmail.com",
-        amount: "LKR 15,000.00",
-        paymentDate: "Feb 5, 2025",
-        status: "Pending",
-        transNo: "0001",
-    },
-    {
-        id: "2",
-        name: "Santha De Silva",
-        email: "santha@gmail.com",
-        amount: "LKR 25,000.00",
-        paymentDate: "Feb 3, 2025",
-        status: "Approved",
-        transNo: "0021",
-    },
-    {
-        id: "3",
-        name: "Kamal Silva",
-        email: "kamal@gmail.com",
-        amount: "LKR 30,000.00",
-        paymentDate: "Mar 1, 2025",
-        status: "Rejected",
-        transNo: "0108",
-    },
-    {
-        id: "4",
-        name: "Nuwan Sliwa",
-        email: "nuwan@gmail.com",
-        amount: "LKR 42,000.00",
-        paymentDate: "Oct 2, 2025",
-        status: "Approved",
-        transNo: "0002",
-    },
-    {
-        id: "5",
-        name: "Kamal Dina",
-        email: "kamal.d@gmail.com",
-        amount: "LKR 12,000.00",
-        paymentDate: "Feb 5, 2025",
-        status: "Approved",
-        transNo: "0005",
-    },
-    {
-        id: "6",
-        name: "Maya De Silva",
-        email: "maya@gmail.com",
-        amount: "LKR 90,000.00",
-        paymentDate: "May 25, 2025",
-        status: "Pending",
-        transNo: "0001",
-    },
-    {
-        id: "7",
-        name: "Kamil Black",
-        email: "kamil@gmail.com",
-        amount: "LKR 30,000.00",
-        paymentDate: "Feb 1, 2025",
-        status: "Rejected",
-        transNo: "0013",
-    },
-];
-
 const TABS: Array<"All" | PaymentStatus> = [
     "All",
     "Pending",
@@ -118,15 +51,57 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
     const [searchQuery, setSearchQuery] = useState("");
     const parentNavigation =
         useNavigation<NativeStackNavigationProp<AdminTabParamList>>();
-    const filteredData = dummyData.filter((item) => {
-        const matchesTab =
-            selectedTab === "All" ? true : item.status === selectedTab;
-        const matchesSearch =
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.transNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.email.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesTab && matchesSearch;
+
+    const [allData,      setAllData]      = useState<PaymentVerificationItem[]>([]);
+    const [pendingData,  setPendingData]  = useState<PaymentVerificationItem[]>([]);
+    const [approvedData, setApprovedData] = useState<PaymentVerificationItem[]>([]);
+    const [rejectedData, setRejectedData] = useState<PaymentVerificationItem[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const mapDto = (dto: PaymentDto, index: number): PaymentVerificationItem => ({
+        id: dto.transactionId
+            ? `${dto.transactionId}-${index}`   // ensure uniqueness even if IDs repeat
+            : `fallback-${index}-${Date.now()}`,
+        name:        dto.lawyerId ?? 'Unknown',
+        paymentType: dto.paymentType as 'Membership' | 'Booking',
+        amount:      `LKR ${dto.amount.toLocaleString('en-LK', { minimumFractionDigits: 2 })}`,
+        paymentDate: dto.paymentDate
+            ? new Date(dto.paymentDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '—',
+        status: dto.verificationStatus === 0 ? 'Pending'
+            : dto.verificationStatus === 1 ? 'Approved'
+                : 'Rejected',
+        transNo: dto.transactionId ?? '—',
     });
+
+    useEffect(() => {
+        Promise.all([
+            paymentService.getAll(),
+            paymentService.getPending(),
+            paymentService.getApproved(),
+            paymentService.getRejected(),
+        ])
+            .then(([all, pending, approved, rejected]) => {
+            setAllData(all.map((dto, i) => mapDto(dto, i)));
+            setPendingData(pending.map((dto, i) => mapDto(dto, i)));
+            setApprovedData(approved.map((dto, i) => mapDto(dto, i)));
+            setRejectedData(rejected.map((dto, i) => mapDto(dto, i)));
+        })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
+
+    const getTabData = () => {
+        const base = selectedTab === 'All'      ? allData
+            : selectedTab === 'Pending'  ? pendingData
+                : selectedTab === 'Approved' ? approvedData
+                    : rejectedData;
+
+        return base.filter(item =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.transNo.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    };
 
     return (
         <AdminLayout title="Payment Verification"
@@ -168,21 +143,21 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
                     ))}
                 </View>
 
-                <View style={styles.listContent}>
-                    {filteredData.length === 0 ? (
-                        <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No payment records found</Text>
-                        </View>
-                    ) : (
-                        filteredData.map((item) => (
-                            <PaymentVerificationCard
-                                key={item.id}
-                                item={item}
-                                onPress={() => navigation.navigate("PaymentVerificationView", { item })}
-                            />
-                        ))
-                    )}
-                </View>
+                {loading ? (
+                    <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
+                ) : getTabData().length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No payment records found</Text>
+                    </View>
+                ) : (
+                    getTabData().map((item) => (
+                        <PaymentVerificationCard
+                            key={item.id}
+                            item={item}
+                            onPress={() => navigation.navigate("PaymentVerificationView", { item })}
+                        />
+                    ))
+                )}
             </View>
         </AdminLayout>
     );

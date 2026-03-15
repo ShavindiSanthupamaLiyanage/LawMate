@@ -7,21 +7,29 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types';
 import Button from '../../../components/Button';
 import Toast from '../../../components/Toast';
 import ClientLayout from '../../../components/ClientLayout';
-import PaymentSlipReceivedScreen from './PaymentSlipReceivedScreen';
 
 type PaymentSlipRouteProp = RouteProp<
   RootStackParamList,
   'PaymentSlipScreen'
 >;
 
+type ClientRequestsStackParamList = {
+  ClientRequestsList: undefined;
+  ClientAppointmentView: undefined;
+  PaymentSlipScreen: undefined;
+  PaymentSlipReceivedScreen: undefined;
+};
+
+type NavigationProp = NativeStackNavigationProp<ClientRequestsStackParamList, 'PaymentSlipScreen'>;
+
 const PaymentSlipScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute<PaymentSlipRouteProp>();
-  const appointment = route.params?.request;
 
   const [image, setImage] = useState<string | null>(null);
 

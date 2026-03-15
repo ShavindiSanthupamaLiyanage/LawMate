@@ -14,11 +14,17 @@ import { useNavigation } from "@react-navigation/native";
 
 import ClientLayout from "../../../components/ClientLayout";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
+import {CATEGORY_TO_CASE_AREA, classifyLegalIssue} from "../../../services/chatbotService";
 
 type ChatMessage = {
     id: string;
-    role: "user" | "assistant";
+    role: 'user' | 'assistant';
     text: string;
+    classification?: {
+        suggestedLawyerCategory: string;
+        shortReason: string;
+        disclaimer: string;
+    };
 };
 
 const ClientChatbotScreen: React.FC = () => {
@@ -26,30 +32,73 @@ const ClientChatbotScreen: React.FC = () => {
 
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-
+    const [isLoading, setIsLoading] = useState(false);
     const listRef = useRef<FlatList<ChatMessage>>(null);
 
-    const onSend = () => {
+    const onSend = async () => {
         const text = input.trim();
-        if (!text) return;
+        if (!text || isLoading) return;
 
-        const userMsg: ChatMessage = { id: `${Date.now()}-u`, role: "user", text };
-        const botMsg: ChatMessage = {
-            id: `${Date.now()}-a`,
-            role: "assistant",
-            text: "Got it ✅ (backend will be connected later)",
-        };
+        const userMsg: ChatMessage = { id: `${Date.now()}-u`, role: 'user', text };
+        setMessages((prev) => [...prev, userMsg]);
+        setInput('');
+        setIsLoading(true);
 
-        setMessages((prev) => [...prev, userMsg, botMsg]);
-        setInput("");
-
-        requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
+        try {
+            const result = await classifyLegalIssue(text);
+            const botMsg: ChatMessage = {
+                id: `${Date.now()}-a`,
+                role: 'assistant',
+                text: result.shortReason,
+                classification: result,
+            };
+            setMessages((prev) => [...prev, botMsg]);
+        } catch {
+            setMessages((prev) => [...prev, {
+                id: `${Date.now()}-e`,
+                role: 'assistant',
+                text: 'Sorry, something went wrong. Please try again.',
+            }]);
+        } finally {
+            setIsLoading(false);
+            requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
+        }
     };
 
     const renderItem = ({ item }: { item: ChatMessage }) => {
-        const isUser = item.role === "user";
+        const isUser = item.role === 'user';
+
+        if (!isUser && item.classification) {
+            const { suggestedLawyerCategory, shortReason, disclaimer } = item.classification;
+            const isNavigable = suggestedLawyerCategory !== 'Not a Legal Matter';
+            const caseArea = CATEGORY_TO_CASE_AREA[suggestedLawyerCategory] ?? '';
+
+            return (
+                <View style={[styles.bubbleRow, { justifyContent: 'flex-start' }]}>
+                    <View style={[styles.bubble, styles.botBubble, styles.classificationBubble]}>
+                        <View style={styles.categoryBadge}>
+                            <Text style={styles.categoryBadgeText}>{suggestedLawyerCategory}</Text>
+                        </View>
+                        <Text style={styles.bubbleText}>{shortReason}</Text>
+                        <Text style={styles.disclaimerText}>{disclaimer}</Text>
+                        {isNavigable && (
+                            <TouchableOpacity
+                                style={styles.findLawyersBtn}
+                                activeOpacity={0.85}
+                                onPress={() =>
+                                    navigation.navigate('SearchLawyer', { presetCaseArea: caseArea })
+                                }
+                            >
+                                <Text style={styles.findLawyersBtnText}>Find Lawyers →</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+            );
+        }
+
         return (
-            <View style={[styles.bubbleRow, { justifyContent: isUser ? "flex-end" : "flex-start" }]}>
+            <View style={[styles.bubbleRow, { justifyContent: isUser ? 'flex-end' : 'flex-start' }]}>
                 <View style={[styles.bubble, isUser ? styles.userBubble : styles.botBubble]}>
                     <Text style={[styles.bubbleText, isUser && { color: colors.white }]}>{item.text}</Text>
                 </View>
@@ -60,7 +109,6 @@ const ClientChatbotScreen: React.FC = () => {
     return (
         <ClientLayout
             title="Chat with Lawly"
-            userName="Kavindi Gimsara"
             disableScroll
             showBackButton
             onBackPress={() => navigation.goBack()}
@@ -82,6 +130,15 @@ const ClientChatbotScreen: React.FC = () => {
                         styles.listContent,
                         { flexGrow: messages.length === 0 ? 1 : 0 },
                     ]}
+                    ListFooterComponent={
+                        isLoading ? (
+                            <View style={[styles.bubbleRow, { justifyContent: 'flex-start' }]}>
+                                <View style={[styles.bubble, styles.botBubble]}>
+                                    <Text style={styles.bubbleText}>Lawly is thinking…</Text>
+                                </View>
+                            </View>
+                        ) : null
+                    }
                     ListEmptyComponent={
                         <View style={styles.emptyState}>
                             <Text style={styles.emptyTitle}>Chatbot</Text>
@@ -94,7 +151,6 @@ const ClientChatbotScreen: React.FC = () => {
                     <TouchableOpacity style={styles.plusBtn} activeOpacity={0.85}>
                         <Ionicons name="add" size={22} color={colors.primary} />
                     </TouchableOpacity>
-
                     <View style={styles.inputWrap}>
                         <TextInput
                             value={input}
@@ -104,10 +160,10 @@ const ClientChatbotScreen: React.FC = () => {
                             style={styles.input}
                             returnKeyType="send"
                             onSubmitEditing={onSend}
+                            editable={!isLoading}
                         />
-
                         <TouchableOpacity onPress={onSend} style={styles.sendBtn} activeOpacity={0.85}>
-                            <Ionicons name="send" size={18} color={colors.primary} />
+                            <Ionicons name="send" size={18} color={isLoading ? colors.textSecondary : colors.primary} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -115,6 +171,7 @@ const ClientChatbotScreen: React.FC = () => {
         </ClientLayout>
     );
 };
+
 
 const styles = StyleSheet.create({
     root: { flex: 1 },
@@ -203,6 +260,41 @@ const styles = StyleSheet.create({
         borderRadius: 17,
         alignItems: "center",
         justifyContent: "center",
+    },
+    classificationBubble: {
+        gap: 10,
+        paddingVertical: spacing.md,
+    },
+    categoryBadge: {
+        alignSelf: 'flex-start',
+        backgroundColor: colors.primary + '18',   // primary with 10% opacity
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    categoryBadgeText: {
+        fontSize: fontSize.xs,
+        fontWeight: fontWeight.semibold,
+        color: colors.primary,
+    },
+    disclaimerText: {
+        fontSize: 10,
+        color: colors.textSecondary,
+        fontStyle: 'italic',
+        lineHeight: 15,
+    },
+    findLawyersBtn: {
+        alignSelf: 'flex-start',
+        marginTop: 4,
+        backgroundColor: colors.primary,
+        borderRadius: 8,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+    },
+    findLawyersBtnText: {
+        color: colors.white,
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.semibold,
     },
 });
 

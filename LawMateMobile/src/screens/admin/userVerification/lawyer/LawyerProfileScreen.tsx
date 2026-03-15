@@ -1,10 +1,11 @@
-import React from "react";
+import React, {useState} from "react";
 import {
     View,
     Text,
     StyleSheet,
     Image,
     ScrollView,
+    Modal, TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -12,8 +13,10 @@ import { colors, spacing } from "../../../../config/theme";
 import AdminLayout from "../../../../components/AdminLayout";
 import Button from "../../../../components/Button";
 import {useToast} from "../../../../context/ToastContext";
+import {lawyerVerificationService} from "../../../../services/lawyerVerificationService";
 
 type Lawyer = {
+    userId: string;
     name: string;
     image: string | null;
     barId: string;
@@ -31,15 +34,44 @@ const LawyerProfileScreen = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<RouteProp<AdminStackParamList, "LawyerProfile">>();
     const { lawyer } = route.params;
-
+    const [rejectModalVisible, setRejectModalVisible] = useState(false);
+    const [rejectReason, setRejectReason] = useState("");
     const { showSuccess, showError } = useToast();
 
-    const handleAccept = () => {
-        showSuccess("Lawyer has been verified successfully.");
+    // @ts-ignore
+    const [loading, setLoading] = useState(false);
+
+    const handleAccept = async () => {
+        try {
+            setLoading(true);
+            await lawyerVerificationService.accept(lawyer.userId);
+            showSuccess("Lawyer has been verified successfully.");
+            navigation.navigate("LawyerVerification");
+        } catch (e) {
+            showError("Failed to verify lawyer. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSuspend = () => {
-        showError("Lawyer has been rejected.");
+        setRejectReason("");
+        setRejectModalVisible(true);
+    };
+
+    const confirmReject = async () => {
+        if (!rejectReason.trim()) return; // safety guard
+        try {
+            setLoading(true);
+            setRejectModalVisible(false);
+            await lawyerVerificationService.reject(lawyer.userId, rejectReason.trim());
+            showError("Lawyer has been rejected.");
+            navigation.navigate("LawyerVerification");
+        } catch (e) {
+            showError("Failed to reject lawyer. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const status = lawyer.status.toLowerCase();
@@ -83,7 +115,11 @@ const LawyerProfileScreen = () => {
                     <Ionicons name="person-outline" size={22} color={colors.primary} />
                     <Text
                         style={styles.menuText}
-                        onPress={() => navigation.navigate("LawyerPersonal", { viewOnly: true })}
+                        onPress={() => navigation.navigate("LawyerPersonal",
+                            {
+                                viewOnly: true,
+                                userId: lawyer.userId
+                            })}
                     >
                         Personal Details
                     </Text>
@@ -94,7 +130,11 @@ const LawyerProfileScreen = () => {
                     <Ionicons name="briefcase-outline" size={22} color={colors.primary} />
                     <Text
                         style={styles.menuText}
-                        onPress={() => navigation.navigate("LawyerProfessional")}
+                        onPress={() => navigation.navigate("LawyerProfessional",
+                            {
+                                viewOnly: true,
+                                userId: lawyer.userId
+                            })}
                     >
                         Professional Details
                     </Text>
@@ -132,6 +172,56 @@ const LawyerProfileScreen = () => {
                     </View>
                 )}
             </ScrollView>
+
+            <Modal
+                visible={rejectModalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setRejectModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalCard}>
+                        <Text style={styles.modalTitle}>Reason for Rejection</Text>
+                        <Text style={styles.modalSubtitle}>
+                            Please provide a reason before rejecting this lawyer.
+                        </Text>
+
+                        <TextInput
+                            style={[
+                                styles.textInput,
+                                !rejectReason.trim() && styles.textInputError,
+                            ]}
+                            placeholder="Enter reason..."
+                            placeholderTextColor="#aaa"
+                            multiline
+                            numberOfLines={4}
+                            value={rejectReason}
+                            onChangeText={setRejectReason}
+                        />
+
+                        {!rejectReason.trim() && (
+                            <Text style={styles.errorText}>Reason is required.</Text>
+                        )}
+
+                        <View style={styles.modalButtons}>
+                            <Button
+                                title="CANCEL"
+                                variant="secondary"
+                                onPress={() => setRejectModalVisible(false)}
+                                style={{ flex: 1, marginRight: 8 }}
+                            />
+                            <Button
+                                title="REJECT"
+                                variant="reject"
+                                onPress={confirmReject}
+                                disabled={!rejectReason.trim()}
+                                style={{ flex: 1, marginLeft: 8 }}
+                            />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
         </AdminLayout>
     );
 };
@@ -212,5 +302,58 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         marginTop: 20,
         gap: 10,
+    },
+    // REPLACE these styles only
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "flex-end",
+        padding: 0,
+    },
+    modalCard: {
+        backgroundColor: "#fff",
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+        padding: spacing.lg,
+        width: "100%",
+        paddingBottom: 36,
+    },
+    modalTitle: {
+        fontSize: 17,
+        fontWeight: "700",
+        marginBottom: 6,
+        color: "#E74C3C",
+        textAlign: "center",
+    },
+    modalSubtitle: {
+        fontSize: 13,
+        color: "#777",
+        marginBottom: 16,
+        textAlign: "center",
+    },
+    textInput: {
+        borderWidth: 1,
+        borderColor: "#ddd",
+        borderRadius: 10,
+        padding: 12,
+        fontSize: 14,
+        textAlignVertical: "top",
+        minHeight: 100,
+        color: "#333",
+    },
+    textInputError: {
+        borderColor: "#E74C3C",
+    },
+    errorText: {
+        color: "#E74C3C",
+        fontSize: 12,
+        marginTop: 4,
+        marginBottom: 8,
+    },
+    modalButtons: {
+        flexDirection: "row",
+        marginTop: 20,
     },
 });

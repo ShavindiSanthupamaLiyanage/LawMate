@@ -157,7 +157,6 @@ const ClientAppointmentView: React.FC = () => {
                   )
                 }
                 variant="primary"
-                style={styles.uploadBtn}
               />
               <Button
                 title="CANCEL APPOINTMENT"
