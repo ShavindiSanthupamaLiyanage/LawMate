@@ -147,4 +147,10 @@ export const ENDPOINTS = {
         ACCEPT: (userId: string) => `/lawyer-verification/${userId}/accept`,
         REJECT: (userId: string) => `/lawyer-verification/${userId}/reject`,
     },
+    PAYMENTS: {
+        ALL:      '/admin/payments',
+        PENDING:  '/admin/payments/pending',
+        APPROVED: '/admin/payments/accepted',
+        REJECTED: '/admin/payments/rejected',
+    },
 };
