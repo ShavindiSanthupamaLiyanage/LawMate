@@ -6,7 +6,6 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
 using LawMate.API.Services.Chatbot;
-using LawMate.Infrastructure.Services;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
