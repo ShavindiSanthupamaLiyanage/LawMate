@@ -16,7 +16,7 @@ public class AcceptLawyerVerificationCommandHandler
 {
     private readonly IApplicationDbContext _context;
 
-    public AcceptLawyerVerificationCommandHandler(IApplicationDbContext context)
+    public AcceptLawyerVerificationCommandHandler(IApplicationDbContext context)    
     {
         _context = context;
     }
