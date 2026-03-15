@@ -148,4 +148,10 @@ namespace LawMate.Domain.Common.Enums
         Monthly = 0,
         BiAnnual = 1,
     }
+    
+    public enum PaymentSource
+    {
+        Membership,
+        Booking
+    }
 }
