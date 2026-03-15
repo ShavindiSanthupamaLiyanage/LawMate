@@ -9,6 +9,7 @@ using LawMate.Domain.DTOs;
 using LawMate.Domain.Entities.Auth;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace LawMate.Application.ClientModule.ClientRegistration.Commands
 {
@@ -31,6 +32,16 @@ namespace LawMate.Application.ClientModule.ClientRegistration.Commands
             _context = context;
             _currentUserService = currentUserService;
             _logger = logger;
+        }
+        
+        private static async Task<byte[]?> ConvertToByteArrayAsync(IFormFile? file, CancellationToken ct)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            await using var ms = new MemoryStream();
+            await file.CopyToAsync(ms, ct);
+            return ms.ToArray();
         }
 
         public async Task<string> Handle(CreateClientCommand request, CancellationToken cancellationToken)
@@ -88,6 +99,8 @@ namespace LawMate.Application.ClientModule.ClientRegistration.Commands
                     throw new Exception("Email already registered.");
             }
 
+            var profileImageBytes = await ConvertToByteArrayAsync(dto.ProfileImage, cancellationToken);
+            
             // Start transaction (like lawyer)
             await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 
@@ -107,6 +120,7 @@ namespace LawMate.Application.ClientModule.ClientRegistration.Commands
                     RecordStatus = 0,
                     State = State.Active,
                     RegistrationDate = DateTime.Now,
+                    ProfileImage = profileImageBytes,
                     IsDualAccount = isDualAccount,
                     CreatedBy = _currentUserService.UserId,
                     CreatedAt = DateTime.Now

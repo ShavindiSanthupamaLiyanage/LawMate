@@ -120,7 +120,7 @@ export default function PaymentVerificationViewScreen({
                     <InfoRow label="Amount" value={item.amount} />
                     <InfoRow label="Payment Date" value={item.paymentDate} />
                     <InfoRow label="Payment Method" value="Bank Transfer" />
-                    <InfoRow label="Reference Number" value="BEF-75124578" />
+                    <InfoRow label="Reference Number" value="BEF-75124578" />K
                 </View>
 
                 {/* Bank Information */}

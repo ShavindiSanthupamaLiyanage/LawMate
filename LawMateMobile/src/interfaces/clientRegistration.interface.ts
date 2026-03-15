@@ -11,7 +11,7 @@ export interface ClientRegistrationDetails {
     email:           string;
     password:        string;
     confirmPassword: string;
-    profilePic:      string | null;
+    profilePic: { uri: string; name: string; mimeType?: string } | null;
 }
 
 export interface CreateClientDto {

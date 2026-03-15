@@ -1,4 +1,6 @@
-﻿namespace LawMate.Domain.DTOs
+﻿using Microsoft.AspNetCore.Http;
+
+namespace LawMate.Domain.DTOs
 {
     public class CreateClientDto
     {
@@ -16,5 +18,6 @@
 
         public string? PreferredLanguage { get; set; } // "english"
         public string? Password { get; set; }
+        public IFormFile? ProfileImage { get; set; } 
     }
 }

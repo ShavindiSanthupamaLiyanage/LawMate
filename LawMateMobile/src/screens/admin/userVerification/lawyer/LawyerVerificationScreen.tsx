@@ -18,6 +18,7 @@ type StatusType = "ALL" | "Pending" | "Active" | "Rejected";
 
 interface Lawyer {
     id: string;
+    userId: string;
     name: string;
     barId: string;
     image: string | null;
@@ -45,6 +46,7 @@ const LawyerVerificationScreen = () => {
             .then(data => {
                 setLawyers(data.map(l => ({
                     id: l.userId,
+                    userId: l.userId,
                     name: l.lawyerName,
                     barId: `Bar ID: ${l.barAssociationRegNo}`,
                     image: l.profileImage ? `data:image/jpeg;base64,${l.profileImage}` : null,
