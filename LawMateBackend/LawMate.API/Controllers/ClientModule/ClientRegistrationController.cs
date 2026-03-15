@@ -39,7 +39,8 @@ namespace LawMate.API.Controllers.ClientModule
         // POST: api/clients (Register client)
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Register([FromBody] CreateClientDto request)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Register([FromForm] CreateClientDto request)
         {
             try
             {
