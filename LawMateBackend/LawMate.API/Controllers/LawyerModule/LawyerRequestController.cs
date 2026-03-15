@@ -1,9 +1,11 @@
-﻿using LawMate.Domain.DTOs;
-using LawMate.Application.Common.Interfaces;
+﻿using LawMate.Application.LawyerModule.LawyerRequest.Commands;
+using LawMate.Application.LawyerModule.LawyerRequest.Queries;
 using LawMate.Domain.Common.Enums;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using LawMate.Domain.DTOs;
 
 namespace LawMate.API.Controllers.LawyerModule;
 
@@ -12,16 +14,15 @@ namespace LawMate.API.Controllers.LawyerModule;
 [Authorize(Roles = "Lawyer")]
 public class LawyerRequestController : ControllerBase
 {
-    private readonly ILawyerRequestService _service;
+    private readonly IMediator _mediator;
 
-    public LawyerRequestController(ILawyerRequestService service)
+    public LawyerRequestController(IMediator mediator)
     {
-        _service = service;
+        _mediator = mediator;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /// <summary>Extracts the authenticated lawyer's UserId from the JWT.</summary>
     private string? LawyerId =>
         User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -30,9 +31,6 @@ public class LawyerRequestController : ControllerBase
 
     // ─────────────────────────────────────────────────────────────────────────
     // GET /api/lawyer/requests?status=Pending
-    // Returns the list shown on the Requests screen for the given tab.
-    //   status: Pending | Confirmed | Rejected
-    //   (Passing "Confirmed" returns both Confirmed and Accepted rows.)
     // ─────────────────────────────────────────────────────────────────────────
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<BookingListItemDto>), StatusCodes.Status200OK)]
@@ -44,13 +42,14 @@ public class LawyerRequestController : ControllerBase
     {
         if (LawyerId is null) return Unauthorized401();
 
-        var items = await _service.GetRequestsAsync(LawyerId, status, ct);
+        var items = await _mediator.Send(
+            new GetLawyerRequestsQuery(LawyerId, status), ct);
+
         return Ok(items);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // GET /api/lawyer/requests/{bookingId}
-    // Returns the full detail shown in AppointmentView.
     // ─────────────────────────────────────────────────────────────────────────
     [HttpGet("{bookingId:int}")]
     [ProducesResponseType(typeof(BookingDetailDto), StatusCodes.Status200OK)]
@@ -62,7 +61,9 @@ public class LawyerRequestController : ControllerBase
     {
         if (LawyerId is null) return Unauthorized401();
 
-        var detail = await _service.GetRequestByIdAsync(bookingId, LawyerId, ct);
+        var detail = await _mediator.Send(
+            new GetLawyerRequestByIdQuery(bookingId, LawyerId), ct);
+
         if (detail is null)
             return NotFound(new { message = $"Booking {bookingId} not found." });
 
@@ -71,7 +72,6 @@ public class LawyerRequestController : ControllerBase
 
     // ─────────────────────────────────────────────────────────────────────────
     // POST /api/lawyer/requests/{bookingId}/accept
-    // Transitions Pending → Accepted.
     // ─────────────────────────────────────────────────────────────────────────
     [HttpPost("{bookingId:int}/accept")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -83,7 +83,9 @@ public class LawyerRequestController : ControllerBase
     {
         if (LawyerId is null) return Unauthorized401();
 
-        var success = await _service.AcceptRequestAsync(bookingId, LawyerId, ct);
+        var success = await _mediator.Send(
+            new AcceptLawyerRequestCommand(bookingId, LawyerId), ct);
+
         if (!success)
             return NotFound(new { message = "Pending booking not found or already processed." });
 
@@ -93,7 +95,6 @@ public class LawyerRequestController : ControllerBase
     // ─────────────────────────────────────────────────────────────────────────
     // POST /api/lawyer/requests/{bookingId}/reject
     // Body: { "reason": "Schedule conflict" }
-    // Transitions Pending → Rejected.
     // ─────────────────────────────────────────────────────────────────────────
     [HttpPost("{bookingId:int}/reject")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -110,7 +111,9 @@ public class LawyerRequestController : ControllerBase
         if (string.IsNullOrWhiteSpace(body.Reason))
             return BadRequest(new { message = "Rejection reason is required." });
 
-        var success = await _service.RejectRequestAsync(bookingId, LawyerId, body.Reason, ct);
+        var success = await _mediator.Send(
+            new RejectLawyerRequestCommand(bookingId, LawyerId, body.Reason), ct);
+
         if (!success)
             return NotFound(new { message = "Pending booking not found or already processed." });
 
@@ -120,7 +123,6 @@ public class LawyerRequestController : ControllerBase
     // ─────────────────────────────────────────────────────────────────────────
     // POST /api/lawyer/requests/{bookingId}/cancel
     // Body: { "reason": "Client unavailable" }
-    // Transitions Confirmed or Accepted → Cancelled.
     // ─────────────────────────────────────────────────────────────────────────
     [HttpPost("{bookingId:int}/cancel")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -137,10 +139,16 @@ public class LawyerRequestController : ControllerBase
         if (string.IsNullOrWhiteSpace(body.Reason))
             return BadRequest(new { message = "Cancellation reason is required." });
 
-        var success = await _service.CancelRequestAsync(bookingId, LawyerId, body.Reason, ct);
+        var success = await _mediator.Send(
+            new CancelLawyerRequestCommand(bookingId, LawyerId, body.Reason), ct);
+
         if (!success)
             return NotFound(new { message = "Active booking not found or cannot be cancelled." });
 
         return Ok(new { message = "Appointment cancelled." });
     }
 }
+
+// ── Request body models ───────────────────────────────────────────────────────
+public record RejectBookingRequest(string Reason);
+public record CancelBookingRequest(string Reason);
