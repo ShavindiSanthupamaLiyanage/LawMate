@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
 using LawMate.API.Services.Chatbot;
+using LawMate.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,6 +88,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddScoped<OpenAiChatbotService>();
 builder.Services.AddAuthorization();
+builder.Services.AddHostedService<MembershipExpiryService>();
 
 var app = builder.Build();
 
