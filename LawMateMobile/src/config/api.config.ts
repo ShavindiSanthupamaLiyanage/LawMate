@@ -130,7 +130,10 @@ export const ENDPOINTS = {
     CONTACT: {
         SEND: '/contactUs/send',
     },
-    
+    CHATBOT: {
+        CLASSIFY: '/chatbot/classify',
+    },
+
      BOOKING: {
     GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>`/bookings/lawyer/${lawyerId}`,
     GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,

@@ -168,11 +168,13 @@ const LawyerCard: React.FC<LawyerCardProps> = ({ lawyer, onPress }) => (
 
 interface SearchLawyerScreenProps {
     navigation?: any;
+    route?: any;
 }
 
-const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation }) => {
+const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) => {
+    const presetCaseArea = route?.params?.presetCaseArea ?? '';
     const [filters, setFilters] = useState<SearchFilters>({
-        caseArea: '',
+        caseArea: presetCaseArea,
         district: '',
         name: '',
     });
@@ -181,9 +183,10 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation }) => {
 
     useFocusEffect(
         useCallback(() => {
+            const preset = route?.params?.presetCaseArea ?? '';
             setResults(null);
-            setFilters({ caseArea: '', district: '', name: '' });
-        }, [])
+            setFilters({ caseArea: preset, district: '', name: '' });
+        }, [route?.params?.presetCaseArea])
     );
 
     const handleSearch = async () => {
