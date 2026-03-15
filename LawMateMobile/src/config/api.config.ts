@@ -141,4 +141,9 @@ export const ENDPOINTS = {
     CONTACT: {
         SEND: '/contactUs/send',
     },
+
+    LAWYER_VERIFICATION: {
+        ACCEPT: (userId: string) => `/lawyer-verification/${userId}/accept`,
+        REJECT: (userId: string) => `/lawyer-verification/${userId}/reject`,
+    },
 };
