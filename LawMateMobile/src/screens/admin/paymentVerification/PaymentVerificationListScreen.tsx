@@ -37,74 +37,6 @@ type Props = {
     >;
 };
 
-// ─── Dummy Data ───────────────────────────────────────────────────────────────
-
-// const dummyData: PaymentVerificationItem[] = [
-//     {
-//         id: "1",
-//         name: "Kavinda Gunesekara",
-//         email: "kavinda@gmail.com",
-//         amount: "LKR 15,000.00",
-//         paymentDate: "Feb 5, 2025",
-//         status: "Pending",
-//         transNo: "0001",
-//     },
-//     {
-//         id: "2",
-//         name: "Santha De Silva",
-//         email: "santha@gmail.com",
-//         amount: "LKR 25,000.00",
-//         paymentDate: "Feb 3, 2025",
-//         status: "Approved",
-//         transNo: "0021",
-//     },
-//     {
-//         id: "3",
-//         name: "Kamal Silva",
-//         email: "kamal@gmail.com",
-//         amount: "LKR 30,000.00",
-//         paymentDate: "Mar 1, 2025",
-//         status: "Rejected",
-//         transNo: "0108",
-//     },
-//     {
-//         id: "4",
-//         name: "Nuwan Sliwa",
-//         email: "nuwan@gmail.com",
-//         amount: "LKR 42,000.00",
-//         paymentDate: "Oct 2, 2025",
-//         status: "Approved",
-//         transNo: "0002",
-//     },
-//     {
-//         id: "5",
-//         name: "Kamal Dina",
-//         email: "kamal.d@gmail.com",
-//         amount: "LKR 12,000.00",
-//         paymentDate: "Feb 5, 2025",
-//         status: "Approved",
-//         transNo: "0005",
-//     },
-//     {
-//         id: "6",
-//         name: "Maya De Silva",
-//         email: "maya@gmail.com",
-//         amount: "LKR 90,000.00",
-//         paymentDate: "May 25, 2025",
-//         status: "Pending",
-//         transNo: "0001",
-//     },
-//     {
-//         id: "7",
-//         name: "Kamil Black",
-//         email: "kamil@gmail.com",
-//         amount: "LKR 30,000.00",
-//         paymentDate: "Feb 1, 2025",
-//         status: "Rejected",
-//         transNo: "0013",
-//     },
-// ];
-
 const TABS: Array<"All" | PaymentStatus> = [
     "All",
     "Pending",
@@ -126,8 +58,10 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
     const [rejectedData, setRejectedData] = useState<PaymentVerificationItem[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const mapDto = (dto: PaymentDto): PaymentVerificationItem => ({
-        id:          dto.transactionId ?? Math.random().toString(),
+    const mapDto = (dto: PaymentDto, index: number): PaymentVerificationItem => ({
+        id: dto.transactionId
+            ? `${dto.transactionId}-${index}`   // ensure uniqueness even if IDs repeat
+            : `fallback-${index}-${Date.now()}`,
         name:        dto.lawyerId ?? 'Unknown',
         paymentType: dto.paymentType as 'Membership' | 'Booking',
         amount:      `LKR ${dto.amount.toLocaleString('en-LK', { minimumFractionDigits: 2 })}`,
@@ -148,25 +82,15 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
             paymentService.getRejected(),
         ])
             .then(([all, pending, approved, rejected]) => {
-                setAllData(all.map(mapDto));
-                setPendingData(pending.map(mapDto));
-                setApprovedData(approved.map(mapDto));
-                setRejectedData(rejected.map(mapDto));
-            })
+            setAllData(all.map((dto, i) => mapDto(dto, i)));
+            setPendingData(pending.map((dto, i) => mapDto(dto, i)));
+            setApprovedData(approved.map((dto, i) => mapDto(dto, i)));
+            setRejectedData(rejected.map((dto, i) => mapDto(dto, i)));
+        })
             .catch(console.error)
             .finally(() => setLoading(false));
     }, []);
 
-
-    // const filteredData = dummyData.filter((item) => {
-    //     const matchesTab =
-    //         selectedTab === "All" ? true : item.status === selectedTab;
-    //     const matchesSearch =
-    //         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    //         item.transNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    //         item.email.toLowerCase().includes(searchQuery.toLowerCase());
-    //     return matchesTab && matchesSearch;
-    // });
     const getTabData = () => {
         const base = selectedTab === 'All'      ? allData
             : selectedTab === 'Pending'  ? pendingData
