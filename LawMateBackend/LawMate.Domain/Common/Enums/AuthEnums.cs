@@ -34,7 +34,9 @@ namespace LawMate.Domain.Common.Enums
         Accepted = 1,
         Verified = 2,
         Rejected = 3,
-        Suspended = 4, 
+        Suspended = 4,
+        Confirmed = 5,
+        Cancelled = 6,
     }
 
     public enum LegalCategory
@@ -147,6 +149,12 @@ namespace LawMate.Domain.Common.Enums
     {
         Monthly = 0,
         BiAnnual = 1,
+    }
+
+    public enum PaymentMode
+    {
+        Online = 0,
+        Physical = 1
     }
 
     public enum AppointmentMode
