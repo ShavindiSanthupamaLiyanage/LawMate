@@ -148,6 +148,12 @@ namespace LawMate.Domain.Common.Enums
         Monthly = 0,
         BiAnnual = 1,
     }
+
+    public enum AppointmentMode
+    {
+        Physical = 1,
+        Virtual = 2
+    }
     
     public enum PaymentSource
     {
