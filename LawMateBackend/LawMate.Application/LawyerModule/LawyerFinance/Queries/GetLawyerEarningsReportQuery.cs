@@ -9,7 +9,8 @@ namespace LawMate.Application.LawyerModule.LawyerFinance.Queries;
 public record GetLawyerEarningsReportQuery(
     string LawyerId,
     DateTime? StartDate = null,
-    DateTime? EndDate = null)
+    DateTime? EndDate = null,
+    string? Preset = null)
     : IRequest<LawyerEarningsReportDto>;
 
 public class GetLawyerEarningsReportQueryHandler
@@ -26,15 +27,44 @@ public class GetLawyerEarningsReportQueryHandler
         GetLawyerEarningsReportQuery request,
         CancellationToken cancellationToken)
     {
+        var startDate = request.StartDate;
+        var endDate = request.EndDate;
+        var now = DateTime.UtcNow;
+
+        if (!string.IsNullOrWhiteSpace(request.Preset))
+        {
+            switch (request.Preset.Trim().ToLower())
+            {
+                case "thisweek":
+                    var diff = (7 + ((int)now.DayOfWeek - (int)DayOfWeek.Monday)) % 7;
+                    startDate = now.Date.AddDays(-diff);
+                    endDate = now.Date;
+                    break;
+
+                case "thismonth":
+                    startDate = new DateTime(now.Year, now.Month, 1);
+                    endDate = now.Date;
+                    break;
+
+                case "lastmonth":
+                    var firstDayThisMonth = new DateTime(now.Year, now.Month, 1);
+                    var firstDayLastMonth = firstDayThisMonth.AddMonths(-1);
+                    var lastDayLastMonth = firstDayThisMonth.AddDays(-1);
+                    startDate = firstDayLastMonth;
+                    endDate = lastDayLastMonth;
+                    break;
+            }
+        }
+
         var paymentsQuery = _context.BOOKING_PAYMENT
             .Where(x => x.LawyerId == request.LawyerId);
 
-        if (request.StartDate.HasValue)
-            paymentsQuery = paymentsQuery.Where(x => x.PaymentDate >= request.StartDate.Value);
+        if (startDate.HasValue)
+            paymentsQuery = paymentsQuery.Where(x => x.PaymentDate >= startDate.Value);
 
-        if (request.EndDate.HasValue)
+        if (endDate.HasValue)
         {
-            var inclusiveEnd = request.EndDate.Value.Date.AddDays(1).AddTicks(-1);
+            var inclusiveEnd = endDate.Value.Date.AddDays(1).AddTicks(-1);
             paymentsQuery = paymentsQuery.Where(x => x.PaymentDate <= inclusiveEnd);
         }
 

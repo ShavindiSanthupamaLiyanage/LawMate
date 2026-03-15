@@ -33,13 +33,35 @@ public class UpdateBookingPaymentStatusCommandHandler
 
         if (payment == null)
             throw new Exception("Booking payment not found");
+        
+        // Devindi
+        var booking = await _context.BOOKING
+            .FirstOrDefaultAsync(x => x.BookingId == payment.BookingId, cancellationToken);
+
+        if (booking == null)
+            throw new Exception("Related booking not found");
 
         payment.VerificationStatus = request.Status;
         payment.VerifiedBy = _currentUser.UserId;
-        payment.VerifiedAt = DateTime.Now;
+        payment.VerifiedAt = DateTime.UtcNow;
 
         if (request.Status == VerificationStatus.Rejected)
             payment.RejectionReason = request.RejectionReason;
+        
+        // Devindi
+        if (request.Status == VerificationStatus.Rejected)
+        {
+            booking.BookingStatus = BookingStatus.Accepted;
+            booking.PaymentStatus = PaymentStatus.Failed;
+        }
+        else if (request.Status == VerificationStatus.Verified)
+        {
+            booking.BookingStatus = BookingStatus.Verified; // use Verified here if Confirmed does not exist yet
+            booking.PaymentStatus = PaymentStatus.Paid;
+        }
+
+        booking.ModifiedBy = _currentUser.UserId;
+        booking.ModifiedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

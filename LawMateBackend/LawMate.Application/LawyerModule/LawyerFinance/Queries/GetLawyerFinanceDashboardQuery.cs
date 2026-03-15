@@ -35,17 +35,31 @@ public class GetLawyerFinanceDashboardQueryHandler
                 _context.BOOKING,
                 payment => payment.BookingId,
                 booking => booking.BookingId,
-                (payment, booking) => new LawyerFinanceTransactionItemDto
+                (payment, booking) => new { payment, booking }
+            )
+            .GroupJoin(
+                _context.USER_DETAIL,
+                pb => pb.booking.ClientId,
+                user => user.UserId,
+                (pb, users) => new { pb.payment, pb.booking, users }
+            )
+            .SelectMany(
+                x => x.users.DefaultIfEmpty(),
+                (x, user) => new LawyerFinanceTransactionItemDto
                 {
-                    PaymentId = payment.Id,
-                    BookingId = booking.BookingId,
-                    ReferenceNo = "APT-" + booking.BookingId.ToString("D4"),
-                    ClientDisplay = booking.ClientId,
-                    Amount = payment.LawyerFee,
-                    TransactionDate = payment.VerifiedAt ?? payment.PaymentDate,
-                    Status = payment.VerificationStatus == VerificationStatus.Verified
+                    PaymentId = x.payment.Id,
+                    BookingId = x.booking.BookingId,
+                    ReferenceNo = "APT-" + x.booking.BookingId.ToString("D4"),
+                    ClientDisplay = user == null
+                        ? x.booking.ClientId
+                        : (((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim() == ""
+                            ? x.booking.ClientId
+                            : ((user.FirstName ?? "") + " " + (user.LastName ?? "")).Trim()),
+                    Amount = x.payment.LawyerFee,
+                    TransactionDate = x.payment.VerifiedAt ?? x.payment.PaymentDate,
+                    Status = x.payment.VerificationStatus == VerificationStatus.Verified
                         ? "Verified Payment"
-                        : payment.VerificationStatus == VerificationStatus.Pending
+                        : x.payment.VerificationStatus == VerificationStatus.Pending
                             ? "Pending Verification"
                             : "Rejected Payment"
                 })
