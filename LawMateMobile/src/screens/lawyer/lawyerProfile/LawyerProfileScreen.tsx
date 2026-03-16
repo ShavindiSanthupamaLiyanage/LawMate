@@ -146,7 +146,7 @@ const LawyerProfileScreen: React.FC = () => {
                     </View>
 
                     {/* Rating */}
-                    <View style={styles.ratingContainer}>
+                    {/* <View style={styles.ratingContainer}>
                         {[...Array(5)].map((_, index) => (
                             <Ionicons
                                 key={index}
@@ -158,10 +158,10 @@ const LawyerProfileScreen: React.FC = () => {
                         <Text style={styles.ratingText}>
                             {profileData.rating} ({profileData.reviewCount} reviews)
                         </Text>
-                    </View>
+                    </View> */}
 
                     {/* Stats */}
-                    <View style={styles.statsContainer}>
+                    {/* <View style={styles.statsContainer}>
                         <View style={styles.statItem}>
                             <Text style={styles.statLabel}>Total Cases</Text>
                             <Text style={styles.statValue}>{profileData.totalCases}</Text>
@@ -176,7 +176,7 @@ const LawyerProfileScreen: React.FC = () => {
                             <Text style={styles.statLabel}>Years Exp</Text>
                             <Text style={styles.statValue}>{String(profileData.yearsExp).padStart(2, '0')}</Text>
                         </View>
-                    </View>
+                    </View> */}
                 </View>
 
                 {/* Menu Items */}
@@ -216,7 +216,7 @@ const LawyerProfileScreen: React.FC = () => {
                         </>
                     )}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="calendar-outline"
                         title="Availability"
                         onPress={() => setExpandedItems(prev => ({ ...prev, availability: !prev.availability }))}
@@ -239,9 +239,9 @@ const LawyerProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Slots', 'Manage time slots')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="briefcase"
                         title="My Cases & Appointments"
                         onPress={() => setExpandedItems(prev => ({ ...prev, cases: !prev.cases }))}
@@ -264,9 +264,9 @@ const LawyerProfileScreen: React.FC = () => {
                                 onPress={() => navigation.navigate('AddAppointment')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="star-outline"
                         title="Reviews & Ratings"
                         onPress={() => setExpandedItems(prev => ({ ...prev, reviews: !prev.reviews }))}
@@ -289,9 +289,9 @@ const LawyerProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Testimonials', 'View client testimonials')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="wallet-outline"
                         title="Payments & Earnings"
                         onPress={() => setExpandedItems(prev => ({ ...prev, payments: !prev.payments }))}
@@ -314,9 +314,9 @@ const LawyerProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Bank', 'Manage bank details')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="settings-outline"
                         title="Settings & Preferences"
                         onPress={() => setExpandedItems(prev => ({ ...prev, settings: !prev.settings }))}
@@ -339,9 +339,9 @@ const LawyerProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Notifications', 'Configure notifications')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="help-circle-outline"
                         title="Help & Support"
                         onPress={() => setExpandedItems(prev => ({ ...prev, help: !prev.help }))}
@@ -360,7 +360,7 @@ const LawyerProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Support', 'Contact customer support')}
                             />
                         </>
-                    )}
+                    )} */}
 
                     <MenuItem
                         icon="log-out-outline"
