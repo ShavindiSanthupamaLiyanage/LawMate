@@ -205,10 +205,10 @@ const LawyerProfileScreen: React.FC = () => {
                                 title="Specializations"
                                 onPress={() => RNAlert.alert('Specializations', 'Manage specializations')}
                             />
-                            <SubMenuItem
+                            {/* <SubMenuItem
                                 title="Education"
                                 onPress={() => RNAlert.alert('Education', 'View education details')}
-                            />
+                            /> */}
                             <SubMenuItem
                                 title="Experience"
                                 onPress={() => RNAlert.alert('Experience', 'View experience details')}
