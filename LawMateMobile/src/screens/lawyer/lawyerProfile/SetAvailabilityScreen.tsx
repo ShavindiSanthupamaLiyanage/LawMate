@@ -22,6 +22,7 @@ import {
 } from "../../../config/theme";
 import Toast from "../../../components/Toast";
 import Button from "../../../components/Button";
+import LawyerLayout from "../../../components/LawyerLayout";
 import {
   getLawyerAvailabilitySlots,
   createAvailabilitySlot,
@@ -231,18 +232,14 @@ const SetAvailabilityScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backRow}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color={colors.white} />
-          <Text style={styles.headerTitle}>Set Availability</Text>
-        </TouchableOpacity>
-      </View>
+    <LawyerLayout
+      title="Set Availability"
+      showBackButton
+      onBackPress={() => navigation.goBack()}
+      hideRightSection
+      disableScroll
+    >
+      <View style={styles.container}>
 
       <ScrollView
         style={styles.scroll}
@@ -485,7 +482,8 @@ const SetAvailabilityScreen: React.FC = () => {
         type="success"
         onDismiss={() => setToastVisible(false)}
       />
-    </View>
+      </View>
+    </LawyerLayout>
   );
 };
 

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Switch, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+import LawyerLayout from '../../../components/LawyerLayout';
 
 const AvailabilityScreen: React.FC = () => {
     const navigation = useNavigation();
@@ -36,28 +35,14 @@ const AvailabilityScreen: React.FC = () => {
     };
 
     return (
-        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+        <LawyerLayout
+            title="Availability"
+            showBackButton
+            onBackPress={() => navigation.goBack()}
+            hideRightSection
+            disableScroll
+        >
             <View style={styles.container}>
-                <LinearGradient
-                    colors={[colors.primary, colors.primaryLight]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.header}
-                >
-                <View style={styles.headerContent}>
-                    <View style={styles.headerLeft}>
-                        <Ionicons 
-                            name="chevron-back" 
-                            size={28} 
-                            color={colors.white}
-                            onPress={() => navigation.goBack()}
-                        />
-                    </View>
-                    <Text style={styles.headerTitle}>Availability</Text>
-                    <View style={styles.headerRight} />
-                </View>
-            </LinearGradient>
-
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 <View style={styles.infoBox}>
                     <Ionicons name="information-circle" size={20} color={colors.primary} />
@@ -89,7 +74,7 @@ const AvailabilityScreen: React.FC = () => {
                 <View style={styles.bottomSpacing} />
             </ScrollView>
             </View>
-        </ScreenWrapper>
+        </LawyerLayout>
     );
 };
 
@@ -131,7 +116,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         paddingHorizontal: spacing.lg,
-        paddingTop: 110,
+        paddingTop: spacing.lg,
     },
     infoBox: {
         flexDirection: 'row',
