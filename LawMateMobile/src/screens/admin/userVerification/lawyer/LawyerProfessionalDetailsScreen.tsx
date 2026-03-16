@@ -51,7 +51,7 @@ const LawyerProfessionalDetailsScreen: React.FC = () => {
             showBackButton
             disableScroll
             onBackPress={() => navigation.goBack()}
-            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+            hideRightSection
         >
             <ScrollView
                 style={styles.scrollView}

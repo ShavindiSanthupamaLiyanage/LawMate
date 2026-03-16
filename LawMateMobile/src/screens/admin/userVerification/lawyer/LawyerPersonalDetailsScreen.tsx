@@ -51,7 +51,7 @@ const LawyerPersonalDetailsScreen: React.FC = () => {
             title="Personal Details"
             showBackButton
             onBackPress={() => navigation.goBack()}
-            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+            hideRightSection
         >
             <ScrollView
                 style={styles.scrollView}

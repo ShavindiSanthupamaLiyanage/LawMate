@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+import AdminLayout from '../../../components/AdminLayout';
 import Alert from '../../../components/Alert';
 import { AuthService } from '../../../services/authService';
 
@@ -103,31 +103,14 @@ const AdminProfileScreen: React.FC = () => {
     };
 
     return (
-        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+        <AdminLayout
+            title="Admin Profile"
+            showBackButton
+            onBackPress={() => navigation.goBack()}
+            hideRightSection
+            disableScroll
+        >
             <View style={styles.container}>
-            {/* Fixed Header */}
-            <LinearGradient
-                colors={[
-                    'rgba(24,114,234,1)',
-                    'rgba(54,87,208,1)',
-                    'rgba(77,55,200,1)',
-                    'rgba(99,71,253,1)',
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.fixedHeader}
-            >
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="chevron-back" size={24} color={colors.white} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Admin Profile</Text>
-                <View style={styles.backButton} />
-            </LinearGradient>
-
             <ScrollView 
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
@@ -367,7 +350,7 @@ const AdminProfileScreen: React.FC = () => {
                 onClose={() => setShowLogoutAlert(false)}
             />
 
-        </ScreenWrapper>
+        </AdminLayout>
     );
 };
 
@@ -378,7 +361,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         paddingBottom: 100,
-        paddingTop: 110,
+        paddingTop: spacing.md,
     },
     fixedHeader: {
         height: 80,

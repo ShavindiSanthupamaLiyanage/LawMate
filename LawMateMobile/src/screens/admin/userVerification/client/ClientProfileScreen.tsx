@@ -48,7 +48,7 @@ const ClientProfileScreen = () => {
             title="Client Profile"
             showBackButton
             onBackPress={() => navigation.navigate("ClientVerification")}
-            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+            hideRightSection
         >
             <ScrollView
                 showsVerticalScrollIndicator={false}

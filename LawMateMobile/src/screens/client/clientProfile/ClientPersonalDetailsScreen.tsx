@@ -9,11 +9,10 @@ import {
     TextInput,
     Alert,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
-import ScreenWrapper from '../../../components/ScreenWrapper';
+import ClientLayout from '../../../components/ClientLayout';
 
 const EditModal: React.FC<{
     visible: boolean;
@@ -123,30 +122,14 @@ const ClientPersonalDetailsScreen: React.FC = () => {
     };
 
     return (
-        <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
+        <ClientLayout
+            title="Personal Details"
+            showBackButton
+            onBackPress={() => navigation.goBack()}
+            hideRightSection
+            disableScroll
+        >
             <View style={styles.container}>
-                <LinearGradient
-                    colors={[
-                        'rgba(24,114,234,1)',
-                        'rgba(54,87,208,1)',
-                        'rgba(77,55,200,1)',
-                        'rgba(99,71,253,1)',
-                    ]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.header}
-                >
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="arrow-back" size={24} color={colors.white} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Personal Details</Text>
-                <View style={styles.backButton} />
-            </LinearGradient>
-
             <ScrollView
                 style={styles.scrollView}
                 showsVerticalScrollIndicator={false}
@@ -211,7 +194,7 @@ const ClientPersonalDetailsScreen: React.FC = () => {
                 onSave={handleSaveField}
             />
             </View>
-        </ScreenWrapper>
+        </ClientLayout>
     );
 };
 
@@ -249,7 +232,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: spacing.lg,
-        paddingTop: 110,
+        paddingTop: spacing.lg,
     },
     card: {
         backgroundColor: colors.white,

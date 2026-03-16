@@ -82,7 +82,7 @@ const LawyerProfileScreen = () => {
             showBackButton
             disableScroll
             onBackPress={() => navigation.navigate("LawyerVerification")}
-            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+            hideRightSection
         >
             <ScrollView style={styles.container}>
                 <View style={styles.profileCard}>
