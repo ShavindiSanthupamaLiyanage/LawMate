@@ -145,7 +145,7 @@ const AdminProfileScreen: React.FC = () => {
                     </View>
 
                     {/* Stats */}
-                    <View style={styles.statsContainer}>
+                    {/* <View style={styles.statsContainer}>
                         <View style={styles.statItem}>
                             <Text style={styles.statLabel}>Total Users</Text>
                             <Text style={styles.statValue}>{profileData.totalUsers}</Text>
@@ -160,7 +160,7 @@ const AdminProfileScreen: React.FC = () => {
                             <Text style={styles.statLabel}>Revenue</Text>
                             <Text style={styles.statValue}>{profileData.totalRevenue}</Text>
                         </View>
-                    </View>
+                    </View> */}
                 </View>
 
                 {/* Menu Items */}
@@ -171,7 +171,7 @@ const AdminProfileScreen: React.FC = () => {
                         onPress={() => navigation.navigate('AdminPersonalDetails')}
                     />
                     
-                    <MenuItem
+                    {/* <MenuItem
                         icon="people-outline"
                         title="User Management"
                         onPress={() => setExpandedItems(prev => ({ ...prev, userMgmt: !prev.userMgmt }))}
@@ -198,9 +198,9 @@ const AdminProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('User Roles', 'Manage user roles')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="shield-checkmark-outline"
                         title="Verification Requests"
                         onPress={() => setExpandedItems(prev => ({ ...prev, verification: !prev.verification }))}
@@ -223,9 +223,9 @@ const AdminProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Rejected', 'Navigate to rejected verifications')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="bar-chart-outline"
                         title="Analytics & Reports"
                         onPress={() => setExpandedItems(prev => ({ ...prev, analytics: !prev.analytics }))}
@@ -252,8 +252,8 @@ const AdminProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Logs', 'View activity logs')}
                             />
                         </>
-                    )}
-
+                    )} */}
+{/* 
                     <MenuItem
                         icon="notifications-outline"
                         title="Notifications"
@@ -277,9 +277,9 @@ const AdminProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Settings', 'Manage notification settings')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="settings-outline"
                         title="Settings & Preferences"
                         onPress={() => setExpandedItems(prev => ({ ...prev, settings: !prev.settings }))}
@@ -302,13 +302,13 @@ const AdminProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('System', 'Configure system settings')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="help-circle-outline"
                         title="Help"
                         onPress={() => navigation.navigate('Help')}
-                    />
+                    /> */}
                     <MenuItem
                         icon="log-out-outline"
                         title="Log out"

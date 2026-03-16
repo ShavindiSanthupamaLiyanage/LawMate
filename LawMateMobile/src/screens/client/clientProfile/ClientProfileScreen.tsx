@@ -162,7 +162,7 @@ const ClientProfileScreen: React.FC = () => {
                     </View>
 
                     {/* Stats */}
-                    <View style={styles.statsContainer}>
+                    {/* <View style={styles.statsContainer}>
                         <View style={styles.statItem}>
                             <Text style={styles.statLabel}>Total Bookings</Text>
                             <Text style={styles.statValue}>{profileData.totalBookings}</Text>
@@ -177,7 +177,7 @@ const ClientProfileScreen: React.FC = () => {
                             <Text style={styles.statLabel}>Completed</Text>
                             <Text style={styles.statValue}>{profileData.completedBookings}</Text>
                         </View>
-                    </View>
+                    </View> */}
                 </View>
 
                 {/* Menu Items */}
@@ -188,7 +188,7 @@ const ClientProfileScreen: React.FC = () => {
                         onPress={() => navigation.navigate('ClientPersonalDetails')}
                     />
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="bookmark-outline"
                         title="My Bookings"
                         onPress={() => setExpandedItems(prev => ({ ...prev, bookings: !prev.bookings }))}
@@ -211,9 +211,9 @@ const ClientProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Cancelled', 'View cancelled bookings')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="heart-outline"
                         title="Favorite Lawyers"
                         onPress={() => setExpandedItems(prev => ({ ...prev, favorites: !prev.favorites }))}
@@ -232,9 +232,9 @@ const ClientProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Recent', 'View recently booked lawyers')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="star-outline"
                         title="Ratings & Reviews"
                         onPress={() => setExpandedItems(prev => ({ ...prev, reviews: !prev.reviews }))}
@@ -253,9 +253,9 @@ const ClientProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Pending', 'Leave pending reviews')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="wallet-outline"
                         title="Payments & Billing"
                         onPress={() => setExpandedItems(prev => ({ ...prev, payments: !prev.payments }))}
@@ -278,9 +278,9 @@ const ClientProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Invoices', 'View invoices')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="settings-outline"
                         title="Settings & Preferences"
                         onPress={() => setExpandedItems(prev => ({ ...prev, settings: !prev.settings }))}
@@ -303,9 +303,9 @@ const ClientProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Notifications', 'Configure notifications')}
                             />
                         </>
-                    )}
+                    )} */}
 
-                    <MenuItem
+                    {/* <MenuItem
                         icon="help-circle-outline"
                         title="Help & Support"
                         onPress={() => setExpandedItems(prev => ({ ...prev, help: !prev.help }))}
@@ -324,7 +324,7 @@ const ClientProfileScreen: React.FC = () => {
                                 onPress={() => RNAlert.alert('Support', 'Contact customer support')}
                             />
                         </>
-                    )}
+                    )} */}
 
                     <MenuItem
                         icon="log-out-outline"
