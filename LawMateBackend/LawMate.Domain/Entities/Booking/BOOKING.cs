@@ -47,4 +47,12 @@ public class BOOKING
     public string? ModifiedBy { get; set; }
     
     public DateTime? ModifiedAt { get; set; }
+
+    [Required]
+    public PaymentMode PaymentMode { get; set; }
+
+    public string? Location { get; set; }
+
+    [MaxLength(500)]
+    public string? RejectionReason { get; set; }
 }
