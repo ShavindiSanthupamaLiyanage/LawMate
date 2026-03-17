@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -6,7 +6,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert as RNAlert,
+    ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +15,10 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import AdminLayout from '../../../components/AdminLayout';
 import Alert from '../../../components/Alert';
 import { AuthService } from '../../../services/authService';
+import { useAuth } from '../../../context/AuthContext';
+import { ProfileService } from '../../../services/profileService';
+import { UserDetailService } from '../../../services/userDetailService';
+import { UserRole } from '../../../interfaces/auth.interface';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -26,21 +30,6 @@ interface MenuItemProps {
     isExpanded?: boolean;
     onToggle?: () => void;
 }
-
-interface SubItemProps {
-    title: string;
-    onPress: () => void;
-}
-
-const SubMenuItem: React.FC<SubItemProps> = ({ title, onPress }) => (
-    <TouchableOpacity style={styles.subMenuItem} onPress={onPress} activeOpacity={0.7}>
-        <View style={styles.subMenuLeft}>
-            <View style={styles.dotIndicator} />
-            <Text style={styles.subMenuTitle}>{title}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-    </TouchableOpacity>
-);
 
 const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout, hasSubItems, isExpanded, onToggle }) => (
     <>
@@ -66,26 +55,85 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 
 const AdminProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
+    const { user } = useAuth();
     const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
-    // TODO: Replace with actual API data
-    const profileData = {
+    const [profileData, setProfileData] = useState({
         name: 'Admin User',
         adminId: 'ADM 001234',
-        role: 'Super Admin',
-        totalUsers: 1250,
-        pendingVerifications: 18,
-        totalRevenue: 'Rs.2.5M',
-        profileImage: null, // Set to image URL when available
-    };
+        role: 'Admin',
+        totalUsers: 0,
+        pendingVerifications: 0,
+        totalRevenue: 'N/A',
+        profileImage: null as string | null,
+    });
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [profileError, setProfileError] = useState<string | null>(null);
 
-    const toggleExpand = (key: string) => {
-        setExpandedItems(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadProfile = async () => {
+            if (!user?.userId) {
+                if (isMounted) {
+                    setProfileError('User session not found. Please log in again.');
+                    setIsLoadingProfile(false);
+                }
+                return;
+            }
+
+            if (user.role !== UserRole.ADMIN) {
+                if (isMounted) {
+                    setProfileError(null);
+                    setIsLoadingProfile(false);
+                }
+                return;
+            }
+
+            try {
+                setIsLoadingProfile(true);
+                setProfileError(null);
+
+                const [admin, counts] = await Promise.all([
+                    ProfileService.getAdminByUserId(user.userId),
+                    UserDetailService.getUserCounts(),
+                ]);
+
+                if (!isMounted) return;
+
+                const totalUsers =
+                    counts.verifiedLawyers +
+                    counts.pendingLawyers +
+                    counts.inactiveLawyers +
+                    counts.activeLawyers +
+                    counts.activeClients +
+                    counts.inactiveClients;
+
+                setProfileData({
+                    name: `${admin.firstName ?? ''} ${admin.lastName ?? ''}`.trim() || 'Admin User',
+                    adminId: admin.userId ?? user.userId,
+                    role: 'Admin',
+                    totalUsers,
+                    pendingVerifications: counts.pendingLawyers,
+                    totalRevenue: 'N/A',
+                    profileImage: admin.profileImage ? `data:image/jpeg;base64,${admin.profileImage}` : null,
+                });
+            } catch {
+                if (!isMounted) return;
+                setProfileError('Failed to load admin profile.');
+            } finally {
+                if (isMounted) {
+                    setIsLoadingProfile(false);
+                }
+            }
+        };
+
+        loadProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [user?.userId, user?.role]);
 
     const handleLogout = () => {
         setShowLogoutAlert(true);
@@ -115,6 +163,9 @@ const AdminProfileScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
+
+                {isLoadingProfile && <ActivityIndicator color={colors.primary} style={styles.loader} />}
+                {profileError ? <Text style={styles.errorText}>{profileError}</Text> : null}
 
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
@@ -362,6 +413,15 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: 100,
         paddingTop: spacing.md,
+    },
+    loader: {
+        marginTop: spacing.sm,
+    },
+    errorText: {
+        marginTop: spacing.sm,
+        paddingHorizontal: spacing.lg,
+        color: colors.error,
+        textAlign: 'center',
     },
     fixedHeader: {
         height: 80,

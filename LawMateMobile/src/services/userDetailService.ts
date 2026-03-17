@@ -24,7 +24,14 @@ export class UserDetailService {
         return response.data;
     }
 
-    static async getUserById(userId: string): Promise<{ firstName: string; lastName: string; email: string } | null> {
+    static async getUserById(userId: string): Promise<{
+        userId?: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        userRole?: number;
+        state?: number;
+    } | null> {
         try {
             const response = await apiClient.get(ENDPOINTS.USER.GET_BY_ID(userId));
             return response.data;
