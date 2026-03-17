@@ -15,10 +15,13 @@ namespace LawMate.Domain.DTOs
         public string? LastName { get; set; }
         public string? UserName { get; set; }
         public UserRole UserRole { get; set; }
+        public Gender Gender { get; set; }
         public string? Email { get; set; }
         public string? NIC { get; set; }
         public string? Password { get; set; }
         public string? ContactNumber { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string? Nationality { get; set; }
         public int? RecordStatus { get; set; }
         public DateTime? RegistrationDate { get; set; }
         public DateTime? LastLoginDate { get; set; }
