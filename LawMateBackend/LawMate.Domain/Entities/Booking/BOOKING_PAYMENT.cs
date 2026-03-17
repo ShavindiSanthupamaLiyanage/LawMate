@@ -24,4 +24,5 @@ public class BOOKING_PAYMENT : AuditEntity
     public int LawyerFee { get; set; }
     public bool IsPaid { get; set; }
     public string? SlipNumber { get; set; }
+    public byte[]? ReceiptDocument { get; set; }
 }

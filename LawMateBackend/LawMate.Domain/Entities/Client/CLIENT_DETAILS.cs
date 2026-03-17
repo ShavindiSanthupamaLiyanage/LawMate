@@ -16,5 +16,8 @@ namespace LawMate.Domain.Entities.Auth
         public string? Address { get; set; }
         public string? District { get; set; }
         public Language PrefferedLanguage { get; set; }
+        public string? SuspendedBy { get; set; }
+        public string? SuspendedReason { get; set; }
+        public DateTime? SuspendedAt { get; set; }
     }
 }
