@@ -7,6 +7,8 @@ public class PaymentDto
     public string PaymentType { get; set; } = "";
     public string? TransactionId { get; set; }
     public string? LawyerId { get; set; }
+    public string? ClientId { get; set; }   
+    public int? BookingId { get; set; } 
     public decimal Amount { get; set; }
     public DateTime? PaymentDate { get; set; }
     public VerificationStatus VerificationStatus { get; set; }

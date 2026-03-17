@@ -26,6 +26,22 @@ public class PaymentMaintenanceController : ControllerBase
         var result = await _mediator.Send(new GetPaymentsQuery());
         return Ok(result);
     }
+    
+    [HttpGet("details")]
+    public async Task<IActionResult> GetPaymentDetails(
+        [FromQuery] string lawyerId,
+        [FromQuery] string type,
+        [FromQuery] string? clientId)
+    {
+        var result = await _mediator.Send(new GetPaymentByIdQuery
+        {
+            LawyerId = lawyerId,
+            PaymentType = type,
+            ClientId = clientId
+        });
+
+        return Ok(result);
+    }
 
     [HttpGet("pending")]
     public async Task<IActionResult> GetPendingPayments()
@@ -73,7 +89,7 @@ public class PaymentMaintenanceController : ControllerBase
         var result = await _mediator.Send(command);
         return Ok(result);
     }
-    // Devindi
+    
     [HttpPost("booking/{paymentId}/mark-paid")]
     public async Task<IActionResult> MarkBookingPaymentAsPaid(int paymentId)
     {
