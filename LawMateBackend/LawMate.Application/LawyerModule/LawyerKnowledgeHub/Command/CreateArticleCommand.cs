@@ -1,44 +1,56 @@
-﻿using LawMate.Application.Common.Interfaces;
-using LawMate.Domain.Entities.Lawyer;
-using LawMate.Domain.DTOs;
-using MediatR;
-using LawMate.Domain.Common.Enums;
+﻿    using LawMate.Application.Common.Interfaces;
+    using LawMate.Domain.Entities.Lawyer;
+    using LawMate.Domain.DTOs;
+    using MediatR;
 
-namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Command
-{
-    public record CreateArticleCommand(ArticleDto Article) : IRequest<ArticleDto>;
-
-    public class CreateArticleCommandHandler : IRequestHandler<CreateArticleCommand, ArticleDto>
+    namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Command
     {
-        private readonly IApplicationDbContext _context;
+        public record CreateArticleCommand(CreateArticleDto Article, string LawyerId, string LawyerName) : IRequest<ArticleDto>;
 
-        public CreateArticleCommandHandler(IApplicationDbContext context)
+        public class CreateArticleCommandHandler : IRequestHandler<CreateArticleCommand, ArticleDto>
         {
-            _context = context;
-        }
+            private readonly IApplicationDbContext _context;
 
-        public async Task<ArticleDto> Handle(CreateArticleCommand request, CancellationToken cancellationToken)
-        {
-            var article = new ARTICLE
+            public CreateArticleCommandHandler(IApplicationDbContext context)
             {
-                LawyerId = request.Article.LawyerId,
-                Title = request.Article.Title,
-                Content = request.Article.Content,
-                LegalCategory = Enum.Parse<LegalCategory>(request.Article.LegalCategory),
-                Language = Enum.Parse<Language>(request.Article.Language),
-                IsPublished = request.Article.IsPublished,
-                CreatedBy = request.Article.CreatedBy,
-                CreatedAt = DateTime.UtcNow,
-                LikeCount = request.Article.LikeCount,
-            };
+                _context = context;
+            }
 
-            _context.ARTICLE.Add(article);
-            await _context.SaveChangesAsync(cancellationToken);
+            public async Task<ArticleDto> Handle(CreateArticleCommand request, CancellationToken cancellationToken)
+            {
+                var dto = request.Article;
 
-            request.Article.ArticleId = article.ArticleId;
-            request.Article.CreatedAt = article.CreatedAt;
+                if (string.IsNullOrWhiteSpace(dto.Title))
+                    throw new ArgumentException("Article title is required.");
 
-            return request.Article;
+                if (string.IsNullOrWhiteSpace(dto.Content))
+                    throw new ArgumentException("Article content is required.");
+
+                var article = new ARTICLE()
+                {
+                    Title = dto.Title,
+                    Content = dto.Content,
+                    LawyerId = request.LawyerId,
+                    CreatedBy = request.LawyerName,
+                    CreatedAt = DateTime.UtcNow,
+                    IsPublished = true,
+                    LikeCount = 0
+                };
+
+                _context.ARTICLE.Add(article);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new ArticleDto
+                {
+                    ArticleId = article.ArticleId,
+                    Title = article.Title,
+                    Content = article.Content,
+                    LawyerId = article.LawyerId,
+                    CreatedBy = article.CreatedBy,
+                    CreatedAt = article.CreatedAt,
+                    IsPublished = article.IsPublished,
+                    LikeCount = article.LikeCount
+                };
+            }
         }
     }
-}

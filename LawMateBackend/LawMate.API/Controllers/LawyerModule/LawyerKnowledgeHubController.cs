@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 using LawMate.Application.LawyerModule.LawyerKnowledgeHub.Queries;
 using LawMate.Domain.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace LawMate.API.Controllers.LawyerModule;
 
 [ApiController]
 [Route("api/lawyers/knowledgehub")]
+[Authorize]
 public class LawyerKnowledgeHubController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -18,8 +20,6 @@ public class LawyerKnowledgeHubController : ControllerBase
         _mediator = mediator;
     }
 
-    //Get all articles 
-    [Authorize]
     [HttpGet("articles")]
     public async Task<IActionResult> GetAllArticles()
     {
@@ -27,40 +27,40 @@ public class LawyerKnowledgeHubController : ControllerBase
         return Ok(result);
     }
 
-    //Get the articles which related to a specific lawyer
-    [Authorize]
     [HttpGet("lawyer/{lawyerId}")]
     public async Task<IActionResult> GetArticlesByLawyer(string lawyerId)
     {
         var result = await _mediator.Send(new GetArticlesByLawyerQuery(lawyerId));
         return Ok(result);
     }
-    
-    //Create a new article
-    [Authorize]
+
     [HttpPost("create")]
-    public async Task<IActionResult> CreateArticle([FromBody] ArticleDto articleDto)
+    public async Task<IActionResult> CreateArticle([FromBody] CreateArticleDto dto)
     {
-        var result = await _mediator.Send(new CreateArticleCommand(articleDto));
+        var lawyerId = User.FindFirst("UserId")?.Value;
+        var lawyerName = User.FindFirst("Email")?.Value ?? "Unknown";
+
+        if (string.IsNullOrEmpty(lawyerId))
+            return BadRequest("Cannot identify logged-in lawyer.");
+
+        var result = await _mediator.Send(
+            new CreateArticleCommand(dto, lawyerId, lawyerName)
+        );
+
         return CreatedAtAction(nameof(GetArticlesByLawyer), new { lawyerId = result.LawyerId }, result);
     }
-    
-    //Update an existing article
-    [Authorize]
+
     [HttpPut("update/{articleId:int}")]
     public async Task<IActionResult> UpdateArticle(int articleId, [FromBody] ArticleDto articleDto)
     {
         var result = await _mediator.Send(new UpdateArticleCommand(articleId, articleDto));
         return Ok(result);
     }
-    
-    //Delete an existing article
-    [Authorize]
+
     [HttpDelete("delete/{articleId:int}")]
     public async Task<IActionResult> DeleteArticle(int articleId)
     {
         var result = await _mediator.Send(new DeleteArticleCommand(articleId));
         return result ? NoContent() : NotFound();
     }
-    
-}
+}   
