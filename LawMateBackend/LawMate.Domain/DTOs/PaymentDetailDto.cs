@@ -3,7 +3,8 @@
 public class PaymentDetailDto
 {
     public string PaymentType { get; set; }
-
+    public int? BookingId { get; set; }
+    
     // Lawyer
     public string? LawyerId { get; set; }
     public string? LawyerName { get; set; }

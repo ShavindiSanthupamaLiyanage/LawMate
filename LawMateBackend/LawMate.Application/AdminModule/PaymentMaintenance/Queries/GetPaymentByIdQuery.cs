@@ -55,6 +55,7 @@ public class GetPaymentByIdQueryHandler : IRequestHandler<GetPaymentByIdQuery, P
                         TransactionId = temp.p.TransactionId,
                         Amount = temp.p.Amount,
                         PaymentDate = temp.p.PaymentDate,
+                        BookingId = temp.p.BookingId,
 
                         VerificationStatus = temp.p.VerificationStatus,
                         VerifiedBy = temp.p.VerifiedBy,
