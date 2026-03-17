@@ -23,4 +23,14 @@ export class UserDetailService {
         const response = await apiClient.get(ENDPOINTS.ADMIN.LAWYER_VERIFICATION);
         return response.data;
     }
+
+    static async getUserById(userId: string): Promise<{ firstName: string; lastName: string; email: string } | null> {
+        try {
+            const response = await apiClient.get(ENDPOINTS.USER.GET_BY_ID(userId));
+            return response.data;
+        } catch (error: any) {
+            if (error?.response?.status === 404) return null;
+            throw error;
+        }
+    }
 }
