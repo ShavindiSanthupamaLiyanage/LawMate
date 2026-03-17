@@ -118,14 +118,13 @@ export const ENDPOINTS = {
         UPDATE_PROFILE: '/client/profile',
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
-        CASES: '/client/cases',
+        SUSPEND: (userId: string) => `/clients/suspend/${userId}`,
     },
 
     // Admin endpoints
     ADMIN: {
         USERS: '/admin/users',
         USER_COUNTS: '/users/counts',
-        STATISTICS: '/admin/statistics',
         LAWYER_VERIFICATION: '/lawyer-verification/all',
         REPORTS: {
             LAWYER_DETAILS: '/admin/reports/lawyer-details',
