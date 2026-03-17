@@ -4,7 +4,6 @@ using LawMate.Domain.Common.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using LawMate.Application.AdminModule.PaymentMaintenance.Commands;
 
 namespace LawMate.API.Controllers.AdminModule;
 
@@ -71,17 +70,6 @@ public class PaymentMaintenanceController : ControllerBase
     public async Task<IActionResult> UpdateBookingPayment(UpdateBookingPaymentStatusCommand command)
     {
         var result = await _mediator.Send(command);
-        return Ok(result);
-    }
-    // Devindi
-    [HttpPost("booking/{paymentId}/mark-paid")]
-    public async Task<IActionResult> MarkBookingPaymentAsPaid(int paymentId)
-    {
-        var result = await _mediator.Send(new MarkBookingPaymentAsPaidCommand
-        {
-            PaymentId = paymentId
-        });
-
         return Ok(result);
     }
 }
