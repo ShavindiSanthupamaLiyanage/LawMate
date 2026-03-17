@@ -19,6 +19,7 @@ namespace LawMate.Application.Common.Interfaces
         DbSet<CLIENT_DETAILS> CLIENT_DETAILS { get; }
         DbSet<LAWYER_DETAILS> LAWYER_DETAILS { get; }
         DbSet<BOOKING> BOOKING { get; }
+        DbSet<LAWYER_EVENT> LAWYER_EVENT { get; }
         DbSet<BOOKING_PAYMENT> BOOKING_PAYMENT { get; }
         DbSet<CONSULTATION> CONSULTATION { get; }
         DbSet<TIMESLOT> TIMESLOT { get; }

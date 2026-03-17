@@ -25,8 +25,14 @@ public class GetLawyerAvailabilitySlotsQueryHandler
         GetLawyerAvailabilitySlotsQuery request,
         CancellationToken cancellationToken)
     {
+        var lawyerUserId = request.LawyerId?.Trim();
+        if (string.IsNullOrWhiteSpace(lawyerUserId))
+        {
+            throw new ArgumentException("LawyerId is required.");
+        }
+
         var query = _context.TIMESLOT
-            .Where(ts => ts.LawyerId == request.LawyerId);
+            .Where(ts => ts.LawyerId == lawyerUserId);
 
         // Apply date filtering if provided
         if (request.StartDate.HasValue)

@@ -31,6 +31,8 @@ import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
 import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
 import CalendarScreen from './src/screens/lawyer/lawyerCalender/CalendarScreen';
+import AddEventScreen from './src/screens/lawyer/lawyerCalender/AddEventScreen';
+import EditEventScreen from './src/screens/lawyer/lawyerCalender/EditEventScreen';
 import AddAppointmentScreen from './src/screens/lawyer/lawyerProfile/AddAppointmentScreen';
 import SetAvailabilityScreen from './src/screens/lawyer/lawyerProfile/SetAvailabilityScreen';
 import LawyerKnowledgeHubFeed from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubFeed';
@@ -207,6 +209,8 @@ function LawyerTabs() {
             <LawyerStack.Screen name="AddNewArticle" component={AddNewArticle} />
             <LawyerStack.Screen name="ManageArticle" component={ManageArticle} />
             <LawyerStack.Screen name="AddAppointment" component={AddAppointmentScreen} />
+            <LawyerStack.Screen name="AddEvent" component={AddEventScreen} />
+            <LawyerStack.Screen name="EditEvent" component={EditEventScreen} />
             <LawyerStack.Screen name="SetAvailability" component={SetAvailabilityScreen} />
         </LawyerStack.Navigator>
     );

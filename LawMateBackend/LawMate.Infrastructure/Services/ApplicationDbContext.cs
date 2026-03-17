@@ -19,6 +19,7 @@ namespace LawMate.Infrastructure
         public DbSet<CLIENT_DETAILS> CLIENT_DETAILS => Set<CLIENT_DETAILS>();
         public DbSet<LAWYER_DETAILS> LAWYER_DETAILS => Set<LAWYER_DETAILS>();
         public DbSet<BOOKING> BOOKING => Set<BOOKING>(); 
+        public DbSet<LAWYER_EVENT> LAWYER_EVENT => Set<LAWYER_EVENT>();
         public DbSet<BOOKING_PAYMENT> BOOKING_PAYMENT => Set<BOOKING_PAYMENT>(); 
         public DbSet<CONSULTATION> CONSULTATION => Set<CONSULTATION>(); 
         public DbSet<TIMESLOT> TIMESLOT => Set<TIMESLOT>(); 

@@ -13,8 +13,9 @@ import Button from '../../../components/Button';
 
 export interface Appointment {
     id: string;
+    type?: 'appointment' | 'event';
     clientName: string;
-    email: string;
+    email?: string;
     contactNumber?: string;
     caseType: string;
     dateTime: Date;
@@ -25,6 +26,7 @@ export interface Appointment {
     notes?: string;
     appointmentId?: string;
     paymentStatus?: string;
+    location?: string;
 }
 
 export interface AvailabilitySlot {
@@ -37,9 +39,12 @@ export interface AvailabilitySlot {
 }
 
 interface CalendarComponentProps {
-    onAddAppointment: () => void;
+    onAddAppointment: (date?: Date) => void;
     onSetAvailability: () => void;
     onSelectDate?: (date: Date) => void;
+    onEditEvent?: (eventId: number) => void;
+    onDeleteEvent?: (eventId: number) => void;
+    onCloseModal?: () => void;
     appointments?: Appointment[];
     availabilitySlots?: AvailabilitySlot[];
 }
@@ -107,6 +112,9 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     onAddAppointment,
     onSetAvailability,
     onSelectDate,
+    onEditEvent,
+    onDeleteEvent,
+    onCloseModal,
     appointments = [],
     availabilitySlots = [],
 }) => {
@@ -314,11 +322,13 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
             {selectedDate && selApts.length > 0 && (
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>
-                        Appointments for {secTitle(selectedDate)}
+                        Schedule for {secTitle(selectedDate)}
                     </Text>
                     {selApts.map(apt => {
                         const cc    = getCaseTypeColors(apt.caseType);
-                        const aptId = apt.appointmentId ?? `APT-${String(apt.id).padStart(4, '0')}`;
+                        const isEvent = apt.type === 'event';
+                        const codePrefix = isEvent ? 'EVT' : 'APT';
+                        const aptId = apt.appointmentId ?? `${codePrefix}-${String(apt.id).padStart(4, '0')}`;
                         return (
                             <TouchableOpacity
                                 key={apt.id}
@@ -328,7 +338,8 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                             >
                                 <View style={styles.aptTopRow}>
                                     <Text style={styles.aptClientId} numberOfLines={1}>
-                                        {apt.clientName} | {aptId}
+                                        {/* {apt.clientName} | {aptId} */}
+                                            {apt.clientName}
                                     </Text>
                                     <Text style={styles.aptTime}>{fmt12h(apt.dateTime)}</Text>
                                 </View>
@@ -337,9 +348,15 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                                         {apt.caseType}
                                     </Text>
                                 </View>
-                                <Text style={styles.aptPrice}>
-                                    LKR {apt.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                                </Text>
+                                {isEvent ? (
+                                    apt.location ? (
+                                        <Text style={styles.aptMeta}>{apt.location}</Text>
+                                    ) : null
+                                ) : (
+                                    <Text style={styles.aptPrice}>
+                                        LKR {apt.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                    </Text>
+                                )}
                             </TouchableOpacity>
                         );
                     })}
@@ -385,9 +402,9 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                     style={styles.btnStyle}
                 />
                 <Button
-                    title="ADD APPOINTMENT"
+                    title="ADD EVENT"
                     variant="transparent"
-                    onPress={onAddAppointment}
+                    onPress={() => onAddAppointment(selectedDate || currentDate)}
                     style={styles.btnStyle}
                 />
             </View>
@@ -403,43 +420,103 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                     <View style={styles.modalSheet}>
                         <View style={styles.modalHandle} />
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Appointment Information</Text>
+                            <Text style={styles.modalTitle}>
+                                {selectedAppointment?.type === 'event'
+                                    ? 'Event Information'
+                                    : 'Appointment Information'}
+                            </Text>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
                                 <Ionicons name="close" size={22} color={colors.textSecondary} />
                             </TouchableOpacity>
                         </View>
                         {selectedAppointment && (
                             <ScrollView showsVerticalScrollIndicator={false}>
-                                <DetailRow label="Client"     value={selectedAppointment.clientName} />
-                                <DetailRow label="Email"      value={selectedAppointment.email} />
-                                {selectedAppointment.contactNumber ? (
-                                    <DetailRow label="Contact"   value={selectedAppointment.contactNumber} />
-                                ) : null}
-                                <DetailRow label="Case Type"  value={selectedAppointment.caseType} />
-                                <DetailRow
-                                    label="Appointment"
-                                    value={fmtDateTimeRange(selectedAppointment.dateTime, selectedAppointment.duration)}
-                                />
-                                <DetailRow
-                                    label="Amount"
-                                    value={`LKR ${selectedAppointment.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                                />
-                                <DetailRow
-                                    label="Payment Status"
-                                    value={selectedAppointment.paymentStatus ?? 'Verified Payment'}
-                                    isGreen
-                                />
-                                <DetailRow
-                                    label="Mode"
-                                    value={selectedAppointment.mode === 'physical' ? 'Physical Appointment' : 'Virtual Appointment'}
-                                />
-                                <DetailRow
-                                    label="Status"
-                                    value={selectedAppointment.status.charAt(0).toUpperCase() + selectedAppointment.status.slice(1)}
-                                />
-                                {selectedAppointment.notes ? (
-                                    <DetailRow label="Notes" value={selectedAppointment.notes} />
-                                ) : null}
+                                {selectedAppointment.type === 'event' ? (
+                                    <>
+                                        <DetailRow label="Event" value={selectedAppointment.clientName} />
+                                        <DetailRow label="Event Type" value={selectedAppointment.caseType} />
+                                        <DetailRow
+                                            label="Date & Time"
+                                            value={fmtDateTimeRange(selectedAppointment.dateTime, selectedAppointment.duration)}
+                                        />
+                                        {selectedAppointment.location ? (
+                                            <DetailRow label="Location" value={selectedAppointment.location} />
+                                        ) : null}
+                                        <DetailRow
+                                            label="Mode"
+                                            value={selectedAppointment.mode === 'physical' ? 'Physical Event' : 'Virtual Event'}
+                                        />
+                                        <DetailRow label="Status" value="Scheduled" />
+                                        {selectedAppointment.notes ? (
+                                            <DetailRow label="Notes" value={selectedAppointment.notes} />
+                                        ) : null}
+                                    </>
+                                ) : (
+                                    <>
+                                        <DetailRow label="Client" value={selectedAppointment.clientName} />
+                                        <DetailRow label="Email" value={selectedAppointment.email ?? '-'} />
+                                        {selectedAppointment.contactNumber ? (
+                                            <DetailRow label="Contact" value={selectedAppointment.contactNumber} />
+                                        ) : null}
+                                        <DetailRow label="Case Type" value={selectedAppointment.caseType} />
+                                        <DetailRow
+                                            label="Appointment"
+                                            value={fmtDateTimeRange(selectedAppointment.dateTime, selectedAppointment.duration)}
+                                        />
+                                        <DetailRow
+                                            label="Amount"
+                                            value={`LKR ${selectedAppointment.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                                        />
+                                        <DetailRow
+                                            label="Payment Status"
+                                            value={selectedAppointment.paymentStatus ?? 'Verified Payment'}
+                                            isGreen
+                                        />
+                                        <DetailRow
+                                            label="Mode"
+                                            value={selectedAppointment.mode === 'physical' ? 'Physical Appointment' : 'Virtual Appointment'}
+                                        />
+                                        <DetailRow
+                                            label="Status"
+                                            value={selectedAppointment.status.charAt(0).toUpperCase() + selectedAppointment.status.slice(1)}
+                                        />
+                                        {selectedAppointment.notes ? (
+                                            <DetailRow label="Notes" value={selectedAppointment.notes} />
+                                        ) : null}
+                                    </>
+                                )}
+                                {selectedAppointment.type === 'event' && (
+                                    <View style={styles.modalActionButtons}>
+                                        <TouchableOpacity
+                                            style={[styles.modalActionBtn, styles.editBtn]}
+                                            onPress={() => {
+                                                const eventId = parseInt(selectedAppointment.id.replace('event-', ''));
+                                                setModalVisible(false);
+                                                onCloseModal?.();
+                                                setTimeout(() => {
+                                                    onEditEvent?.(eventId);
+                                                }, 300);
+                                            }}
+                                        >
+                                            <Ionicons name="pencil" size={18} color={colors.white} />
+                                            <Text style={styles.modalActionBtnText}>Edit</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.modalActionBtn, styles.deleteBtn]}
+                                            onPress={() => {
+                                                const eventId = parseInt(selectedAppointment.id.replace('event-', ''));
+                                                setModalVisible(false);
+                                                onCloseModal?.();
+                                                setTimeout(() => {
+                                                    onDeleteEvent?.(eventId);
+                                                }, 300);
+                                            }}
+                                        >
+                                            <Ionicons name="trash" size={18} color={colors.white} />
+                                            <Text style={styles.modalActionBtnText}>Delete</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
                             </ScrollView>
                         )}
                     </View>
@@ -628,6 +705,10 @@ const styles = StyleSheet.create({
         fontWeight: fontWeight.bold,
         color: colors.textPrimary,
     },
+    aptMeta: {
+        fontSize: fontSize.xs,
+        color: colors.textSecondary,
+    },
 
     // Availability slot card
     slotCard: {
@@ -742,8 +823,36 @@ const styles = StyleSheet.create({
         fontWeight: fontWeight.semibold,
         color: '#2E7D32',
     },
+
+    // Modal action buttons
+    modalActionButtons: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+        marginTop: spacing.md,
+        paddingTop: spacing.md,
+        borderTopWidth: 1,
+        borderTopColor: colors.borderLight,
+    },
+    modalActionBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: spacing.md,
+        borderRadius: borderRadius.md,
+        gap: spacing.xs,
+    },
+    editBtn: {
+        backgroundColor: colors.primary,
+    },
+    deleteBtn: {
+        backgroundColor: '#D32F2F',
+    },
+    modalActionBtnText: {
+        color: colors.white,
+        fontSize: fontSize.sm,
+        fontWeight: fontWeight.semibold,
+    },
 });
 
 export default CalendarComponent;
-
-

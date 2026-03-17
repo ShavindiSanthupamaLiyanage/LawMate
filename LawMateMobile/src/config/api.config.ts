@@ -153,6 +153,12 @@ export const ENDPOINTS = {
         CREATE: "/bookings",
         UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
   },
+      LAWYER_EVENT: {
+          GET_LAWYER_EVENTS: (lawyerId: string) => `/lawyer-events/lawyer/${lawyerId}`,
+          CREATE: "/lawyer-events",
+          UPDATE: (eventId: number) => `/lawyer-events/${eventId}`,
+          DELETE: (eventId: number) => `/lawyer-events/${eventId}`,
+      },
   AVAILABILITY: {
         GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
         CREATE: "/availability",
