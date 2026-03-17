@@ -6,9 +6,6 @@ import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
 import LawyerLayout from "../../../components/LawyerLayout";
 
-/* ----------------------------- */
-/* Donut chart helpers (SVG)     */
-/* ----------------------------- */
 type DonutItem = { label: string; value: number; color: string };
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
@@ -177,9 +174,6 @@ const LawyerDashboard: React.FC = () => {
 
     return (
         <LawyerLayout
-            title="Dashboard"
-            userName="Kavindu Gimsara"
-            disableScroll
             onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}
         >
             <ScrollView
@@ -196,8 +190,8 @@ const LawyerDashboard: React.FC = () => {
                         end={{ x: 1, y: 0 }}
                         style={styles.heroCard}
                     >
-                        <Text style={styles.heroSmall}>Good Morning</Text>
-                        <Text style={styles.heroName}>Kavindu Gimsara</Text>
+                        {/*<Text style={styles.heroSmall}>Good Morning</Text>*/}
+                        {/*<Text style={styles.heroName}>Kavindu Gimsara</Text>*/}
 
                         <View style={styles.heroStatsRow}>
                             <View style={[styles.heroStatTile, { backgroundColor: "#BFD9FF" }]}>
@@ -257,7 +251,7 @@ const styles = StyleSheet.create({
     heroCard: { borderRadius: 18, padding: spacing.lg, marginBottom: spacing.lg },
     heroSmall: { color: colors.white, fontSize: fontSize.sm, opacity: 0.9 },
     heroName: { color: colors.white, fontSize: fontSize.lg, fontWeight: fontWeight.bold, marginTop: 2 },
-    heroStatsRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.lg },
+    heroStatsRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.xs},
     heroStatTile: { flex: 1, borderRadius: 14, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
     heroStatNumber: { fontSize: 22, fontWeight: fontWeight.bold, color: colors.textPrimary },
     heroStatLabel: { marginTop: 4, fontSize: fontSize.xs, color: colors.textSecondary },
