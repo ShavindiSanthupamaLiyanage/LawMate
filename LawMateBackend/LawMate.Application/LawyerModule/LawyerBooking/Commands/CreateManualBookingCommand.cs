@@ -38,14 +38,20 @@ public class CreateManualBookingCommandHandler
         var dto = request.Data
             ?? throw new ArgumentNullException(nameof(request.Data));
 
-        // Validate lawyer exists
-        var lawyerExists = await _context.LAWYER_DETAILS
-            .AnyAsync(l => l.UserId == dto.LawyerId, cancellationToken);
+        var lawyerUserId = dto.LawyerId?.Trim();
+        if (string.IsNullOrWhiteSpace(lawyerUserId))
+        {
+            throw new ArgumentException("LawyerId is required.");
+        }
+
+        // Validate lawyer by public UserId (e.g., LAW002), not internal numeric Id.
+        var lawyerExists = await _context.USER_DETAIL
+            .AnyAsync(u => u.UserId == lawyerUserId && u.UserRole == UserRole.Lawyer, cancellationToken);
 
         if (!lawyerExists)
         {
-            _logger.Warning($"Manual booking failed | Lawyer not found: {dto.LawyerId}");
-            throw new KeyNotFoundException($"Lawyer with ID {dto.LawyerId} not found");
+            _logger.Warning($"Manual booking failed | Lawyer not found: {lawyerUserId}");
+            throw new KeyNotFoundException($"Lawyer with ID {lawyerUserId} not found");
         }
 
         // Validate client exists
@@ -79,6 +85,11 @@ public class CreateManualBookingCommandHandler
                     throw new KeyNotFoundException($"TimeSlot with ID {dto.TimeSlotId.Value} not found");
                 }
 
+                if (timeSlot.LawyerId != lawyerUserId)
+                {
+                    throw new InvalidOperationException($"TimeSlot {dto.TimeSlotId.Value} does not belong to lawyer {lawyerUserId}");
+                }
+
                 if (timeSlot.IsAvailable == false)
                 {
                     throw new InvalidOperationException($"TimeSlot {dto.TimeSlotId.Value} is already booked");
@@ -86,15 +97,14 @@ public class CreateManualBookingCommandHandler
             }
             else
             {
-   
                 var endTime = dto.DateTime.AddMinutes(dto.Duration);
 
                 timeSlot = new TIMESLOT
                 {
-                    LawyerId = dto.LawyerId,
+                    LawyerId = lawyerUserId,
                     StartTime = dto.DateTime,
                     EndTime = endTime,
-                    IsAvailable = false, 
+                    IsAvailable = false,
                     CreatedBy = currentUser,
                     CreatedAt = DateTime.Now
                 };
@@ -107,7 +117,7 @@ public class CreateManualBookingCommandHandler
             var booking = new BOOKING
             {
                 ClientId = client.UserId,
-                LawyerId = dto.LawyerId,
+                LawyerId = lawyerUserId,
                 TimeSlotId = timeSlot.TimeSlotId,
                 ScheduledDateTime = dto.DateTime,
                 Duration = dto.Duration,
@@ -134,7 +144,7 @@ public class CreateManualBookingCommandHandler
           
             await transaction.CommitAsync(cancellationToken);
 
-            _logger.Info($"Manual booking created | BookingId: {booking.BookingId}, LawyerId: {dto.LawyerId}, ClientId: {client.UserId}");
+            _logger.Info($"Manual booking created | BookingId: {booking.BookingId}, LawyerId: {lawyerUserId}, ClientId: {client.UserId}");
 
             return booking.BookingId;
         }

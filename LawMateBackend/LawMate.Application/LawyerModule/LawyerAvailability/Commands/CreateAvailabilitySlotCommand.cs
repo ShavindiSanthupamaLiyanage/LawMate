@@ -1,6 +1,7 @@
 using LawMate.Application.Common.Interfaces;
 using LawMate.Domain.DTOs;
 using LawMate.Domain.Entities.Booking;
+using LawMate.Domain.Common.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,14 +38,20 @@ public class CreateAvailabilitySlotCommandHandler
         var dto = request.Data
             ?? throw new ArgumentNullException(nameof(request.Data));
 
-        // Validate lawyer exists
-        var lawyerExists = await _context.LAWYER_DETAILS
-            .AnyAsync(l => l.UserId == dto.LawyerId, cancellationToken);
+        var lawyerUserId = dto.LawyerId?.Trim();
+        if (string.IsNullOrWhiteSpace(lawyerUserId))
+        {
+            throw new ArgumentException("LawyerId is required.");
+        }
+
+        // Validate lawyer by public UserId (e.g., LAW002), not internal numeric Id.
+        var lawyerExists = await _context.USER_DETAIL
+            .AnyAsync(u => u.UserId == lawyerUserId && u.UserRole == UserRole.Lawyer, cancellationToken);
 
         if (!lawyerExists)
         {
-            _logger.Warning($"Availability slot creation failed | Lawyer not found: {dto.LawyerId}");
-            throw new KeyNotFoundException($"Lawyer with ID {dto.LawyerId} not found");
+            _logger.Warning($"Availability slot creation failed | Lawyer not found: {lawyerUserId}");
+            throw new KeyNotFoundException($"Lawyer with ID {lawyerUserId} not found");
         }
 
         // Parse the time string and combine with date
@@ -59,7 +66,7 @@ public class CreateAvailabilitySlotCommandHandler
         // Check for overlapping slots
         var hasOverlap = await _context.TIMESLOT
             .AnyAsync(ts =>
-                ts.LawyerId == dto.LawyerId &&
+                ts.LawyerId == lawyerUserId &&
                 ((startDateTime >= ts.StartTime && startDateTime < ts.EndTime) ||
                  (endDateTime > ts.StartTime && endDateTime <= ts.EndTime) ||
                  (startDateTime <= ts.StartTime && endDateTime >= ts.EndTime)),
@@ -67,7 +74,7 @@ public class CreateAvailabilitySlotCommandHandler
 
         if (hasOverlap)
         {
-            _logger.Warning($"Availability slot creation failed | Overlapping time slot for LawyerId: {dto.LawyerId}");
+            _logger.Warning($"Availability slot creation failed | Overlapping time slot for LawyerId: {lawyerUserId}");
             throw new InvalidOperationException("This time slot overlaps with an existing slot");
         }
 
@@ -75,7 +82,7 @@ public class CreateAvailabilitySlotCommandHandler
 
         var timeSlot = new TIMESLOT
         {
-            LawyerId = dto.LawyerId,
+            LawyerId = lawyerUserId,
             StartTime = startDateTime,
             EndTime = endDateTime,
             IsAvailable = true,
@@ -86,7 +93,7 @@ public class CreateAvailabilitySlotCommandHandler
         _context.TIMESLOT.Add(timeSlot);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.Info($"Availability slot created | TimeSlotId: {timeSlot.TimeSlotId}, LawyerId: {dto.LawyerId}");
+        _logger.Info($"Availability slot created | TimeSlotId: {timeSlot.TimeSlotId}, LawyerId: {lawyerUserId}");
 
         return timeSlot.TimeSlotId;
     }
