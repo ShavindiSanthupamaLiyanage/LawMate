@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,11 +8,27 @@ import {
     Modal,
     TextInput,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import ClientLayout from '../../../components/ClientLayout';
+import { useAuth } from '../../../context/AuthContext';
+import { ProfileService, UpdateClientProfilePayload } from '../../../services/profileService';
+import { UserRole } from '../../../interfaces/auth.interface';
+import { GetClientDto } from '../../../interfaces/userDetails.interface';
+
+type PersonalData = {
+    name: string;
+    address: string;
+    contactNumber: string;
+    emailAddress: string;
+    nic: string;
+    dateOfBirth: string;
+    gender: string;
+    nationality: string;
+};
 
 const EditModal: React.FC<{
     visible: boolean;
@@ -22,6 +38,10 @@ const EditModal: React.FC<{
     onSave: (value: string) => void;
 }> = ({ visible, title, value, onClose, onSave }) => {
     const [inputValue, setInputValue] = useState(value);
+
+    useEffect(() => {
+        setInputValue(value);
+    }, [value, visible]);
 
     const handleSave = () => {
         if (inputValue.trim() === '') {
@@ -90,36 +110,251 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, onPress }) => (
 
 const ClientPersonalDetailsScreen: React.FC = () => {
     const navigation = useNavigation<any>();
+    const { user } = useAuth();
+    const editableFields: Array<keyof PersonalData> = [
+        'name',
+        'address',
+        'contactNumber',
+        'emailAddress',
+        'dateOfBirth',
+        'gender',
+        'nationality',
+    ];
     const [editModalVisible, setEditModalVisible] = useState(false);
-    const [editingField, setEditingField] = useState<string | null>(null);
+    const [editingField, setEditingField] = useState<keyof PersonalData | null>(null);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [profileError, setProfileError] = useState<string | null>(null);
+    const [clientProfile, setClientProfile] = useState<GetClientDto | null>(null);
 
-    // TODO: Replace with actual API data
-    const [personalData, setPersonalData] = useState({
+    const [personalData, setPersonalData] = useState<PersonalData>({
         name: 'Sarah Johnson',
-        address: '123 Main Street, Colombo 03',
-        contactNumber: '0771234567',
-        emailAddress: 'sarah.johnson@email.com',
-        nic: '199856789012',
-        dateOfBirth: '15/08/1998',
+        address: 'N/A',
+        contactNumber: 'N/A',
+        emailAddress: 'N/A',
+        nic: 'N/A',
+        dateOfBirth: 'N/A',
         gender: 'Female',
-        nationality: 'Sri Lankan',
+        nationality: 'N/A',
     });
 
-    const openEditModal = (field: string) => {
+    const openEditModal = (field: keyof PersonalData) => {
         setEditingField(field);
         setEditModalVisible(true);
     };
 
-    const handleSaveField = (newValue: string) => {
-        if (editingField) {
-            setPersonalData(prev => ({
-                ...prev,
-                [editingField]: newValue,
-            }));
-            // TODO: Call API to update client profile
-            // await updateClientProfile({ [editingField]: newValue });
+    const splitName = (fullName: string) => {
+        const parts = fullName.trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return { firstName: '', lastName: '' };
+        if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+        return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+    };
+
+    const mapGender = (gender?: number) => {
+        if (gender === 1) return 'Male';
+        if (gender === 2) return 'Female';
+        if (gender === 3) return 'Other';
+        return 'N/A';
+    };
+
+    const parseGender = (value: string) => {
+        const normalized = value.trim().toLowerCase();
+        if (normalized === 'male') return 1;
+        if (normalized === 'female') return 2;
+        if (normalized === 'other') return 3;
+        return null;
+    };
+
+    const formatDateForDisplay = (dateValue?: string) => {
+        if (!dateValue) return 'N/A';
+        const date = new Date(dateValue);
+        if (Number.isNaN(date.getTime())) return 'N/A';
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        return `${day}/${month}/${date.getFullYear()}`;
+    };
+
+    const parseDateForApi = (value: string) => {
+        const trimmed = value.trim();
+        if (!trimmed || trimmed === 'N/A') return undefined;
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+
+        const slash = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (slash) {
+            const day = Number(slash[1]);
+            const month = Number(slash[2]);
+            const year = Number(slash[3]);
+
+            if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+
+            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+
+        const parsed = new Date(trimmed);
+        if (Number.isNaN(parsed.getTime())) return null;
+
+        return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
+    };
+
+    const handleSaveField = async (newValue: string) => {
+        if (!editingField) return;
+
+        if (!editableFields.includes(editingField)) {
+            Alert.alert('Not Allowed', 'This field is not editable.');
+            return;
+        }
+
+        if (!user?.userId || !clientProfile) {
+            Alert.alert('Error', 'Profile data is not ready. Please try again.');
+            return;
+        }
+
+        const nextDisplayName =
+            editingField === 'name'
+                ? newValue
+                : `${clientProfile.firstName ?? ''} ${clientProfile.lastName ?? ''}`.trim();
+
+        const { firstName, lastName } = splitName(nextDisplayName);
+
+        const nextGender =
+            editingField === 'gender'
+                ? parseGender(newValue)
+                : clientProfile.gender;
+
+        if (nextGender == null) {
+            Alert.alert('Validation', 'Gender should be Male, Female, or Other.');
+            return;
+        }
+
+        const nextDateOfBirth =
+            editingField === 'dateOfBirth'
+                ? parseDateForApi(newValue)
+                : parseDateForApi(clientProfile.dateOfBirth ?? '');
+
+        if (editingField === 'dateOfBirth' && nextDateOfBirth === null) {
+            Alert.alert('Validation', 'Use DOB format YYYY-MM-DD or DD/MM/YYYY.');
+            return;
+        }
+
+        const nextNationality =
+            editingField === 'nationality'
+                ? newValue.trim()
+                : (clientProfile.nationality ?? '');
+
+        const payload: UpdateClientProfilePayload = {
+            userId: user.userId,
+            prefix: clientProfile.prefix,
+            firstName,
+            lastName,
+            gender: nextGender,
+            email: editingField === 'emailAddress' ? newValue : clientProfile.email,
+            contactNumber: editingField === 'contactNumber' ? newValue : clientProfile.contactNumber,
+            dateOfBirth: nextDateOfBirth ?? undefined,
+            nationality: nextNationality || undefined,
+            address: editingField === 'address' ? newValue : clientProfile.address,
+            district: clientProfile.district,
+            prefferedLanguage: clientProfile.prefferedLanguage,
+        };
+
+        try {
+            await ProfileService.updateClientProfile(user.userId, payload);
+
+            setPersonalData(prev => {
+                if (editingField === 'gender') {
+                    return { ...prev, gender: mapGender(nextGender) };
+                }
+
+                if (editingField === 'dateOfBirth') {
+                    return { ...prev, dateOfBirth: formatDateForDisplay(nextDateOfBirth ?? undefined) };
+                }
+
+                if (editingField === 'nationality') {
+                    return { ...prev, nationality: nextNationality || 'N/A' };
+                }
+
+                return {
+                    ...prev,
+                    [editingField]: newValue,
+                };
+            });
+
+            setClientProfile(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    firstName,
+                    lastName,
+                    gender: nextGender,
+                    email: payload.email ?? prev.email,
+                    contactNumber: payload.contactNumber ?? prev.contactNumber,
+                    dateOfBirth: nextDateOfBirth ?? prev.dateOfBirth,
+                    nationality: nextNationality || prev.nationality,
+                    address: payload.address ?? prev.address,
+                };
+            });
+
+            Alert.alert('Success', 'Personal details updated successfully.');
+        } catch {
+            Alert.alert('Update Failed', 'Unable to update personal details right now.');
         }
     };
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadPersonalData = async () => {
+            if (!user?.userId) {
+                if (isMounted) {
+                    setProfileError('User session not found. Please log in again.');
+                    setIsLoadingProfile(false);
+                }
+                return;
+            }
+
+            if (user.role !== UserRole.CLIENT) {
+                if (isMounted) {
+                    setProfileError(null);
+                    setIsLoadingProfile(false);
+                }
+                return;
+            }
+
+            try {
+                setIsLoadingProfile(true);
+                setProfileError(null);
+
+                const client = await ProfileService.getClientByUserId(user.userId);
+                if (!isMounted) return;
+
+                setClientProfile(client);
+
+                setPersonalData(prev => ({
+                    ...prev,
+                    name: `${client.firstName ?? ''} ${client.lastName ?? ''}`.trim() || prev.name,
+                    address: client.address ?? 'N/A',
+                    contactNumber: client.contactNumber ?? 'N/A',
+                    emailAddress: client.email ?? 'N/A',
+                    nic: client.nic ?? 'N/A',
+                    dateOfBirth: formatDateForDisplay(client.dateOfBirth),
+                    gender: mapGender(client.gender),
+                    nationality: client.nationality ?? 'N/A',
+                }));
+            } catch {
+                if (!isMounted) return;
+                setProfileError('Failed to load personal details.');
+            } finally {
+                if (isMounted) {
+                    setIsLoadingProfile(false);
+                }
+            }
+        };
+
+        loadPersonalData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [user?.userId, user?.role]);
 
     return (
         <ClientLayout
@@ -135,6 +370,9 @@ const ClientPersonalDetailsScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
+                {isLoadingProfile && <ActivityIndicator color={colors.primary} style={styles.loader} />}
+                {profileError ? <Text style={styles.errorText}>{profileError}</Text> : null}
+
                 <View style={styles.card}>
                     <DetailRow
                         label="Name"
@@ -159,7 +397,6 @@ const ClientPersonalDetailsScreen: React.FC = () => {
                     <DetailRow
                         label="NIC"
                         value={personalData.nic}
-                        onPress={() => openEditModal('nic')}
                     />
                     <DetailRow
                         label="Date of Birth"
@@ -181,7 +418,7 @@ const ClientPersonalDetailsScreen: React.FC = () => {
                 <View style={styles.infoBox}>
                     <Ionicons name="information-circle-outline" size={20} color={colors.info} />
                     <Text style={styles.infoText}>
-                        To update your personal information, tap on any field above.
+                        Only non-critical fields can be updated from this page.
                     </Text>
                 </View>
             </ScrollView>
@@ -233,6 +470,14 @@ const styles = StyleSheet.create({
     scrollContent: {
         padding: spacing.lg,
         paddingTop: spacing.lg,
+    },
+    loader: {
+        marginBottom: spacing.md,
+    },
+    errorText: {
+        color: colors.error,
+        textAlign: 'center',
+        marginBottom: spacing.md,
     },
     card: {
         backgroundColor: colors.white,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -6,7 +6,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert as RNAlert,
+    ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +15,9 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Alert from '../../../components/Alert';
 import { AuthService } from '../../../services/authService';
+import { useAuth } from '../../../context/AuthContext';
+import { ProfileService } from '../../../services/profileService';
+import { UserRole } from '../../../interfaces/auth.interface';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -26,21 +29,6 @@ interface MenuItemProps {
     isExpanded?: boolean;
     onToggle?: () => void;
 }
-
-interface SubItemProps {
-    title: string;
-    onPress: () => void;
-}
-
-const SubMenuItem: React.FC<SubItemProps> = ({ title, onPress }) => (
-    <TouchableOpacity style={styles.subMenuItem} onPress={onPress} activeOpacity={0.7}>
-        <View style={styles.subMenuLeft}>
-            <View style={styles.dotIndicator} />
-            <Text style={styles.subMenuTitle}>{title}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-    </TouchableOpacity>
-);
 
 const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout, hasSubItems, isExpanded, onToggle }) => (
     <>
@@ -66,26 +54,75 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 
 const ClientProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
+    const { user } = useAuth();
     const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
-    // TODO: Replace with actual API data
-    const profileData = {
+    const [profileData, setProfileData] = useState({
         name: 'Sarah Johnson',
         userId: 'CLT 892456',
-        memberSince: '2023',
+        memberSince: 'N/A',
         totalBookings: 12,
         activeBookings: 3,
         completedBookings: 9,
-        profileImage: null, // Set to image URL when available
-    };
+        profileImage: null as string | null,
+    });
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [profileError, setProfileError] = useState<string | null>(null);
 
-    const toggleExpand = (key: string) => {
-        setExpandedItems(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadProfile = async () => {
+            if (!user?.userId) {
+                if (isMounted) {
+                    setProfileError('User session not found. Please log in again.');
+                    setIsLoadingProfile(false);
+                }
+                return;
+            }
+
+            if (user.role !== UserRole.CLIENT) {
+                if (isMounted) {
+                    setProfileError(null);
+                    setIsLoadingProfile(false);
+                }
+                return;
+            }
+
+            try {
+                setIsLoadingProfile(true);
+                setProfileError(null);
+
+                const client = await ProfileService.getClientByUserId(user.userId);
+                if (!isMounted) return;
+
+                const registrationYear = client.registrationDate
+                    ? new Date(client.registrationDate).getFullYear().toString()
+                    : 'N/A';
+
+                setProfileData(prev => ({
+                    ...prev,
+                    name: `${client.firstName ?? ''} ${client.lastName ?? ''}`.trim() || prev.name,
+                    userId: client.userId ?? user.userId,
+                    memberSince: registrationYear,
+                    profileImage: client.profileImage ? `data:image/jpeg;base64,${client.profileImage}` : null,
+                }));
+            } catch {
+                if (!isMounted) return;
+                setProfileError('Failed to load client profile.');
+            } finally {
+                if (isMounted) {
+                    setIsLoadingProfile(false);
+                }
+            }
+        };
+
+        loadProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [user?.userId, user?.role]);
 
     const handleLogout = () => {
         setShowLogoutAlert(true);
@@ -132,6 +169,9 @@ const ClientProfileScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
+
+                {isLoadingProfile && <ActivityIndicator color={colors.primary} style={styles.loader} />}
+                {profileError ? <Text style={styles.errorText}>{profileError}</Text> : null}
 
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
@@ -379,6 +419,15 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: 100,
         paddingTop: 110,
+    },
+    loader: {
+        marginTop: spacing.sm,
+    },
+    errorText: {
+        marginTop: spacing.sm,
+        paddingHorizontal: spacing.lg,
+        color: colors.error,
+        textAlign: 'center',
     },
     fixedHeader: {
         height: 80,
