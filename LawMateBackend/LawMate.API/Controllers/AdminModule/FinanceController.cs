@@ -8,7 +8,7 @@ namespace LawMate.API.Controllers.AdminModule;
 
 [Route("api/admin/finance")]
 [ApiController]
-//[Authorize]
+[Authorize]
 public class FinanceController : ControllerBase
 {
     private readonly IMediator _mediator;

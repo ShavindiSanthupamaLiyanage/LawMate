@@ -12,6 +12,8 @@ export type PaymentStatus = "Pending" | "Approved" | "Rejected";
 
 export interface PaymentVerificationItem {
     id: string;
+    lawyerId: string;
+    clientId?: string | null;
     name: string;
     email?: string;
     paymentType: 'Membership' | 'Booking';

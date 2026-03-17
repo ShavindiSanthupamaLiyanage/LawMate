@@ -36,10 +36,15 @@ public class GetPaymentsQueryHandler : IRequestHandler<GetPaymentsQuery, List<Pa
             .Select(x => new PaymentDto
             {
                 PaymentType = "Membership",
-                TransactionId = x.TransactionId,
+
                 LawyerId = x.LawyerId,
+                ClientId = null,      
+                BookingId = null,
+
+                TransactionId = x.TransactionId,
                 Amount = x.Amount,
                 PaymentDate = x.PaymentDate,
+
                 VerificationStatus = x.VerificationStatus,
                 VerifiedBy = x.VerifiedBy,
                 VerifiedAt = x.VerifiedAt,
@@ -47,18 +52,28 @@ public class GetPaymentsQueryHandler : IRequestHandler<GetPaymentsQuery, List<Pa
             })
             .ToListAsync(cancellationToken);
 
-        var bookingList = await booking
+        var bookingList = await _context.BOOKING_PAYMENT
+            .Join(_context.BOOKING,
+                p => p.BookingId,
+                b => b.BookingId,
+                (p, b) => new { p, b })
+            .Where(x => request.Status == null || x.p.VerificationStatus == request.Status)
             .Select(x => new PaymentDto
             {
                 PaymentType = "Booking",
-                TransactionId = x.TransactionId,
-                LawyerId = x.LawyerId,
-                Amount = x.Amount,
-                PaymentDate = x.PaymentDate,
-                VerificationStatus = x.VerificationStatus,
-                VerifiedBy = x.VerifiedBy,
-                VerifiedAt = x.VerifiedAt,
-                RejectionReason = x.RejectionReason
+
+                LawyerId = x.b.LawyerId,
+                ClientId = x.b.ClientId,     
+                BookingId = x.b.BookingId,  
+
+                TransactionId = x.p.TransactionId,
+                Amount = x.p.Amount,
+                PaymentDate = x.p.PaymentDate,
+
+                VerificationStatus = x.p.VerificationStatus,
+                VerifiedBy = x.p.VerifiedBy,
+                VerifiedAt = x.p.VerifiedAt,
+                RejectionReason = x.p.RejectionReason
             })
             .ToListAsync(cancellationToken);
 
