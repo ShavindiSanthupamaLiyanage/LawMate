@@ -6,7 +6,6 @@ import {
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
 import { colors, spacing, fontSize, fontWeight, borderRadius } from "../../../config/theme";
-import Toast, { ToastType } from "../../../components/Toast";
 import UploadCard from "../../../components/UploadCard";
 import Button from "../../../components/Button";
 import { PaymentVerificationStackParamList } from "./PaymentVerificationStack";
@@ -14,6 +13,7 @@ import { PaymentStatus } from "./PaymentVerificationCard";
 import AdminLayout from "../../../components/AdminLayout";
 import { paymentVerificationService } from "../../../services/paymentVerificationService";
 import {PaymentDetailDto} from "../../../interfaces/paymentVerification.interface";
+import {useToast} from "../../../context/ToastContext";
 
 type Props = {
     navigation: NativeStackNavigationProp<PaymentVerificationStackParamList, "PaymentVerificationView">;
@@ -22,10 +22,14 @@ type Props = {
 
 const REJECT_REASONS = [
     "Invalid payment slip",
+    "Payment slip unclear or unreadable",
     "Amount mismatch",
-    "Wrong bank details",
-    "Duplicate payment",
-    "Other",
+    "Payment slip already used",
+    "Expired payment slip",
+    "Wrong bank account details",
+    "Duplicate payment submission",
+    "Payment made to incorrect account",
+    "Payment slip not from a recognized bank",
 ];
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -40,7 +44,6 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 export default function PaymentVerificationViewScreen({ navigation, route }: Props) {
     const { item } = route.params;
 
-    // ── State ──────────────────────────────────────────────────────────────────
     const [detail, setDetail] = useState<PaymentDetailDto | null>(null);
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState<string | null>(null);
@@ -50,11 +53,7 @@ export default function PaymentVerificationViewScreen({ navigation, route }: Pro
     const [selectedReason, setSelectedReason] = useState<string | null>(null);
     const [customReason, setCustomReason] = useState("");
     const [previewImage, setPreviewImage] = useState<string | null>(null);
-    const [toast, setToast] = useState<{ visible: boolean; message: string; type: ToastType }>(
-        { visible: false, message: "", type: "success" }
-    );
 
-    // ── Fetch detail on mount ──────────────────────────────────────────────────
     useEffect(() => {
         const load = async () => {
             console.log('[ViewScreen] item.lawyerId:', item.lawyerId,
@@ -64,9 +63,9 @@ export default function PaymentVerificationViewScreen({ navigation, route }: Pro
                 setLoading(true);
                 setFetchError(null);
                 const data = await paymentVerificationService.getDetails(
-                    item.lawyerId,          // ← was item.paymentId
+                    item.lawyerId,
                     item.paymentType,
-                    item.clientId ?? null   // ← only sent for Booking
+                    item.clientId ?? null
                 );
                 setDetail(data);
                 const mappedStatus: PaymentStatus =
@@ -83,16 +82,11 @@ export default function PaymentVerificationViewScreen({ navigation, route }: Pro
         load();
     }, [item.lawyerId, item.paymentType, item.clientId]);
 
-    const showToast = (message: string, type: ToastType) =>
-        setToast({ visible: true, message, type });
-
-    const hideToast = () => setToast((prev) => ({ ...prev, visible: false }));
-
+    const { showSuccess, showError, showWarning } = useToast();
     const formatDate = (iso: string | null) =>
         iso
             ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
             : "—";
-
     const formatAmount = (amount: number) =>
         `LKR ${amount.toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
 
@@ -104,20 +98,74 @@ export default function PaymentVerificationViewScreen({ navigation, route }: Pro
     const displayAmount  = detail ? formatAmount(detail.amount) : item.amount;
     const displayDate    = detail ? formatDate(detail.paymentDate) : item.paymentDate;
 
-    const handleAccept = () => {
-        setStatus("Approved");
-        showToast("Payment has been Accepted.", "success");
-        // TODO: call your accept API endpoint here
+    const handleAccept = async () => {
+        console.log('[handleAccept] FIRED — detail:', detail?.paymentType, '| bookingId:', detail?.bookingId);
+        try {
+            if (!detail) return;
+
+            if (detail.paymentType === 'Booking') {
+                if (!detail.bookingId) {
+                    showError("Booking ID missing");
+                    return;
+                }
+                await paymentVerificationService.updateBookingPayment({
+                    bookingId: detail.bookingId,
+                    lawyerId:  detail.lawyerId,
+                    clientId:  detail.clientId,
+                    status:    'Verified',
+                });
+            } else {
+                await paymentVerificationService.updateMembershipPayment({
+                    lawyerId: detail.lawyerId,
+                    status:   'Verified',
+                });
+            }
+            setStatus("Approved");
+            showSuccess("Payment has been Accepted.");
+
+        } catch (err: any) {
+            showError("Failed to accept payment");
+        }
     };
 
-    const handleRejectConfirm = () => {
-        if (!selectedReason) return;
-        setShowRejectSheet(false);
-        setStatus("Rejected");
-        showToast("Payment has been Rejected.", "error");
-        setSelectedReason(null);
-        setCustomReason("");
-        // TODO: call your reject API endpoint here, passing selectedReason / customReason
+    const handleRejectConfirm = async () => {
+        if (!selectedReason || !detail) return;
+
+        const reason = selectedReason === "Other" ? customReason.trim() : selectedReason;
+
+        if (!reason) {
+            showWarning("Please provide a rejection reason");
+            return;
+        }
+        try {
+            if (detail.paymentType === 'Booking') {
+                if (!detail.bookingId) {
+                    showError("Booking ID missing");
+                    return;
+                }
+                await paymentVerificationService.updateBookingPayment({
+                    bookingId:       detail.bookingId,
+                    lawyerId:        detail.lawyerId,
+                    clientId:        detail.clientId,
+                    status:          'Rejected',
+                    rejectionReason: reason,
+                });
+            } else {
+                await paymentVerificationService.updateMembershipPayment({
+                    lawyerId:        detail.lawyerId,
+                    status:          'Rejected',
+                    rejectionReason: reason,
+                });
+            }
+            setShowRejectSheet(false);
+            setStatus("Rejected");
+            setSelectedReason(null);
+            setCustomReason("");
+            showSuccess("Payment has been Rejected.");
+
+        } catch (err: any) {
+            showError("Failed to reject payment");
+        }
     };
 
     const isPending = status === "Pending";
@@ -129,7 +177,6 @@ export default function PaymentVerificationViewScreen({ navigation, route }: Pro
             onBackPress={() => navigation.goBack()}
             onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
         >
-            {/* Loading / Error states */}
             {loading ? (
                 <View style={styles.centeredState}>
                     <ActivityIndicator color={colors.primary} size="large" />
@@ -305,8 +352,6 @@ export default function PaymentVerificationViewScreen({ navigation, route }: Pro
                     </View>
                 </View>
             </Modal>
-
-            <Toast visible={toast.visible} message={toast.message} type={toast.type} onDismiss={hideToast} />
         </AdminLayout>
     );
 }
@@ -423,7 +468,6 @@ const styles = StyleSheet.create({
     // Bottom Sheet
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        // flex: 1,
         backgroundColor: "rgba(0,0,0,0.4)",
     },
     sheet: {

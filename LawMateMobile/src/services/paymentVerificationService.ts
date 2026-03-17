@@ -1,6 +1,10 @@
 import { API_CONFIG, ENDPOINTS } from '../config/api.config';
 import { StorageService } from '../utils/storage';
-import {PaymentDetailDto, PaymentDto} from "../interfaces/paymentVerification.interface";
+import {
+    PaymentDetailDto,
+    PaymentDto, UpdateBookingPaymentRequest,
+    UpdateMembershipPaymentRequest
+} from "../interfaces/paymentVerification.interface";
 
 const getAuthHeaders = async () => {
     const token = await StorageService.getToken();
@@ -77,6 +81,61 @@ const fetchPaymentDetails = async (
     }
 };
 
+const updateMembershipPayment = async (req: UpdateMembershipPaymentRequest): Promise<void> => {
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/membership/update`;
+    const headers = await getAuthHeaders();
+
+    const body = {
+        lawyerId: req.lawyerId,
+        status: req.status === 'Verified' ? 1 : 2,
+        rejectionReason: req.rejectionReason ?? null,
+    };
+
+    console.log('[updateMembershipPayment] POST →', url);
+    console.log('[updateMembershipPayment] Body:', JSON.stringify(body));
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+    });
+
+    console.log('[updateMembershipPayment] Status:', response.status);
+    const text = await response.text();
+    console.log('[updateMembershipPayment] Response:', text);
+
+    if (!response.ok) {
+        throw new Error(`Failed to update membership payment (HTTP ${response.status}): ${text}`);
+    }
+};
+
+const updateBookingPayment = async (req: UpdateBookingPaymentRequest): Promise<void> => {
+    const url = `${API_CONFIG.BASE_URL}/admin/payments/booking/update`;
+    const headers = await getAuthHeaders();
+
+    const body = {
+        bookingId: req.bookingId,
+        lawyerId:  req.lawyerId,
+        clientId:  req.clientId,
+        status: req.status === 'Verified' ? 1 : 2,   // map string → enum int
+        rejectionReason: req.rejectionReason ?? null,
+    };
+
+    console.log('[updateBookingPayment] POST →', url);
+    console.log('[updateBookingPayment] Body:', JSON.stringify(body));
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Failed to update booking payment (HTTP ${response.status}): ${text}`);
+    }
+};
+
 export const paymentVerificationService = {
     getAll:      () => fetchPayments(`${API_CONFIG.BASE_URL}${ENDPOINTS.PAYMENTS.ALL}`),
     getPending:  () => fetchPayments(`${API_CONFIG.BASE_URL}${ENDPOINTS.PAYMENTS.PENDING}`),
@@ -84,4 +143,6 @@ export const paymentVerificationService = {
     getRejected: () => fetchPayments(`${API_CONFIG.BASE_URL}${ENDPOINTS.PAYMENTS.REJECTED}`),
     getDetails:  (lawyerId: string, type: string, clientId?: string | null) =>
         fetchPaymentDetails(lawyerId, type, clientId),
+    updateMembershipPayment,
+    updateBookingPayment,
 };

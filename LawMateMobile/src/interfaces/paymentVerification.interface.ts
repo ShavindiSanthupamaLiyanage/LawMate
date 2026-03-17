@@ -15,7 +15,7 @@ export interface PaymentDto {
 
 export interface PaymentDetailDto {
     paymentType: 'Membership' | 'Booking';
-
+    bookingId?: number | null;
     // Lawyer
     lawyerId: string | null;
     lawyerName: string | null;
@@ -35,4 +35,18 @@ export interface PaymentDetailDto {
     verifiedAt: string | null;
     rejectionReason: string | null;
     receiptDocument: string | null;
+}
+
+export interface UpdateMembershipPaymentRequest {
+    lawyerId: string | null;
+    status: 'Verified' | 'Rejected';
+    rejectionReason?: string;
+}
+
+export interface UpdateBookingPaymentRequest {
+    bookingId: number;
+    lawyerId: string | null;
+    clientId: string | null;
+    status: 'Verified' | 'Rejected';
+    rejectionReason?: string;
 }
