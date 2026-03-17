@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     Image,
     Alert as RNAlert,
+    ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,11 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import LawyerLayout from '../../../components/LawyerLayout';
 import Alert from "../../../components/Alert";
 import {AuthService} from "../../../services/authService";
+import { useAuth } from '../../../context/AuthContext';
+import { ProfileService } from '../../../services/profileService';
+import { AreaOfPracticeOptions } from '../../../enum/enumOptions';
+import { UserRole } from '../../../interfaces/auth.interface';
+import { UserDetailService } from '../../../services/userDetailService';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -64,23 +70,98 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
     </>
 );
 
+const findLabel = (options: { label: string; value: number }[], value: number): string =>
+    options.find(o => o.value === value)?.label ?? 'N/A';
+
 const LawyerProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
+    const { user } = useAuth();
     const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
     const [showLogoutAlert, setShowLogoutAlert] = useState(false);
 
-    // TODO: Replace with actual API data
-    const profileData = {
+    const [profileData, setProfileData] = useState({
         name: 'Kavindi Gimsara',
-        barCouncilId: 'BAR 543238v',
-        specialization: 'Criminal Law',
-        rating: 4.8,
-        reviewCount: 156,
-        totalCases: 45,
-        clients: 24,
-        yearsExp: 8,
-        profileImage: null, // Set to image URL when available
-    };
+        barCouncilId: 'N/A',
+        specialization: 'N/A',
+        rating: 0,
+        reviewCount: 0,
+        totalCases: 0,
+        clients: 0,
+        yearsExp: 0,
+        profileImage: null as string | null,
+    });
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [profileError, setProfileError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadProfile = async () => {
+            if (!user?.userId) {
+                if (isMounted) {
+                    setProfileError('User session not found. Please log in again.');
+                    setIsLoadingProfile(false);
+                }
+                return;
+            }
+
+            if (user.role !== UserRole.LAWYER) {
+                if (isMounted) {
+                    setProfileError(null);
+                    setIsLoadingProfile(false);
+                }
+                return;
+            }
+
+            try {
+                setIsLoadingProfile(true);
+                setProfileError(null);
+
+                const lawyer = await ProfileService.getLawyerByUserId(user.userId);
+                if (!isMounted) return;
+
+                setProfileData(prev => ({
+                    ...prev,
+                    name: `${lawyer.firstName ?? ''} ${lawyer.lastName ?? ''}`.trim() || prev.name,
+                    barCouncilId: lawyer.barAssociationRegNo ?? 'N/A',
+                    specialization: findLabel(AreaOfPracticeOptions, lawyer.areaOfPractice),
+                    rating: Number(lawyer.averageRating ?? 0),
+                    yearsExp: lawyer.yearOfExperience ?? 0,
+                    profileImage: lawyer.profileImage ? `data:image/jpeg;base64,${lawyer.profileImage}` : null,
+                }));
+            } catch {
+                if (!isMounted) return;
+
+                try {
+                    const basicUser = await UserDetailService.getUserById(user.userId);
+                    if (!isMounted) return;
+
+                    setProfileData(prev => ({
+                        ...prev,
+                        name: basicUser
+                            ? `${basicUser.firstName ?? ''} ${basicUser.lastName ?? ''}`.trim() || prev.name
+                            : prev.name,
+                        barCouncilId: 'N/A',
+                        specialization: 'N/A',
+                    }));
+                    setProfileError('Professional lawyer details are not available yet.');
+                } catch {
+                    if (!isMounted) return;
+                    setProfileError('Failed to load lawyer profile.');
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoadingProfile(false);
+                }
+            }
+        };
+
+        loadProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [user?.userId, user?.role]);
 
     const toggleExpand = (key: string) => {
         setExpandedItems(prev => ({
@@ -116,6 +197,9 @@ const LawyerProfileScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
+
+                {isLoadingProfile && <ActivityIndicator color={colors.primary} style={styles.loader} />}
+                {profileError ? <Text style={styles.errorText}>{profileError}</Text> : null}
 
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
@@ -415,6 +499,15 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingBottom: 100,
         paddingTop: spacing.md,
+    },
+    loader: {
+        marginTop: spacing.sm,
+    },
+    errorText: {
+        marginTop: spacing.sm,
+        paddingHorizontal: spacing.lg,
+        color: colors.error,
+        textAlign: 'center',
     },
     fixedHeader: {
         height: 80,
