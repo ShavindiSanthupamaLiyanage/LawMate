@@ -21,6 +21,8 @@ namespace LawMate.Domain.Entities.Auth
         public string? NIC { get; set; }
         public string? Password { get; set; }
         public string? ContactNumber { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string? Nationality { get; set; }
         public int? RecordStatus { get; set; }
         public DateTime? RegistrationDate { get; set; }
         public DateTime? LastLoginDate { get; set; }

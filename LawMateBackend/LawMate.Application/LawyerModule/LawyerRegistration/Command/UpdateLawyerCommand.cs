@@ -14,6 +14,9 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
 
         // USER_DETAIL
         public string? ContactNumber { get; set; }
+        public Gender? Gender { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string? Nationality { get; set; }
 
         // LAWYER_DETAILS
         public string? Bio { get; set; }
@@ -49,6 +52,12 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
 
             // USER_DETAIL updates
             user.ContactNumber = request.ContactNumber ?? user.ContactNumber;
+            if (request.Gender.HasValue)
+                user.Gender = request.Gender.Value;
+            if (request.DateOfBirth.HasValue)
+                user.DateOfBirth = request.DateOfBirth.Value.Date;
+            if (!string.IsNullOrWhiteSpace(request.Nationality))
+                user.Nationality = request.Nationality.Trim();
 
             // LAWYER_DETAILS updates
             lawyer.Bio = request.Bio;

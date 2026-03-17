@@ -13,6 +13,8 @@ public class UserDetailResponseDto
     public string? Email { get; set; }
     public string? NIC { get; set; }
     public string? ContactNumber { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? Nationality { get; set; }
     public int? RecordStatus { get; set; }
     public int State { get; set; }
     public UserRole UserRole { get; set; }

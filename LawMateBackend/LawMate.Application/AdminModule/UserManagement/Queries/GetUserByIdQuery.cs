@@ -36,6 +36,8 @@ public class GetUserByIdQueryHandler
                 NIC = x.NIC,
                 Email = x.Email,
                 ContactNumber = x.ContactNumber,
+                DateOfBirth = x.DateOfBirth,
+                Nationality = x.Nationality,
                 RecordStatus = x.RecordStatus,
                 State = (int)x.State,
                 UserRole = x.UserRole,
