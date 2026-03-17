@@ -7,7 +7,9 @@ namespace LawMate.Application.AdminModule.PaymentMaintenance.Commands;
 
 public class UpdateBookingPaymentStatusCommand : IRequest<string>
 {
-    public int PaymentId { get; set; }
+    public int BookingId { get; set; } 
+    public string LawyerId { get; set; }
+    public string ClientId { get; set; }
     public VerificationStatus Status { get; set; }
     public string? RejectionReason { get; set; }
 }
@@ -28,40 +30,44 @@ public class UpdateBookingPaymentStatusCommandHandler
 
     public async Task<string> Handle(UpdateBookingPaymentStatusCommand request, CancellationToken cancellationToken)
     {
-        var payment = await _context.BOOKING_PAYMENT
-            .FirstOrDefaultAsync(x => x.Id == request.PaymentId, cancellationToken);
+        var bookingPayment = await _context.BOOKING_PAYMENT
+            .FirstOrDefaultAsync(p => p.BookingId == request.BookingId, cancellationToken);
 
-        if (payment == null)
-            throw new Exception("Booking payment not found");
-        
-        // Devindi
-        var booking = await _context.BOOKING
-            .FirstOrDefaultAsync(x => x.BookingId == payment.BookingId, cancellationToken);
+        if (bookingPayment == null)
+            throw new Exception("Payment not found");
 
-        if (booking == null)
-            throw new Exception("Related booking not found");
+        bookingPayment.VerificationStatus = request.Status;
+        bookingPayment.VerifiedBy = _currentUser.UserId;
+        bookingPayment.VerifiedAt = DateTime.UtcNow;
 
-        payment.VerificationStatus = request.Status;
-        payment.VerifiedBy = _currentUser.UserId;
-        payment.VerifiedAt = DateTime.UtcNow;
-
-        if (request.Status == VerificationStatus.Rejected)
-            payment.RejectionReason = request.RejectionReason;
-        
-        // Devindi
         if (request.Status == VerificationStatus.Rejected)
         {
-            booking.BookingStatus = BookingStatus.Accepted;
-            booking.PaymentStatus = PaymentStatus.Failed;
+            if (string.IsNullOrEmpty(request.RejectionReason))
+                throw new Exception("Rejection reason is required");
+
+            bookingPayment.RejectionReason = request.RejectionReason;
+            
+            var booking = await _context.BOOKING
+                .FirstOrDefaultAsync(b => b.BookingId == bookingPayment.BookingId, cancellationToken);
+
+            if (booking == null)
+                throw new Exception("Booking not found");
+
+            booking.BookingStatus = BookingStatus.Rejected;
+
+            // Optional (recommended)
+            booking.BookingStatus = BookingStatus.Rejected;
         }
         else if (request.Status == VerificationStatus.Verified)
         {
-            booking.BookingStatus = BookingStatus.Verified; // use Verified here if Confirmed does not exist yet
-            booking.PaymentStatus = PaymentStatus.Paid;
-        }
+            var booking = await _context.BOOKING
+                .FirstOrDefaultAsync(b => b.BookingId == bookingPayment.BookingId, cancellationToken);
 
-        booking.ModifiedBy = _currentUser.UserId;
-        booking.ModifiedAt = DateTime.UtcNow;
+            if (booking == null)
+                throw new Exception("Booking not found");
+
+            booking.BookingStatus = BookingStatus.Verified;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 

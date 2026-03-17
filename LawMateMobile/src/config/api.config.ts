@@ -138,6 +138,7 @@ export const ENDPOINTS = {
     },
     USER: {
         GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
+        GET_BY_ID: (userId: string) => `/users/${userId}`,
     },
     CONTACT: {
         SEND: '/contactUs/send',
@@ -147,16 +148,16 @@ export const ENDPOINTS = {
     },
 
      BOOKING: {
-    GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>`/bookings/lawyer/${lawyerId}`,
-    GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,
-    CREATE: "/bookings",
-    UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
+        GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>`/bookings/lawyer/${lawyerId}`,
+        GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,
+        CREATE: "/bookings",
+        UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
   },
   AVAILABILITY: {
-    GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
-    CREATE: "/availability",
-    UPDATE: (slotId: number) => `/availability/${slotId}`,
-    DELETE: (slotId: number) => `/availability/${slotId}`,
+        GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
+        CREATE: "/availability",
+        UPDATE: (slotId: number) => `/availability/${slotId}`,
+        DELETE: (slotId: number) => `/availability/${slotId}`,
   },
 
     LAWYER_VERIFICATION: {
@@ -164,9 +165,13 @@ export const ENDPOINTS = {
         REJECT: (userId: string) => `/lawyer-verification/${userId}/reject`,
     },
     PAYMENTS: {
-        ALL:      '/admin/payments',
-        PENDING:  '/admin/payments/pending',
+        ALL: '/admin/payments',
+        PENDING: '/admin/payments/pending',
         APPROVED: '/admin/payments/accepted',
         REJECTED: '/admin/payments/rejected',
+        GET_DETAILS: (lawyerId: string, type: string, clientId?: string | null) => {
+            const base = `/admin/payments/details?lawyerId=${lawyerId}&type=${type}`;
+            return clientId ? `${base}&clientId=${clientId}` : base;
+        },
     },
 };

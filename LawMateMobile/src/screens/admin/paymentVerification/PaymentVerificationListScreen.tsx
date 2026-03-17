@@ -1,4 +1,6 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 import {
     View,
     Text,
@@ -21,9 +23,9 @@ import PaymentVerificationCard, {
 } from "../paymentVerification/PaymentVerificationCard";
 import {AdminTabParamList} from "../../../types";
 import {useNavigation} from "@react-navigation/native";
-import {PaymentDto, paymentService} from "../../../services/paymentService";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { paymentVerificationService} from "../../../services/paymentVerificationService";
+import {PaymentDto} from "../../../interfaces/paymentVerification.interface";
+import {UserDetailService} from "../../../services/userDetailService";
 
 export type PaymentVerificationStackParamList = {
     PaymentVerificationList: undefined;
@@ -44,8 +46,6 @@ const TABS: Array<"All" | PaymentStatus> = [
     "Rejected",
 ];
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
-
 export default function PaymentVerificationListScreen({ navigation }: Props) {
     const [selectedTab, setSelectedTab] = useState<"All" | PaymentStatus>("All");
     const [searchQuery, setSearchQuery] = useState("");
@@ -58,38 +58,70 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
     const [rejectedData, setRejectedData] = useState<PaymentVerificationItem[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const mapDto = (dto: PaymentDto, index: number): PaymentVerificationItem => ({
-        id: dto.transactionId
-            ? `${dto.transactionId}-${index}`   // ensure uniqueness even if IDs repeat
-            : `fallback-${index}-${Date.now()}`,
-        name:        dto.lawyerId ?? 'Unknown',
-        paymentType: dto.paymentType as 'Membership' | 'Booking',
-        amount:      `LKR ${dto.amount.toLocaleString('en-LK', { minimumFractionDigits: 2 })}`,
-        paymentDate: dto.paymentDate
-            ? new Date(dto.paymentDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-            : '—',
-        status: dto.verificationStatus === 0 ? 'Pending'
-            : dto.verificationStatus === 1 ? 'Approved'
-                : 'Rejected',
-        transNo: dto.transactionId ?? '—',
-    });
+    useFocusEffect(
+        useCallback(() => {
+            const loadData = async () => {
+                setLoading(true);  // ← show loader on refresh too
+                try {
+                    const [all, pending, approved, rejected] = await Promise.all([
+                        paymentVerificationService.getAll(),
+                        paymentVerificationService.getPending(),
+                        paymentVerificationService.getApproved(),
+                        paymentVerificationService.getRejected(),
+                    ]);
 
-    useEffect(() => {
-        Promise.all([
-            paymentService.getAll(),
-            paymentService.getPending(),
-            paymentService.getApproved(),
-            paymentService.getRejected(),
-        ])
-            .then(([all, pending, approved, rejected]) => {
-            setAllData(all.map((dto, i) => mapDto(dto, i)));
-            setPendingData(pending.map((dto, i) => mapDto(dto, i)));
-            setApprovedData(approved.map((dto, i) => mapDto(dto, i)));
-            setRejectedData(rejected.map((dto, i) => mapDto(dto, i)));
-        })
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
+                    const uniqueLawyerIds = [
+                        ...new Set(
+                            [...all, ...pending, ...approved, ...rejected]
+                                .map(dto => dto.lawyerId)
+                                .filter((id): id is string => !!id)
+                        )
+                    ];
+
+                    const nameMap: Record<string, string> = {};
+                    await Promise.all(
+                        uniqueLawyerIds.map(async (id) => {
+                            const user = await UserDetailService.getUserById(id);
+                            if (user) {
+                                nameMap[id] = `${user.firstName} ${user.lastName}`.trim();
+                            }
+                        })
+                    );
+
+                    const mapDto = (dto: PaymentDto, index: number): PaymentVerificationItem => ({
+                        id: dto.transactionId
+                            ? `${dto.transactionId}-${index}`
+                            : `fallback-${index}-${Date.now()}`,
+                        lawyerId:    dto.lawyerId ?? '',
+                        clientId:    dto.clientId ?? null,
+                        paymentType: dto.paymentType,
+                        name: dto.lawyerId
+                            ? (nameMap[dto.lawyerId] ?? dto.lawyerId)
+                            : 'Unknown',
+                        amount: `LKR ${dto.amount.toLocaleString('en-LK', { minimumFractionDigits: 2 })}`,
+                        paymentDate: dto.paymentDate
+                            ? new Date(dto.paymentDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : '—',
+                        status: dto.verificationStatus === 0 ? 'Pending'
+                            : dto.verificationStatus === 1 ? 'Approved'
+                                : 'Rejected',
+                        transNo: dto.transactionId ?? '—',
+                    });
+
+                    setAllData(all.map((dto, i) => mapDto(dto, i)));
+                    setPendingData(pending.map((dto, i) => mapDto(dto, i)));
+                    setApprovedData(approved.map((dto, i) => mapDto(dto, i)));
+                    setRejectedData(rejected.map((dto, i) => mapDto(dto, i)));
+                } catch (err) {
+                    console.error('[PaymentVerificationList] Error:', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            loadData();
+        }, [])
+    );
 
     const getTabData = () => {
         const base = selectedTab === 'All'      ? allData
@@ -162,8 +194,6 @@ export default function PaymentVerificationListScreen({ navigation }: Props) {
         </AdminLayout>
     );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
     container: {

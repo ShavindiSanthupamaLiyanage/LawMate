@@ -32,6 +32,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Application\AdminModule\AdminRegistration\Queries\" />
+      <Folder Include="Application\AdminModule\UserManagement\Commands\" />
       <Folder Include="Application\Common\ResetPassword\Queries\" />
     </ItemGroup>
 
