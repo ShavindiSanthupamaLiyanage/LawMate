@@ -26,15 +26,9 @@ public class GetLawyerAppointmentsQueryHandler
         GetLawyerAppointmentsQuery request,
         CancellationToken cancellationToken)
     {
-        var lawyerUserId = request.LawyerId?.Trim();
-        if (string.IsNullOrWhiteSpace(lawyerUserId))
-        {
-            throw new ArgumentException("LawyerId is required.");
-        }
-
         var query = from booking in _context.BOOKING
                     join client in _context.USER_DETAIL on booking.ClientId equals client.UserId
-                    where booking.LawyerId == lawyerUserId
+                    where booking.LawyerId == request.LawyerId
                     select new
                     {
                         Booking = booking,
