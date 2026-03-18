@@ -7,13 +7,14 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Commands;
 
 public class UpdateAdminCommand : IRequest<bool>
 {
-    public string UserId { get; set; }
-    public Prefix Prefix { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Email { get; set; }
-    public string NIC { get; set; }
-    public string ContactNumber { get; set; }
+    public string UserId { get; set; } = default!;
+    public Prefix? Prefix { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public Gender? Gender { get; set; }
+    public string? Email { get; set; }
+    public string? NIC { get; set; }
+    public string? ContactNumber { get; set; }
 }
 
 public class UpdateAdminCommandHandler : IRequestHandler<UpdateAdminCommand, bool>
@@ -33,12 +34,27 @@ public class UpdateAdminCommandHandler : IRequestHandler<UpdateAdminCommand, boo
         if (admin == null)
             throw new Exception("Admin not found");
 
-        admin.Prefix = request.Prefix;
-        admin.FirstName = request.FirstName;
-        admin.LastName = request.LastName;
-        admin.Email = request.Email;
-        admin.NIC = request.NIC;
-        admin.ContactNumber = request.ContactNumber;
+        if (request.Prefix.HasValue)
+            admin.Prefix = request.Prefix.Value;
+
+        if (!string.IsNullOrWhiteSpace(request.FirstName))
+            admin.FirstName = request.FirstName.Trim();
+
+        if (!string.IsNullOrWhiteSpace(request.LastName))
+            admin.LastName = request.LastName.Trim();
+
+        if (!string.IsNullOrWhiteSpace(request.Email))
+            admin.Email = request.Email.Trim();
+
+        if (!string.IsNullOrWhiteSpace(request.ContactNumber))
+            admin.ContactNumber = request.ContactNumber.Trim();
+
+        if (request.Gender.HasValue)
+            admin.Gender = request.Gender.Value;
+
+        // NIC is intentionally excluded from updates here to keep identity-critical values immutable.
+
+        admin.UserName = $"{admin.FirstName} {admin.LastName}".Trim();
 
         await _context.SaveChangesAsync(cancellationToken);
 

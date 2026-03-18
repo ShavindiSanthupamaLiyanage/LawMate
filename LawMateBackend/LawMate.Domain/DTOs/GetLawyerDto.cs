@@ -27,11 +27,11 @@ public class GetLawyerDto
     // LAWYER_DETAILS
     public string? SCECertificateNo { get; set; }
     public string? Bio { get; set; }
-    public int YearOfExperience { get; set; }
-    public District WorkingDistrict { get; set; }
-    public AreaOfPractice AreaOfPractice { get; set; }
-    public decimal AverageRating { get; set; }
-    public VerificationStatus VerificationStatus { get; set; }
+    public int? YearOfExperience { get; set; }
+    public District? WorkingDistrict { get; set; }
+    public AreaOfPractice? AreaOfPractice { get; set; }
+    public decimal? AverageRating { get; set; }
+    public VerificationStatus? VerificationStatus { get; set; }
     public bool? BarAssociationMembership { get; set; }
     public string? BarAssociationRegNo { get; set; }
     public string? ProfessionalDesignation { get; set; }
