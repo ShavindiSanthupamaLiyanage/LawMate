@@ -27,6 +27,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Queries
                 .FirstOrDefaultAsync(u => u.UserId == request.UserId, cancellationToken);
 
             if (user == null)
+            if (user == null)
                 throw new KeyNotFoundException("Lawyer not found");
 
             var lawyer = await _context.LAWYER_DETAILS

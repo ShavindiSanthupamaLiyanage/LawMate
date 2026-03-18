@@ -96,7 +96,13 @@ app.Use(async (context, next) =>
     try { await next(); }
     catch (Exception ex)
     {
-        context.Response.StatusCode = 500;
+        context.Response.StatusCode = ex switch
+        {
+            KeyNotFoundException => StatusCodes.Status404NotFound,
+            ArgumentException => StatusCodes.Status400BadRequest,
+            InvalidOperationException => StatusCodes.Status400BadRequest,
+            _ => StatusCodes.Status500InternalServerError,
+        };
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(new 
         { 
