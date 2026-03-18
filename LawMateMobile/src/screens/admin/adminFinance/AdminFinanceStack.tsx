@@ -19,6 +19,8 @@ export interface FinanceItem {
     baseAmount?: string;
     platformFee?: string;
     totalAmount?: string;
+    bookingId?: number;
+    slipNumber?: string;
 }
 
 export type AdminFinanceStackParamList = {

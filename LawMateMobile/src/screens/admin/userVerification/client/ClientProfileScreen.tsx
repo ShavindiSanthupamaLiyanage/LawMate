@@ -21,7 +21,7 @@ import {
     LanguageOptions,
 } from "../../../../enum/enumOptions";
 import {StorageService} from "../../../../utils/storage";
-import apiClient from "../../../../api/client";
+import apiClient from "../../../../api/httpClient";
 import {ENDPOINTS} from "../../../../config/api.config";
 
 const findLabel = (
