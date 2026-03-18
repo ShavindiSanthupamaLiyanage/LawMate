@@ -276,18 +276,18 @@ const LawyerProfileScreen: React.FC = () => {
                                 title="Qualifications"
                                 onPress={() => navigation.navigate('LawyerProfessionalDetails')}
                             />
-                            <SubMenuItem
+                            {/* <SubMenuItem
                                 title="Specializations"
                                 onPress={() => RNAlert.alert('Specializations', 'Manage specializations')}
-                            />
+                            /> */}
                             {/* <SubMenuItem
                                 title="Education"
                                 onPress={() => RNAlert.alert('Education', 'View education details')}
                             /> */}
-                            <SubMenuItem
+                            {/* <SubMenuItem
                                 title="Experience"
                                 onPress={() => RNAlert.alert('Experience', 'View experience details')}
-                            />
+                            /> */}
                         </>
                     )}
 
