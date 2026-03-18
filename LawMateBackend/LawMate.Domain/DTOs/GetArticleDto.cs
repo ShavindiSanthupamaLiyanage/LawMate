@@ -15,5 +15,6 @@
         public string ModifiedBy { get; set; }
         public DateTime? ModifiedAt { get; set; }
         public int LikeCount { get; set; }
+        public string LawyerName { get; set; }
     }
 }

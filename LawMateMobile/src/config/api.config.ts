@@ -111,6 +111,13 @@ export const ENDPOINTS = {
         GET_BY_USER_ID: (userId: string) => `/lawyers/${userId}`,
     },
 
+   KNOWLEDGE_HUB: {
+    GET_ALL: "/lawyers/knowledgehub/articles",
+    CREATE: "/lawyers/knowledgehub/create",
+    UPDATE: (id: number) => `/lawyers/knowledgehub/update/${id}`,
+    DELETE: (id: number) => `/lawyers/knowledgehub/delete/${id}`,
+},
+
     // Client endpoints
     CLIENT: {
         REGISTER: '/clients',
