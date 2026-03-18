@@ -13,8 +13,6 @@ namespace LawMate.Domain.DTOs
         public string? Email { get; set; }
         public string? NIC { get; set; }
         public string? ContactNumber { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public string? Nationality { get; set; }
         public int? RecordStatus { get; set; }
         public State State { get; set; }
         public DateTime? RegistrationDate { get; set; }

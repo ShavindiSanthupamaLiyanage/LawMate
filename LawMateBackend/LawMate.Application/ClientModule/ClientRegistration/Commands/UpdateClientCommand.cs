@@ -21,8 +21,6 @@ namespace LawMate.Application.ClientModule.ClientRegistration.Commands
         public Gender? Gender { get; set; }
         public string? Email { get; set; }
         public string? ContactNumber { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public string? Nationality { get; set; }
 
         // CLIENT_DETAILS fields
         public string? Address { get; set; }
@@ -84,11 +82,6 @@ namespace LawMate.Application.ClientModule.ClientRegistration.Commands
                 user.Gender = request.Gender.Value;
             user.Email = request.Email?.Trim();
             user.ContactNumber = request.ContactNumber?.Trim();
-            if (request.DateOfBirth.HasValue)
-                user.DateOfBirth = request.DateOfBirth.Value.Date;
-            user.Nationality = string.IsNullOrWhiteSpace(request.Nationality)
-                ? user.Nationality
-                : request.Nationality.Trim();
             user.UserName = $"{user.FirstName} {user.LastName}".Trim();
 
             // 5) Update CLIENT_DETAILS fields
