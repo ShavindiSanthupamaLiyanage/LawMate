@@ -51,7 +51,7 @@ public class LawyerKnowledgeHubController : ControllerBase
     }
 
     [HttpPut("update/{articleId:int}")]
-    public async Task<IActionResult> UpdateArticle(int articleId, [FromBody] ArticleDto articleDto)
+    public async Task<IActionResult> UpdateArticle(int articleId, [FromBody] UpdateArticleDto articleDto)
     {
         var result = await _mediator.Send(new UpdateArticleCommand(articleId, articleDto));
         return Ok(result);

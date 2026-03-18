@@ -25,12 +25,12 @@ public class UpdateArticleCommandHandlerTests
 
         var handler = new UpdateArticleCommandHandler(context);
 
-        var dto = new ArticleDto
+        var dto = new UpdateArticleDto
         {
             Title = "Updated Title",
             Content = "Updated Content",
-            LegalCategory = "1",
-            Language = "1",
+            // LegalCategory = "1",
+            // Language = "1",
             IsPublished = true,
             ModifiedBy = "LAW001"
         };

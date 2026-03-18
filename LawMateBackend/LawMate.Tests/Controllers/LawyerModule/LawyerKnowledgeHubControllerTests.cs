@@ -4,7 +4,8 @@ using LawMate.Domain.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Xunit;
+
+namespace LawMate.Tests.Controllers.LawyerModule;
 
 public class LawyerKnowledgeHubControllerTests
 {
