@@ -15,9 +15,8 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Alert from '../../../components/Alert';
 import { AuthService } from '../../../services/authService';
-import { useAuth } from '../../../context/AuthContext';
-import { ProfileService } from '../../../services/profileService';
-import { UserRole } from '../../../interfaces/auth.interface';
+import apiClient from '../../../api/client';
+import { ENDPOINTS } from '../../../config/api.config';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -29,6 +28,42 @@ interface MenuItemProps {
     isExpanded?: boolean;
     onToggle?: () => void;
 }
+
+interface ClientProfileApiData {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    registrationDate?: string | null;
+    profileImage?: string | null;
+}
+
+interface ClientProfileData {
+    name: string;
+    userId: string;
+    memberSince: string;
+    profileImage: string | null;
+}
+
+const toMemberSince = (registrationDate?: string | null): string => {
+    if (!registrationDate) {
+        return '-';
+    }
+
+    const parsed = new Date(registrationDate);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return '-';
+    }
+
+    return parsed.getFullYear().toString();
+};
+
+const toProfileData = (data: ClientProfileApiData): ClientProfileData => ({
+    name: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || '-',
+    userId: data.userId ?? '-',
+    memberSince: toMemberSince(data.registrationDate),
+    profileImage: data.profileImage ? `data:image/jpeg;base64,${data.profileImage}` : null,
+});
 
 const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout, hasSubItems, isExpanded, onToggle }) => (
     <>
@@ -54,75 +89,57 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 
 const ClientProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const { user } = useAuth();
     const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-
-    const [profileData, setProfileData] = useState({
-        name: 'Sarah Johnson',
-        userId: 'CLT 892456',
-        memberSince: 'N/A',
-        totalBookings: 12,
-        activeBookings: 3,
-        completedBookings: 9,
-        profileImage: null as string | null,
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [profileData, setProfileData] = useState<ClientProfileData>({
+        name: '-',
+        userId: '-',
+        memberSince: '-',
+        profileImage: null,
     });
-    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-    const [profileError, setProfileError] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
 
-        const loadProfile = async () => {
-            if (!user?.userId) {
-                if (isMounted) {
-                    setProfileError('User session not found. Please log in again.');
-                    setIsLoadingProfile(false);
-                }
-                return;
-            }
-
-            if (user.role !== UserRole.CLIENT) {
-                if (isMounted) {
-                    setProfileError(null);
-                    setIsLoadingProfile(false);
-                }
-                return;
-            }
-
+        const loadClientProfile = async () => {
             try {
-                setIsLoadingProfile(true);
-                setProfileError(null);
+                setLoading(true);
+                setErrorMessage(null);
 
-                const client = await ProfileService.getClientByUserId(user.userId);
-                if (!isMounted) return;
+                const currentUser = await AuthService.getCurrentUser();
+                const userId = currentUser?.userId;
 
-                const registrationYear = client.registrationDate
-                    ? new Date(client.registrationDate).getFullYear().toString()
-                    : 'N/A';
+                if (!userId) {
+                    throw new Error('User session not found. Please log in again.');
+                }
 
-                setProfileData(prev => ({
-                    ...prev,
-                    name: `${client.firstName ?? ''} ${client.lastName ?? ''}`.trim() || prev.name,
-                    userId: client.userId ?? user.userId,
-                    memberSince: registrationYear,
-                    profileImage: client.profileImage ? `data:image/jpeg;base64,${client.profileImage}` : null,
-                }));
-            } catch {
-                if (!isMounted) return;
-                setProfileError('Failed to load client profile.');
+                const response = await apiClient.get<ClientProfileApiData>(
+                    ENDPOINTS.CLIENT.GET_BY_USER_ID(userId)
+                );
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setProfileData(toProfileData(response.data));
+            } catch (error: any) {
+                if (isMounted) {
+                    setErrorMessage(error?.message ?? 'Failed to load profile data.');
+                }
             } finally {
                 if (isMounted) {
-                    setIsLoadingProfile(false);
+                    setLoading(false);
                 }
             }
         };
 
-        loadProfile();
+        loadClientProfile();
 
         return () => {
             isMounted = false;
         };
-    }, [user?.userId, user?.role]);
+    }, []);
 
     const handleLogout = () => {
         setShowLogoutAlert(true);
@@ -170,9 +187,6 @@ const ClientProfileScreen: React.FC = () => {
                 contentContainerStyle={styles.scrollContent}
             >
 
-                {isLoadingProfile && <ActivityIndicator color={colors.primary} style={styles.loader} />}
-                {profileError ? <Text style={styles.errorText}>{profileError}</Text> : null}
-
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
                     <View style={styles.curvedBackground} />
@@ -200,6 +214,9 @@ const ClientProfileScreen: React.FC = () => {
                     <View style={styles.memberBadge}>
                         <Text style={styles.memberText}>Member since {profileData.memberSince}</Text>
                     </View>
+
+                    {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.sm }} />}
+                    {!loading && errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
                     {/* Stats */}
                     {/* <View style={styles.statsContainer}>
@@ -423,12 +440,6 @@ const styles = StyleSheet.create({
     loader: {
         marginTop: spacing.sm,
     },
-    errorText: {
-        marginTop: spacing.sm,
-        paddingHorizontal: spacing.lg,
-        color: colors.error,
-        textAlign: 'center',
-    },
     fixedHeader: {
         height: 80,
         flexDirection: 'row',
@@ -542,6 +553,12 @@ const styles = StyleSheet.create({
         fontSize: fontSize.sm,
         color: colors.textPrimary,
         fontWeight: fontWeight.medium,
+    },
+    errorText: {
+        color: colors.error,
+        fontSize: fontSize.sm,
+        textAlign: 'center',
+        marginTop: spacing.sm,
     },
     statsContainer: {
         flexDirection: 'row',

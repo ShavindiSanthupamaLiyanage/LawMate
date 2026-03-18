@@ -14,21 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import ClientLayout from '../../../components/ClientLayout';
-import { useAuth } from '../../../context/AuthContext';
-import { ProfileService, UpdateClientProfilePayload } from '../../../services/profileService';
-import { UserRole } from '../../../interfaces/auth.interface';
-import { GetClientDto } from '../../../interfaces/userDetails.interface';
-
-type PersonalData = {
-    name: string;
-    address: string;
-    contactNumber: string;
-    emailAddress: string;
-    nic: string;
-    dateOfBirth: string;
-    gender: string;
-    nationality: string;
-};
+import apiClient from '../../../api/client';
+import { AuthService } from '../../../services/authService';
+import { ENDPOINTS } from '../../../config/api.config';
 
 const EditModal: React.FC<{
     visible: boolean;
@@ -93,6 +81,52 @@ interface DetailRowProps {
     onPress?: () => void;
 }
 
+interface PersonalData {
+    name: string;
+    address: string;
+    contactNumber: string;
+    emailAddress: string;
+    nic: string;
+    gender: string;
+}
+
+interface ClientApiData {
+    userId: string;
+    prefix: number;
+    firstName?: string | null;
+    lastName?: string | null;
+    gender?: number | null;
+    email?: string | null;
+    nic?: string | null;
+    contactNumber?: string | null;
+    address?: string | null;
+    district?: string | null;
+    prefferedLanguage?: number | null;
+}
+
+type EditableField = 'address' | 'contactNumber' | 'emailAddress';
+
+const toGenderLabel = (gender?: number | null): string => {
+    if (gender === 1) {
+        return 'Male';
+    }
+
+    if (gender === 2) {
+        return 'Female';
+    }
+
+    return '-';
+};
+
+const toPersonalData = (data: ClientApiData): PersonalData => ({
+    name: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || '-',
+    address: data.address ?? '-',
+    contactNumber: data.contactNumber ?? '-',
+    emailAddress: data.email ?? '-',
+    nic: data.nic ?? '-',
+    gender: toGenderLabel(data.gender),
+});
+
 const DetailRow: React.FC<DetailRowProps> = ({ label, value, onPress }) => (
     <TouchableOpacity
         style={styles.detailRow}
@@ -110,251 +144,108 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, onPress }) => (
 
 const ClientPersonalDetailsScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const { user } = useAuth();
-    const editableFields: Array<keyof PersonalData> = [
-        'name',
-        'address',
-        'contactNumber',
-        'emailAddress',
-        'dateOfBirth',
-        'gender',
-        'nationality',
-    ];
     const [editModalVisible, setEditModalVisible] = useState(false);
-    const [editingField, setEditingField] = useState<keyof PersonalData | null>(null);
-    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-    const [profileError, setProfileError] = useState<string | null>(null);
-    const [clientProfile, setClientProfile] = useState<GetClientDto | null>(null);
-
+    const [editingField, setEditingField] = useState<EditableField | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [apiData, setApiData] = useState<ClientApiData | null>(null);
     const [personalData, setPersonalData] = useState<PersonalData>({
-        name: 'Sarah Johnson',
-        address: 'N/A',
-        contactNumber: 'N/A',
-        emailAddress: 'N/A',
-        nic: 'N/A',
-        dateOfBirth: 'N/A',
-        gender: 'Female',
-        nationality: 'N/A',
+        name: '-',
+        address: '-',
+        contactNumber: '-',
+        emailAddress: '-',
+        nic: '-',
+        gender: '-',
     });
-
-    const openEditModal = (field: keyof PersonalData) => {
-        setEditingField(field);
-        setEditModalVisible(true);
-    };
-
-    const splitName = (fullName: string) => {
-        const parts = fullName.trim().split(/\s+/).filter(Boolean);
-        if (parts.length === 0) return { firstName: '', lastName: '' };
-        if (parts.length === 1) return { firstName: parts[0], lastName: '' };
-        return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
-    };
-
-    const mapGender = (gender?: number) => {
-        if (gender === 1) return 'Male';
-        if (gender === 2) return 'Female';
-        if (gender === 3) return 'Other';
-        return 'N/A';
-    };
-
-    const parseGender = (value: string) => {
-        const normalized = value.trim().toLowerCase();
-        if (normalized === 'male') return 1;
-        if (normalized === 'female') return 2;
-        if (normalized === 'other') return 3;
-        return null;
-    };
-
-    const formatDateForDisplay = (dateValue?: string) => {
-        if (!dateValue) return 'N/A';
-        const date = new Date(dateValue);
-        if (Number.isNaN(date.getTime())) return 'N/A';
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        return `${day}/${month}/${date.getFullYear()}`;
-    };
-
-    const parseDateForApi = (value: string) => {
-        const trimmed = value.trim();
-        if (!trimmed || trimmed === 'N/A') return undefined;
-
-        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-
-        const slash = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (slash) {
-            const day = Number(slash[1]);
-            const month = Number(slash[2]);
-            const year = Number(slash[3]);
-
-            if (day < 1 || day > 31 || month < 1 || month > 12) return null;
-
-            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        }
-
-        const parsed = new Date(trimmed);
-        if (Number.isNaN(parsed.getTime())) return null;
-
-        return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
-    };
-
-    const handleSaveField = async (newValue: string) => {
-        if (!editingField) return;
-
-        if (!editableFields.includes(editingField)) {
-            Alert.alert('Not Allowed', 'This field is not editable.');
-            return;
-        }
-
-        if (!user?.userId || !clientProfile) {
-            Alert.alert('Error', 'Profile data is not ready. Please try again.');
-            return;
-        }
-
-        const nextDisplayName =
-            editingField === 'name'
-                ? newValue
-                : `${clientProfile.firstName ?? ''} ${clientProfile.lastName ?? ''}`.trim();
-
-        const { firstName, lastName } = splitName(nextDisplayName);
-
-        const nextGender =
-            editingField === 'gender'
-                ? parseGender(newValue)
-                : clientProfile.gender;
-
-        if (nextGender == null) {
-            Alert.alert('Validation', 'Gender should be Male, Female, or Other.');
-            return;
-        }
-
-        const nextDateOfBirth =
-            editingField === 'dateOfBirth'
-                ? parseDateForApi(newValue)
-                : parseDateForApi(clientProfile.dateOfBirth ?? '');
-
-        if (editingField === 'dateOfBirth' && nextDateOfBirth === null) {
-            Alert.alert('Validation', 'Use DOB format YYYY-MM-DD or DD/MM/YYYY.');
-            return;
-        }
-
-        const nextNationality =
-            editingField === 'nationality'
-                ? newValue.trim()
-                : (clientProfile.nationality ?? '');
-
-        const payload: UpdateClientProfilePayload = {
-            userId: user.userId,
-            prefix: clientProfile.prefix,
-            firstName,
-            lastName,
-            gender: nextGender,
-            email: editingField === 'emailAddress' ? newValue : clientProfile.email,
-            contactNumber: editingField === 'contactNumber' ? newValue : clientProfile.contactNumber,
-            dateOfBirth: nextDateOfBirth ?? undefined,
-            nationality: nextNationality || undefined,
-            address: editingField === 'address' ? newValue : clientProfile.address,
-            district: clientProfile.district,
-            prefferedLanguage: clientProfile.prefferedLanguage,
-        };
-
-        try {
-            await ProfileService.updateClientProfile(user.userId, payload);
-
-            setPersonalData(prev => {
-                if (editingField === 'gender') {
-                    return { ...prev, gender: mapGender(nextGender) };
-                }
-
-                if (editingField === 'dateOfBirth') {
-                    return { ...prev, dateOfBirth: formatDateForDisplay(nextDateOfBirth ?? undefined) };
-                }
-
-                if (editingField === 'nationality') {
-                    return { ...prev, nationality: nextNationality || 'N/A' };
-                }
-
-                return {
-                    ...prev,
-                    [editingField]: newValue,
-                };
-            });
-
-            setClientProfile(prev => {
-                if (!prev) return prev;
-                return {
-                    ...prev,
-                    firstName,
-                    lastName,
-                    gender: nextGender,
-                    email: payload.email ?? prev.email,
-                    contactNumber: payload.contactNumber ?? prev.contactNumber,
-                    dateOfBirth: nextDateOfBirth ?? prev.dateOfBirth,
-                    nationality: nextNationality || prev.nationality,
-                    address: payload.address ?? prev.address,
-                };
-            });
-
-            Alert.alert('Success', 'Personal details updated successfully.');
-        } catch {
-            Alert.alert('Update Failed', 'Unable to update personal details right now.');
-        }
-    };
 
     useEffect(() => {
         let isMounted = true;
 
-        const loadPersonalData = async () => {
-            if (!user?.userId) {
-                if (isMounted) {
-                    setProfileError('User session not found. Please log in again.');
-                    setIsLoadingProfile(false);
-                }
-                return;
-            }
-
-            if (user.role !== UserRole.CLIENT) {
-                if (isMounted) {
-                    setProfileError(null);
-                    setIsLoadingProfile(false);
-                }
-                return;
-            }
-
+        const loadClientProfile = async () => {
             try {
-                setIsLoadingProfile(true);
-                setProfileError(null);
+                setLoading(true);
+                setErrorMessage(null);
 
-                const client = await ProfileService.getClientByUserId(user.userId);
-                if (!isMounted) return;
+                const currentUser = await AuthService.getCurrentUser();
+                const userId = currentUser?.userId;
 
-                setClientProfile(client);
+                if (!userId) {
+                    throw new Error('User session not found. Please log in again.');
+                }
 
-                setPersonalData(prev => ({
-                    ...prev,
-                    name: `${client.firstName ?? ''} ${client.lastName ?? ''}`.trim() || prev.name,
-                    address: client.address ?? 'N/A',
-                    contactNumber: client.contactNumber ?? 'N/A',
-                    emailAddress: client.email ?? 'N/A',
-                    nic: client.nic ?? 'N/A',
-                    dateOfBirth: formatDateForDisplay(client.dateOfBirth),
-                    gender: mapGender(client.gender),
-                    nationality: client.nationality ?? 'N/A',
-                }));
-            } catch {
-                if (!isMounted) return;
-                setProfileError('Failed to load personal details.');
+                const response = await apiClient.get<ClientApiData>(
+                    ENDPOINTS.CLIENT.GET_BY_USER_ID(userId)
+                );
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setApiData(response.data);
+                setPersonalData(toPersonalData(response.data));
+            } catch (error: any) {
+                if (isMounted) {
+                    setErrorMessage(error?.message ?? 'Failed to load personal details.');
+                }
             } finally {
                 if (isMounted) {
-                    setIsLoadingProfile(false);
+                    setLoading(false);
                 }
             }
         };
 
-        loadPersonalData();
+        loadClientProfile();
 
         return () => {
             isMounted = false;
         };
-    }, [user?.userId, user?.role]);
+    }, []);
+
+    const openEditModal = (field: EditableField) => {
+        setEditingField(field);
+        setEditModalVisible(true);
+    };
+
+    const handleSaveField = async (newValue: string) => {
+        if (!editingField || !apiData) {
+            return;
+        }
+
+        const previousPersonalData = personalData;
+        const updatedPersonalData: PersonalData = {
+            ...personalData,
+            [editingField]: newValue,
+        };
+
+        setPersonalData(updatedPersonalData);
+
+        const updatedApiData: ClientApiData = {
+            ...apiData,
+            address: editingField === 'address' ? newValue : apiData.address,
+            contactNumber: editingField === 'contactNumber' ? newValue : apiData.contactNumber,
+            email: editingField === 'emailAddress' ? newValue : apiData.email,
+        };
+
+        try {
+            await apiClient.put(ENDPOINTS.CLIENT.UPDATE_BY_USER_ID(updatedApiData.userId), {
+                userId: updatedApiData.userId,
+                prefix: updatedApiData.prefix,
+                firstName: updatedApiData.firstName ?? '',
+                lastName: updatedApiData.lastName ?? '',
+                gender: updatedApiData.gender ?? undefined,
+                email: updatedApiData.email ?? '',
+                contactNumber: updatedApiData.contactNumber ?? '',
+                address: updatedApiData.address ?? '',
+                district: updatedApiData.district ?? '',
+                prefferedLanguage: updatedApiData.prefferedLanguage ?? 1,
+            });
+
+            setApiData(updatedApiData);
+        } catch (error: any) {
+            setPersonalData(previousPersonalData);
+            Alert.alert('Update failed', error?.message ?? 'Failed to update profile. Please try again.');
+        }
+    };
 
     return (
         <ClientLayout
@@ -370,57 +261,53 @@ const ClientPersonalDetailsScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                {isLoadingProfile && <ActivityIndicator color={colors.primary} style={styles.loader} />}
-                {profileError ? <Text style={styles.errorText}>{profileError}</Text> : null}
+                {loading ? (
+                    <ActivityIndicator color={colors.primary} style={{ margin: 20 }} />
+                ) : errorMessage ? (
+                    <View style={styles.infoBox}>
+                        <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
+                        <Text style={styles.infoText}>{errorMessage}</Text>
+                    </View>
+                ) : (
+                    <>
+                        <View style={styles.card}>
+                            <DetailRow
+                                label="Name"
+                                value={personalData.name}
+                            />
+                            <DetailRow
+                                label="Address"
+                                value={personalData.address}
+                                onPress={() => openEditModal('address')}
+                            />
+                            <DetailRow
+                                label="Contact Number"
+                                value={personalData.contactNumber}
+                                onPress={() => openEditModal('contactNumber')}
+                            />
+                            <DetailRow
+                                label="Email Address"
+                                value={personalData.emailAddress}
+                                onPress={() => openEditModal('emailAddress')}
+                            />
+                            <DetailRow
+                                label="NIC"
+                                value={personalData.nic}
+                            />
+                            <DetailRow
+                                label="Gender"
+                                value={personalData.gender}
+                            />
+                        </View>
 
-                <View style={styles.card}>
-                    <DetailRow
-                        label="Name"
-                        value={personalData.name}
-                        onPress={() => openEditModal('name')}
-                    />
-                    <DetailRow
-                        label="Address"
-                        value={personalData.address}
-                        onPress={() => openEditModal('address')}
-                    />
-                    <DetailRow
-                        label="Contact Number"
-                        value={personalData.contactNumber}
-                        onPress={() => openEditModal('contactNumber')}
-                    />
-                    <DetailRow
-                        label="Email Address"
-                        value={personalData.emailAddress}
-                        onPress={() => openEditModal('emailAddress')}
-                    />
-                    <DetailRow
-                        label="NIC"
-                        value={personalData.nic}
-                    />
-                    <DetailRow
-                        label="Date of Birth"
-                        value={personalData.dateOfBirth}
-                        onPress={() => openEditModal('dateOfBirth')}
-                    />
-                    <DetailRow
-                        label="Gender"
-                        value={personalData.gender}
-                        onPress={() => openEditModal('gender')}
-                    />
-                    <DetailRow
-                        label="Nationality"
-                        value={personalData.nationality}
-                        onPress={() => openEditModal('nationality')}
-                    />
-                </View>
-
-                <View style={styles.infoBox}>
-                    <Ionicons name="information-circle-outline" size={20} color={colors.info} />
-                    <Text style={styles.infoText}>
-                        Only non-critical fields can be updated from this page.
-                    </Text>
-                </View>
+                        <View style={styles.infoBox}>
+                            <Ionicons name="information-circle-outline" size={20} color={colors.info} />
+                            <Text style={styles.infoText}>
+                                Address, contact number, and email can be updated here.
+                            </Text>
+                        </View>
+                    </>
+                )}
             </ScrollView>
 
             <EditModal
