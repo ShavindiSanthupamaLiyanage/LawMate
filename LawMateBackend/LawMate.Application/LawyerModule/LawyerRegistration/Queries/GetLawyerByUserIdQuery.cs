@@ -43,8 +43,6 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Queries
                 Email = user.Email,
                 NIC = user.NIC,
                 Gender = user.Gender,
-                DateOfBirth = user.DateOfBirth,
-                Nationality = user.Nationality,
                 UserRole = user.UserRole,
                 ContactNumber = user.ContactNumber,
                 RecordStatus = user.RecordStatus,
