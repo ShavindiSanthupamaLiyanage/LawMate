@@ -13,11 +13,29 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
 import ScreenWrapper from '../../components/ScreenWrapper';
 
+interface SettingsState {
+    notifications: boolean;
+    emailAlerts: boolean;
+    pushNotifications: boolean;
+    darkMode: boolean;
+    language: string;
+    displayMode: string;
+}
+
+interface SettingRowProps {
+    icon: keyof typeof Ionicons.glyphMap;
+    title: string;
+    value?: string;
+    hasToggle?: boolean;
+    toggleValue?: boolean;
+    onToggle?: (value: boolean) => void;
+    onPress?: () => void;
+}
+
 const SettingsScreen: React.FC = () => {
     const navigation = useNavigation<any>();
 
-    // TODO: Replace with actual API data and state management
-    const [settings, setSettings] = useState({
+    const [settings, setSettings] = useState<SettingsState>({
         notifications: true,
         emailAlerts: true,
         pushNotifications: true,
@@ -34,7 +52,7 @@ const SettingsScreen: React.FC = () => {
         toggleValue, 
         onToggle,
         onPress 
-    }: any) => (
+    }: SettingRowProps) => (
         <TouchableOpacity
             style={styles.settingRow}
             onPress={onPress}
