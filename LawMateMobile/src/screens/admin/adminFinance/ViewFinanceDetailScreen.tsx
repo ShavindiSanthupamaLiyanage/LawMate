@@ -17,10 +17,10 @@ import {
 } from "../../../config/theme";
 import Input from "../../../components/Input";
 import Button from "../../../components/Button";
-import Alert from "../../../components/Alert";
-import Toast from "../../../components/Toast";
 import { AdminFinanceStackParamList } from "./AdminFinanceStack";
 import AdminLayout from "../../../components/AdminLayout";
+import {useToast} from "../../../context/ToastContext";
+import {AdminFinanceService} from "../../../services/adminFinanceService";
 
 type Props = {
   route: RouteProp<AdminFinanceStackParamList, "FinanceView">;
@@ -33,14 +33,10 @@ type Props = {
 export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
   const { item } = route.params;
 
-  // Form state
-  const [paymentMethod, setPaymentMethod] = useState("Bank Transfer");
-  const [transactionId, setTransactionId] = useState("");
+  // @ts-ignore
+  const [transactionId, setTransactionId] = useState(item.code ?? "");
   const [accountNumber, setAccountNumber] = useState("");
-
-  // UI state
-  const [showConfirmAlert, setShowConfirmAlert] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const { showSuccess, showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form validation
@@ -75,24 +71,21 @@ export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
 
   const handleConfirmPress = () => {
     if (validateForm()) {
-      setShowConfirmAlert(true);
+      handleConfirmPayout();
     }
   };
 
   const handleConfirmPayout = async () => {
-    setShowConfirmAlert(false);
     setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await AdminFinanceService.approveFinance(item.bookingId!, accountNumber);
+      showSuccess("Payment has been successfully confirmed!");
+      setTimeout(() => navigation.goBack(), 2000);
+    } catch (error) {
+      showError("Failed to confirm payment. Please try again.");
+    } finally {
       setIsLoading(false);
-      setShowSuccessToast(true);
-
-      // Navigate back after showing success
-      setTimeout(() => {
-        navigation.goBack();
-      }, 2000);
-    }, 1500);
+    }
   };
 
   const InfoRow = ({
@@ -170,7 +163,7 @@ export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
             />
             <InfoRow
                 label="Duration"
-                value={item.duration || "1 Hour Session"}
+                value={item.duration ? `${item.duration} mins` : "1 Hour Session"}
             />
             <InfoRow
                 label="Session Date"
@@ -181,7 +174,7 @@ export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
                 value={item.baseAmount || "LKR 15,000.00"}
             />
             <InfoRow
-                label="Platform Fee (1%)"
+                label="Platform Fee (10%)"
                 value={item.platformFee || "LKR 150.00"}
             />
 
@@ -198,24 +191,13 @@ export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Payout Details</Text>
 
-            {/* Payment Method Selector */}
             <Text style={styles.inputLabel}>Payment Method</Text>
             <View style={styles.paymentMethodContainer}>
               <TouchableOpacity
-                  style={[
-                    styles.paymentMethodButton,
-                    paymentMethod === "Bank Transfer" &&
-                    styles.paymentMethodActive,
-                  ]}
-                  onPress={() => setPaymentMethod("Bank Transfer")}
+                  style={[styles.paymentMethodButton, styles.paymentMethodActive]}
+                  disabled
               >
-                <Text
-                    style={[
-                      styles.paymentMethodText,
-                      paymentMethod === "Bank Transfer" &&
-                      styles.paymentMethodTextActive,
-                    ]}
-                >
+                <Text style={[styles.paymentMethodText, styles.paymentMethodTextActive]}>
                   Bank Transfer
                 </Text>
               </TouchableOpacity>
@@ -224,76 +206,55 @@ export default function ViewFinanceDetailScreen({ route, navigation }: Props) {
             <Input
                 label="Transaction ID"
                 value={transactionId}
-                onChangeText={(text) => {
-                  setTransactionId(text);
-                  if (errors.transactionId) {
-                    setErrors({ ...errors, transactionId: "" });
-                  }
-                }}
+                onChangeText={() => {}}
                 placeholder="e.g., BANK/2025-0124-1452"
-                error={errors.transactionId}
+                editable={false}
             />
 
-            <Input
-                label="Account Number"
-                value={accountNumber}
-                onChangeText={(text) => {
-                  setAccountNumber(text);
-                  if (errors.accountNumber) {
-                    setErrors({ ...errors, accountNumber: "" });
-                  }
-                }}
-                placeholder="Enter account number"
-                keyboardType="numeric"
-                error={errors.accountNumber}
-            />
+            {item.status === 'Paid Out' ? (
+                // Read-only slip number for paid records
+                <InfoRow label="Slip Number / Reference Number" value={item.slipNumber || '-'} />
+            ) : (
+                // Editable slip number for pending records
+                <Input
+                    label="Slip Number/ Reference Number"
+                    value={accountNumber}
+                    onChangeText={(text) => {
+                      setAccountNumber(text);
+                      if (errors.accountNumber) {
+                        setErrors({ ...errors, accountNumber: "" });
+                      }
+                    }}
+                    placeholder="Enter slip number"
+                    keyboardType="numeric"
+                    error={errors.accountNumber}
+                />
+            )}
 
             <InfoRow label="Paid Amount" value={item.totalAmount || item.amount} highlight />
           </View>
 
-          {/* Action Buttons */}
-          <View style={styles.buttonContainer}>
-            <Button
-                title="Confirm"
-                onPress={handleConfirmPress}
-                variant="primary"
-                style={styles.confirmButton}
-                loading={isLoading}
-                disabled={isLoading}
-            />
-            <Button
-                title="Cancel"
-                onPress={() => navigation.goBack()}
-                variant="transparent"
-                style={styles.cancelButton}
-                disabled={isLoading}
-            />
-          </View>
+          {/* Action Buttons - only show for Pending */}
+          {item.status === 'Pending' && (
+              <View style={styles.buttonContainer}>
+                <Button
+                    title="Confirm"
+                    onPress={handleConfirmPress}
+                    variant="primary"
+                    style={styles.confirmButton}
+                    loading={isLoading}
+                    disabled={isLoading}
+                />
+                <Button
+                    title="Cancel"
+                    onPress={() => navigation.goBack()}
+                    variant="transparent"
+                    style={styles.cancelButton}
+                    disabled={isLoading}
+                />
+              </View>
+          )}
         </ScrollView>
-
-        {/* Confirmation Alert */}
-        <Alert
-            visible={showConfirmAlert}
-            title="Confirm Payment"
-            message={`Are you sure you want to confirm the payout of ${
-                item.totalAmount || item.amount
-            } to ${item.name}?`}
-            type="warning"
-            confirmText="Confirm"
-            cancelText="Cancel"
-            onConfirm={handleConfirmPayout}
-            onCancel={() => setShowConfirmAlert(false)}
-            onClose={() => setShowConfirmAlert(false)}
-        />
-
-        {/* Success Toast */}
-        <Toast
-            visible={showSuccessToast}
-            message="Payment has been successfully confirmed!"
-            type="success"
-            duration={3000}
-            onDismiss={() => setShowSuccessToast(false)}
-        />
       </AdminLayout>
   );
 }
