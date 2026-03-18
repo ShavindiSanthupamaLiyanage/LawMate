@@ -102,8 +102,9 @@ export const ENDPOINTS = {
     LAWYER: {
         REGISTER: "/lawyers",
         MEMBERSHIP_PAYMENT: (lawyerId: string) => `/lawyers/${lawyerId}/membership-payment`,
-        PROFILE: (userId: string) => `/lawyers/${userId}`,
-        UPDATE_PROFILE: (userId: string) => `/lawyers/${userId}`,
+        PROFILE: '/lawyer/profile',
+        UPDATE_PROFILE: '/lawyer/profile',
+        UPDATE_BY_USER_ID: (userId: string) => `/lawyers/${userId}`,
         CASES: '/lawyer/cases',
         CASE_DETAIL: (caseId: string) => `/lawyer/cases/${caseId}`,
         APPOINTMENTS: '/lawyer/appointments',
@@ -114,9 +115,10 @@ export const ENDPOINTS = {
     // Client endpoints
     CLIENT: {
         REGISTER: '/clients',
-        PROFILE: (userId: string) => `/clients/${userId}`,
-        UPDATE_PROFILE: (userId: string) => `/clients/${userId}`,
+        PROFILE: '/client/profile',
+        UPDATE_PROFILE: '/client/profile',
         GET_BY_USER_ID: (userId: string) => `/clients/${userId}`,
+        UPDATE_BY_USER_ID: (userId: string) => `/clients/${userId}`,
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
         CASES: '/client/cases',
@@ -124,12 +126,13 @@ export const ENDPOINTS = {
 
     // Admin endpoints
     ADMIN: {
-        USERS: '/users',
+        GET_BY_USER_ID: (userId: string) =>
+            `/admin-registration/get-admin-by-userId?userId=${encodeURIComponent(userId)}`,
+        UPDATE_BY_USER_ID: (userId: string) => `/admin-registration/${userId}`,
+        USERS: '/admin/users',
         USER_COUNTS: '/users/counts',
         STATISTICS: '/admin/statistics',
         LAWYER_VERIFICATION: '/lawyer-verification/all',
-        GET_BY_USER_ID: (userId: string) => `/admin-registration/get-admin-by-userId?userId=${encodeURIComponent(userId)}`,
-        UPDATE_PROFILE: (userId: string) => `/admin-registration/${userId}`,
         REPORTS: {
             LAWYER_DETAILS: '/admin/reports/lawyer-details',
             CLIENT_DETAILS: '/admin/reports/client-details',

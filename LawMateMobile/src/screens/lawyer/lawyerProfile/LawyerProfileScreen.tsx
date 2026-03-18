@@ -16,11 +16,9 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import LawyerLayout from '../../../components/LawyerLayout';
 import Alert from "../../../components/Alert";
 import {AuthService} from "../../../services/authService";
-import { useAuth } from '../../../context/AuthContext';
-import { ProfileService } from '../../../services/profileService';
+import apiClient from '../../../api/client';
+import { ENDPOINTS } from '../../../config/api.config';
 import { AreaOfPracticeOptions } from '../../../enum/enumOptions';
-import { UserRole } from '../../../interfaces/auth.interface';
-import { UserDetailService } from '../../../services/userDetailService';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -37,6 +35,37 @@ interface SubItemProps {
     title: string;
     onPress: () => void;
 }
+
+interface LawyerProfileApiData {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    barAssociationRegNo?: string | null;
+    areaOfPractice?: number | null;
+    profileImage?: string | null;
+}
+
+interface LawyerProfileData {
+    name: string;
+    barCouncilId: string;
+    specialization: string;
+    profileImage: string | null;
+}
+
+const getAreaLabel = (value?: number | null): string => {
+    if (value === null || value === undefined) {
+        return '-';
+    }
+
+    return AreaOfPracticeOptions.find((option) => option.value === value)?.label ?? String(value);
+};
+
+const toProfileData = (data: LawyerProfileApiData): LawyerProfileData => ({
+    name: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || '-',
+    barCouncilId: data.barAssociationRegNo ?? '-',
+    specialization: getAreaLabel(data.areaOfPractice),
+    profileImage: data.profileImage ? `data:image/jpeg;base64,${data.profileImage}` : null,
+});
 
 const SubMenuItem: React.FC<SubItemProps> = ({ title, onPress }) => (
     <TouchableOpacity style={styles.subMenuItem} onPress={onPress} activeOpacity={0.7}>
@@ -70,98 +99,60 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
     </>
 );
 
-const findLabel = (options: { label: string; value: number }[], value: number): string =>
-    options.find(o => o.value === value)?.label ?? 'N/A';
-
 const LawyerProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const { user } = useAuth();
     const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
     const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-
-    const [profileData, setProfileData] = useState({
-        name: 'Kavindi Gimsara',
-        barCouncilId: 'N/A',
-        specialization: 'N/A',
-        rating: 0,
-        reviewCount: 0,
-        totalCases: 0,
-        clients: 0,
-        yearsExp: 0,
-        profileImage: null as string | null,
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [profileData, setProfileData] = useState<LawyerProfileData>({
+        name: '-',
+        barCouncilId: '-',
+        specialization: '-',
+        profileImage: null,
     });
-    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-    const [profileError, setProfileError] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
 
-        const loadProfile = async () => {
-            if (!user?.userId) {
-                if (isMounted) {
-                    setProfileError('User session not found. Please log in again.');
-                    setIsLoadingProfile(false);
-                }
-                return;
-            }
-
-            if (user.role !== UserRole.LAWYER) {
-                if (isMounted) {
-                    setProfileError(null);
-                    setIsLoadingProfile(false);
-                }
-                return;
-            }
-
+        const loadLawyerProfile = async () => {
             try {
-                setIsLoadingProfile(true);
-                setProfileError(null);
+                setLoading(true);
+                setErrorMessage(null);
 
-                const lawyer = await ProfileService.getLawyerByUserId(user.userId);
-                if (!isMounted) return;
+                const currentUser = await AuthService.getCurrentUser();
+                const userId = currentUser?.userId;
 
-                setProfileData(prev => ({
-                    ...prev,
-                    name: `${lawyer.firstName ?? ''} ${lawyer.lastName ?? ''}`.trim() || prev.name,
-                    barCouncilId: lawyer.barAssociationRegNo ?? 'N/A',
-                    specialization: findLabel(AreaOfPracticeOptions, lawyer.areaOfPractice),
-                    rating: Number(lawyer.averageRating ?? 0),
-                    yearsExp: lawyer.yearOfExperience ?? 0,
-                    profileImage: lawyer.profileImage ? `data:image/jpeg;base64,${lawyer.profileImage}` : null,
-                }));
-            } catch {
-                if (!isMounted) return;
+                if (!userId) {
+                    throw new Error('User session not found. Please log in again.');
+                }
 
-                try {
-                    const basicUser = await UserDetailService.getUserById(user.userId);
-                    if (!isMounted) return;
+                const response = await apiClient.get<LawyerProfileApiData>(
+                    ENDPOINTS.LAWYER.GET_BY_USER_ID(userId)
+                );
 
-                    setProfileData(prev => ({
-                        ...prev,
-                        name: basicUser
-                            ? `${basicUser.firstName ?? ''} ${basicUser.lastName ?? ''}`.trim() || prev.name
-                            : prev.name,
-                        barCouncilId: 'N/A',
-                        specialization: 'N/A',
-                    }));
-                    setProfileError('Professional lawyer details are not available yet.');
-                } catch {
-                    if (!isMounted) return;
-                    setProfileError('Failed to load lawyer profile.');
+                if (!isMounted) {
+                    return;
+                }
+
+                setProfileData(toProfileData(response.data));
+            } catch (error: any) {
+                if (isMounted) {
+                    setErrorMessage(error?.message ?? 'Failed to load profile data.');
                 }
             } finally {
                 if (isMounted) {
-                    setIsLoadingProfile(false);
+                    setLoading(false);
                 }
             }
         };
 
-        loadProfile();
+        loadLawyerProfile();
 
         return () => {
             isMounted = false;
         };
-    }, [user?.userId, user?.role]);
+    }, []);
 
     const toggleExpand = (key: string) => {
         setExpandedItems(prev => ({
@@ -198,9 +189,6 @@ const LawyerProfileScreen: React.FC = () => {
                 contentContainerStyle={styles.scrollContent}
             >
 
-                {isLoadingProfile && <ActivityIndicator color={colors.primary} style={styles.loader} />}
-                {profileError ? <Text style={styles.errorText}>{profileError}</Text> : null}
-
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
                     <View style={styles.curvedBackground} />
@@ -228,6 +216,9 @@ const LawyerProfileScreen: React.FC = () => {
                     <View style={styles.specializationBadge}>
                         <Text style={styles.specializationText}>{profileData.specialization}</Text>
                     </View>
+
+                    {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.sm }} />}
+                    {!loading && errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
                     {/* Rating */}
                     {/* <View style={styles.ratingContainer}>
@@ -503,12 +494,6 @@ const styles = StyleSheet.create({
     loader: {
         marginTop: spacing.sm,
     },
-    errorText: {
-        marginTop: spacing.sm,
-        paddingHorizontal: spacing.lg,
-        color: colors.error,
-        textAlign: 'center',
-    },
     fixedHeader: {
         height: 80,
         flexDirection: 'row',
@@ -622,6 +607,12 @@ const styles = StyleSheet.create({
         fontSize: fontSize.sm,
         color: colors.textPrimary,
         fontWeight: fontWeight.medium,
+    },
+    errorText: {
+        color: colors.error,
+        fontSize: fontSize.sm,
+        textAlign: 'center',
+        marginTop: spacing.sm,
     },
     ratingContainer: {
         flexDirection: 'row',

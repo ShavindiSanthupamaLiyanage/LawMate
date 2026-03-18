@@ -23,7 +23,6 @@ export interface LawyerPersonalDetails {
     address:         string;
     officeAddress:   string;
     nic:             string;
-    dob:             Date | null;
     mobileContact:   string;
     officeContact:   string;
     email:           string;
