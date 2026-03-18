@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Input from '../../../components/Input';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import InitialTopNavbar from '../../../components/InitialTopNavbar';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import Toast from '../../../components/Toast';
 import { KnowledgeHubService } from "../../../services/knowledgeHubService";
+import {useToast} from "../../../context/ToastContext";
 
 const ManageArticle: React.FC = () => {
 
@@ -16,43 +16,27 @@ const ManageArticle: React.FC = () => {
 
   const [title, setTitle] = useState(article.title);
   const [content, setContent] = useState(article.content);
-  const [showToast, setShowToast] = useState(false);
+  const { showSuccess, showError, showWarning } = useToast();
 
   const handleupdate = async () => {
-
     if (!title.trim() || !content.trim()) {
-      Alert.alert("Validation", "Please fill all fields");
+      showWarning("Please fill all fields");
       return;
     }
 
     try {
-
-      await KnowledgeHubService.updateArticle(article.id, {
-        title,
-        content
-      });
-
-      setShowToast(true);
-
+      await KnowledgeHubService.updateArticle(Number(article.id), { title, content });
       setTimeout(() => {
+        showSuccess("Successfully updated article");
         navigation.goBack();
       }, 2000);
-
     } catch (error) {
-      Alert.alert("Error", "Failed to update article");
+      showError("Failed to update article");
     }
-
   };
 
   return (
     <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
-
-      <Toast
-        visible={showToast}
-        message="You have successfully updated the article"
-        type="success"
-        onDismiss={() => setShowToast(false)}
-      />
 
       <View style={styles.page}>
         <InitialTopNavbar

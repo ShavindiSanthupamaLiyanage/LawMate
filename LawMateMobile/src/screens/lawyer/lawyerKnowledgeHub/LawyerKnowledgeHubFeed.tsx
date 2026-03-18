@@ -6,12 +6,13 @@ import LawyerLayout from '../../../components/LawyerLayout';
 import { useNavigation } from "@react-navigation/native";
 import Button from '../../../components/Button';
 import { Ionicons } from '@expo/vector-icons';
-import Toast from '../../../components/Toast';
+import { useToast } from '../../../context/ToastContext';
 import { KnowledgeHubService } from "../../../services/knowledgeHubService";
+import { StorageService } from "../../../utils/storage";
 
 interface Article {
   id: string;
-  title: string; // updated from 'header' to 'title'
+  title: string;
   author: string;
   date: string;
   content: string;
@@ -79,19 +80,30 @@ const ArticlePost: React.FC<{
 const LawyerKnowledgeHubFeed: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'recent'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
+  const { showSuccess } = useToast();
   const [articles, setArticles] = useState<Article[]>([]);
-
+  const [lawyerId, setLawyerId] = useState<string | null>(null);
   const navigation = useNavigation<any>();
 
   useEffect(() => {
+    const loadUser = async () => {
+      const userData = await StorageService.getUserData();
+      if (userData?.userId) {
+        setLawyerId(userData.userId);
+      }
+    };
+    loadUser();
     fetchArticles();
   }, []);
 
-  const fetchArticles = async () => {
+  const fetchArticles = async (tab: 'all' | 'recent' = 'all') => {
     try {
-      const data = await KnowledgeHubService.getAllArticles();
+      let data;
+      if (tab === 'recent' && lawyerId) {
+        data = await KnowledgeHubService.getArticlesByLawyer(lawyerId);
+      } else {
+        data = await KnowledgeHubService.getAllArticles();
+      }
       setArticles(data);
     } catch (error) {
       console.log("Error fetching articles", error);
@@ -120,12 +132,8 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
     }
 
     await KnowledgeHubService.deleteArticle(articleId);
-
-    // Remove the deleted article from state
     setArticles(prev => prev.filter(article => article.id !== id));
-
-    setToastMessage("You have successfully deleted the article.");
-    setToastVisible(true);
+    showSuccess("You have successfully deleted the article.");
 
   } catch (error) {
     console.log("Delete failed", error);
@@ -143,13 +151,6 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
       userName="Kavindu Gimsara"
       onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}
     >
-      <Toast
-        visible={toastVisible}
-        message={toastMessage}
-        type="success"
-        onDismiss={() => setToastVisible(false)}
-      />
-
       <ScrollView contentContainerStyle={styles.contentWrapper}>
         <View style={styles.topRow}>
           <View style={styles.searchWrapper}>
@@ -174,7 +175,7 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
         <View style={styles.tabsContainer}>
           <TouchableOpacity
             style={[styles.tabButton, activeTab === 'all' && styles.activeTabButton]}
-            onPress={() => setActiveTab('all')}
+            onPress={() => { setActiveTab('all'); fetchArticles('all'); }}
           >
             <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
               All Articles
@@ -183,7 +184,7 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
 
           <TouchableOpacity
             style={[styles.tabButton, activeTab === 'recent' && styles.activeTabButton]}
-            onPress={() => setActiveTab('recent')}
+            onPress={() => { setActiveTab('recent'); fetchArticles('recent'); }}
           >
             <Text style={[styles.tabText, activeTab === 'recent' && styles.activeTabText]}>
               My Articles

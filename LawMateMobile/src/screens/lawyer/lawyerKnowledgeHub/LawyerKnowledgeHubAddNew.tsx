@@ -1,76 +1,46 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Input from '../../../components/Input';
 import { useNavigation } from '@react-navigation/native';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Toast from '../../../components/Toast';
 import { KnowledgeHubService } from "../../../services/knowledgeHubService";
+import LawyerLayout from "../../../components/LawyerLayout";
+import { useToast } from '../../../context/ToastContext';
 
 const AddNewArticle: React.FC = () => {
   const navigation = useNavigation<any>();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [loading, setLoading] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   const handlePublish = async () => {
     if (!title.trim() || !content.trim()) {
-      setToastMessage("Please fill all fields");
-      setToastType("error");
-      setToastVisible(true);
+      showError("Please fill all fields");
       return;
     }
-
     setLoading(true);
 
     try {
-      const token = await AsyncStorage.getItem('token');
-
-      if (!token) {
-        setToastMessage("You are not logged in. Please login first.");
-        setToastType("error");
-        setToastVisible(true);
-        setLoading(false);
-        return;
-      }
-
-      await KnowledgeHubService.createArticle({ title, content }, token);
-
-      setToastMessage("Article published successfully!");
-      setToastType("success");
-      setToastVisible(true);
-
-      setTimeout(() => {
-        navigation.goBack();
-      }, 2000);
-
+      await KnowledgeHubService.createArticle({ title, content }); // only once
+      showSuccess("Article published successfully!");
+      setTimeout(() => navigation.goBack(), 2000);
     } catch (error: any) {
       console.log("Create Article Error:", error?.response?.data);
-      console.log("Status:", error?.response?.status);
-      console.log("Headers:", error?.config?.headers);
-
-      setToastMessage("Failed to create article");
-      setToastType("error");
-      setToastVisible(true);
+      showError("Failed to create article");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
-      <Toast
-        visible={toastVisible}
-        message={toastMessage}
-        type={toastType}
-        onDismiss={() => setToastVisible(false)}
-      />
+      <LawyerLayout
+          title="Knowledge Hub"
+          showBackButton
+          onBackPress={() => navigation.goBack()}
+          onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}
+      >
 
       <ScrollView contentContainerStyle={styles.container}>
         <Input
@@ -101,7 +71,8 @@ const AddNewArticle: React.FC = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </ScreenWrapper>
+      </LawyerLayout>
+
   );
 };
 
