@@ -15,10 +15,8 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import AdminLayout from '../../../components/AdminLayout';
 import Alert from '../../../components/Alert';
 import { AuthService } from '../../../services/authService';
-import { useAuth } from '../../../context/AuthContext';
-import { ProfileService } from '../../../services/profileService';
-import { UserDetailService } from '../../../services/userDetailService';
-import { UserRole } from '../../../interfaces/auth.interface';
+import apiClient from '../../../api/client';
+import { ENDPOINTS } from '../../../config/api.config';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -30,6 +28,44 @@ interface MenuItemProps {
     isExpanded?: boolean;
     onToggle?: () => void;
 }
+
+interface AdminProfileApiData {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    userRole?: number | null;
+    profileImage?: string | null;
+}
+
+interface AdminProfileData {
+    name: string;
+    adminId: string;
+    role: string;
+    profileImage: string | null;
+}
+
+const toRoleLabel = (role?: number | null): string => {
+    if (role === 0) {
+        return 'Admin';
+    }
+
+    if (role === 1) {
+        return 'Lawyer';
+    }
+
+    if (role === 2) {
+        return 'Client';
+    }
+
+    return '-';
+};
+
+const toProfileData = (data: AdminProfileApiData): AdminProfileData => ({
+    name: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || '-',
+    adminId: data.userId ?? '-',
+    role: toRoleLabel(data.userRole),
+    profileImage: data.profileImage ? `data:image/jpeg;base64,${data.profileImage}` : null,
+});
 
 const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout, hasSubItems, isExpanded, onToggle }) => (
     <>
@@ -55,85 +91,57 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 
 const AdminProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const { user } = useAuth();
     const [showLogoutAlert, setShowLogoutAlert] = useState(false);
-
-    const [profileData, setProfileData] = useState({
-        name: 'Admin User',
-        adminId: 'ADM 001234',
-        role: 'Admin',
-        totalUsers: 0,
-        pendingVerifications: 0,
-        totalRevenue: 'N/A',
-        profileImage: null as string | null,
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [profileData, setProfileData] = useState<AdminProfileData>({
+        name: '-',
+        adminId: '-',
+        role: '-',
+        profileImage: null,
     });
-    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-    const [profileError, setProfileError] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
 
-        const loadProfile = async () => {
-            if (!user?.userId) {
-                if (isMounted) {
-                    setProfileError('User session not found. Please log in again.');
-                    setIsLoadingProfile(false);
-                }
-                return;
-            }
-
-            if (user.role !== UserRole.ADMIN) {
-                if (isMounted) {
-                    setProfileError(null);
-                    setIsLoadingProfile(false);
-                }
-                return;
-            }
-
+        const loadAdminProfile = async () => {
             try {
-                setIsLoadingProfile(true);
-                setProfileError(null);
+                setLoading(true);
+                setErrorMessage(null);
 
-                const [admin, counts] = await Promise.all([
-                    ProfileService.getAdminByUserId(user.userId),
-                    UserDetailService.getUserCounts(),
-                ]);
+                const currentUser = await AuthService.getCurrentUser();
+                const userId = currentUser?.userId;
 
-                if (!isMounted) return;
+                if (!userId) {
+                    throw new Error('User session not found. Please log in again.');
+                }
 
-                const totalUsers =
-                    counts.verifiedLawyers +
-                    counts.pendingLawyers +
-                    counts.inactiveLawyers +
-                    counts.activeLawyers +
-                    counts.activeClients +
-                    counts.inactiveClients;
+                const response = await apiClient.get<AdminProfileApiData>(
+                    ENDPOINTS.ADMIN.GET_BY_USER_ID(userId)
+                );
 
-                setProfileData({
-                    name: `${admin.firstName ?? ''} ${admin.lastName ?? ''}`.trim() || 'Admin User',
-                    adminId: admin.userId ?? user.userId,
-                    role: 'Admin',
-                    totalUsers,
-                    pendingVerifications: counts.pendingLawyers,
-                    totalRevenue: 'N/A',
-                    profileImage: admin.profileImage ? `data:image/jpeg;base64,${admin.profileImage}` : null,
-                });
-            } catch {
-                if (!isMounted) return;
-                setProfileError('Failed to load admin profile.');
+                if (!isMounted) {
+                    return;
+                }
+
+                setProfileData(toProfileData(response.data));
+            } catch (error: any) {
+                if (isMounted) {
+                    setErrorMessage(error?.message ?? 'Failed to load profile data.');
+                }
             } finally {
                 if (isMounted) {
-                    setIsLoadingProfile(false);
+                    setLoading(false);
                 }
             }
         };
 
-        loadProfile();
+        loadAdminProfile();
 
         return () => {
             isMounted = false;
         };
-    }, [user?.userId, user?.role]);
+    }, []);
 
     const handleLogout = () => {
         setShowLogoutAlert(true);
@@ -164,9 +172,6 @@ const AdminProfileScreen: React.FC = () => {
                 contentContainerStyle={styles.scrollContent}
             >
 
-                {isLoadingProfile && <ActivityIndicator color={colors.primary} style={styles.loader} />}
-                {profileError ? <Text style={styles.errorText}>{profileError}</Text> : null}
-
                 {/* Profile Card */}
                 <View style={styles.profileCard}>
                     <View style={styles.curvedBackground} />
@@ -194,6 +199,9 @@ const AdminProfileScreen: React.FC = () => {
                     <View style={styles.roleBadge}>
                         <Text style={styles.roleText}>{profileData.role}</Text>
                     </View>
+
+                    {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.sm }} />}
+                    {!loading && errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
                     {/* Stats */}
                     {/* <View style={styles.statsContainer}>
@@ -417,12 +425,6 @@ const styles = StyleSheet.create({
     loader: {
         marginTop: spacing.sm,
     },
-    errorText: {
-        marginTop: spacing.sm,
-        paddingHorizontal: spacing.lg,
-        color: colors.error,
-        textAlign: 'center',
-    },
     fixedHeader: {
         height: 80,
         flexDirection: 'row',
@@ -536,6 +538,12 @@ const styles = StyleSheet.create({
         fontSize: fontSize.sm,
         color: colors.primary,
         fontWeight: fontWeight.bold,
+    },
+    errorText: {
+        color: colors.error,
+        fontSize: fontSize.sm,
+        textAlign: 'center',
+        marginTop: spacing.sm,
     },
     statsContainer: {
         flexDirection: 'row',
