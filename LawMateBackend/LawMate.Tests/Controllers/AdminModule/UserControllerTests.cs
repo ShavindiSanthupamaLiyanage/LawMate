@@ -155,6 +155,7 @@
 
 
 using FluentAssertions;
+using LawMate.API.Controllers.AdminModule;
 using LawMate.API.Controllers.Common;
 using LawMate.Application.AdminModule.UserManagement.Queries;
 using LawMate.Application.Common.UserDetails.Queries;

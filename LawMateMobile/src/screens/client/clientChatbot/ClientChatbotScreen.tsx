@@ -112,11 +112,13 @@ const ClientChatbotScreen: React.FC = () => {
             disableScroll
             showBackButton
             onBackPress={() => navigation.goBack()}
+            onProfilePress={() => navigation.navigate('ClientProfile')}
         >
+            {/* iOS needs KAV, Android is handled by softwareKeyboardLayoutMode: resize */}
             <KeyboardAvoidingView
                 style={styles.root}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={0}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
             >
                 <FlatList
                     ref={listRef}

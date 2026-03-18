@@ -1,21 +1,56 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../../config/theme';
 import AdminLayout from '../../../../components/AdminLayout';
+import { getLawyerAvailabilitySlots } from '../../../../services/calendarService';
+import { AvailabilitySlotDto } from '../../../../interfaces/calendar.interface';
 
-// ── mock data — replace with real API data ────────────────────────────────────
-const SLOTS = [
-    { id: '1', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
-    { id: '2', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
-    { id: '3', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
-    { id: '4', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
-    { id: '5', date: '2025/12/14', time: '12:00 p.m', minutesPerSlot: 30 },
-];
+type AdminStackParamList = {
+    Availability: { lawyerId: string };
+};
 
 const AvailabilityScreen: React.FC = () => {
     const navigation = useNavigation();
-    const [slots] = useState(SLOTS);
+    const route = useRoute<RouteProp<AdminStackParamList, 'Availability'>>();
+    const { lawyerId } = route.params;
+
+    const [slots, setSlots] = useState<AvailabilitySlotDto[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchSlots = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getLawyerAvailabilitySlots(lawyerId);
+                setSlots(data);
+            } catch (e) {
+                setError('Failed to load availability slots.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSlots();
+    }, [lawyerId]);
+
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-CA').replace(/-/g, '/'); // → 2025/12/14
+    };
+
+    const formatTime = (timeStr: string) => {
+        // timeStr is "HH:mm" e.g. "09:00"
+        const [hourStr, minuteStr] = timeStr.split(':');
+        const hours = parseInt(hourStr, 10);
+        const minutes = parseInt(minuteStr, 10);
+        const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+        const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+        const minutePadded = minutes.toString().padStart(2, '0');
+        return `${hour12}:${minutePadded} ${ampm}`; // → 9:00 a.m.
+    };
 
     return (
         <AdminLayout
@@ -23,27 +58,42 @@ const AvailabilityScreen: React.FC = () => {
             showBackButton
             disableScroll
             onBackPress={() => navigation.goBack()}
-            onProfilePress={() => navigation.getParent()?.navigate("AdminProfile")}
+            onProfilePress={() => navigation.getParent()?.navigate('AdminProfile')}
         >
-            <ScrollView
-                style={styles.content}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-            >
-                {slots.map((slot) => (
-                    <View key={slot.id} style={styles.card}>
-                        <View style={styles.cardLeft}>
-                            <Text style={styles.dateText}>{slot.date}</Text>
-                            <Text style={styles.timeText}>{slot.time}</Text>
+            {loading ? (
+                <ActivityIndicator
+                    color={colors.primary}
+                    style={{ marginTop: 40 }}
+                />
+            ) : error ? (
+                <Text style={styles.errorText}>{error}</Text>
+            ) : slots.length === 0 ? (
+                <Text style={styles.emptyText}>No availability slots found.</Text>
+            ) : (
+                <ScrollView
+                    style={styles.content}
+                    contentContainerStyle={styles.listContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {slots.map((slot) => (
+                        <View key={slot.id} style={styles.card}>
+                            <View style={styles.cardLeft}>
+                                <Text style={styles.dateText}>
+                                    {formatDate(slot.date)}
+                                </Text>
+                                <Text style={styles.timeText}>
+                                    {formatTime(slot.startTime)}
+                                </Text>
+                            </View>
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>
+                                    {slot.duration} M PER SLOT
+                                </Text>
+                            </View>
                         </View>
-                        <View style={styles.badge}>
-                            <Text style={styles.badgeText}>
-                                {slot.minutesPerSlot} M PER SLOT
-                            </Text>
-                        </View>
-                    </View>
-                ))}
-            </ScrollView>
+                    ))}
+                </ScrollView>
+            )}
         </AdminLayout>
     );
 };
@@ -94,6 +144,19 @@ const styles = StyleSheet.create({
         fontWeight: fontWeight.semibold,
         color: colors.primary,
         letterSpacing: 0.5,
+        verticalAlign: 'middle',
+    },
+    errorText: {
+        textAlign: 'center',
+        marginTop: 40,
+        fontSize: fontSize.sm,
+        color: 'red',
+    },
+    emptyText: {
+        textAlign: 'center',
+        marginTop: 40,
+        fontSize: fontSize.sm,
+        color: colors.textSecondary,
     },
 });
 

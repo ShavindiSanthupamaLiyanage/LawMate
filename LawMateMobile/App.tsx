@@ -115,6 +115,17 @@ function LawyerSearchStackNavigator() {
         </ClientStack.Navigator>
     );
 }
+
+const useTabResetListener = (navigation: any, tabName: string) => ({
+    tabPress: (e: any) => {
+        e.preventDefault();
+        navigation.reset({
+            index: 0,
+            routes: [{ name: tabName }],
+        });
+    },
+});
+
 // Lawyer Bottom Tabs (Only visible tabs)
 function LawyerTabNavigator() {
     const insets = useSafeAreaInsets();
@@ -148,6 +159,7 @@ function LawyerTabNavigator() {
                         <TabIcon iconName="mail-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Requests')}
             />
 
             <LawyerTab.Screen
@@ -158,6 +170,7 @@ function LawyerTabNavigator() {
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Finance')}
             />
 
             <LawyerTab.Screen
@@ -169,6 +182,7 @@ function LawyerTabNavigator() {
                     ),
                     tabBarLabel: '',
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Dashboard')}
             />
 
             <LawyerTab.Screen
@@ -179,6 +193,7 @@ function LawyerTabNavigator() {
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Knowledge')}
             />
 
             <LawyerTab.Screen
@@ -189,6 +204,7 @@ function LawyerTabNavigator() {
                         <TabIcon iconName="calendar-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Calendar')}
             />
 
         </LawyerTab.Navigator>
@@ -247,6 +263,7 @@ function ClientTabNavigator() {
                         <TabIcon iconName="search-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Lawyers')}
             />
 
             <ClientTab.Screen
@@ -257,6 +274,7 @@ function ClientTabNavigator() {
                         <TabIcon iconName="mail-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Requests')}
             />
 
             <ClientTab.Screen
@@ -268,6 +286,7 @@ function ClientTabNavigator() {
                     ),
                     tabBarLabel: '',
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Dashboard')}
             />
 
             <ClientTab.Screen
@@ -278,6 +297,7 @@ function ClientTabNavigator() {
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Knowledge')}
             />
 
             <ClientTab.Screen
@@ -288,6 +308,7 @@ function ClientTabNavigator() {
                         <TabIcon iconName="chatbubble-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Contacts')}
             />
         </ClientTab.Navigator>
     );
@@ -337,6 +358,7 @@ function AdminTabNavigator() {
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Verifications')}
             />
 
             <AdminTab.Screen
@@ -347,6 +369,7 @@ function AdminTabNavigator() {
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Finance')}
             />
 
             <AdminTab.Screen
@@ -358,6 +381,7 @@ function AdminTabNavigator() {
                     ),
                     tabBarLabel: '',
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Dashboard')}
             />
 
             <AdminTab.Screen
@@ -368,6 +392,7 @@ function AdminTabNavigator() {
                         <TabIcon iconName="person-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Payment')}
             />
 
             <AdminTab.Screen
@@ -378,6 +403,7 @@ function AdminTabNavigator() {
                         <TabIcon iconName="document-text-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Reports')}
             />
         </AdminTab.Navigator>
     );

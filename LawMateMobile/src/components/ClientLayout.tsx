@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { colors, spacing } from '../config/theme';
 import ScreenWrapper from './ScreenWrapper';
 import TopNavbar from './TopNavbar';
+import {StorageService} from "../utils/storage";
+import {UserDetailService} from "../services/userDetailService";
 
 interface ClientLayoutProps {
     children: React.ReactNode;
@@ -20,7 +22,6 @@ interface ClientLayoutProps {
 const ClientLayout: React.FC<ClientLayoutProps> = ({
     title,
     children,
-    userName = 'Client User',
     profileImage,
     onNotificationPress,
     onProfilePress,
@@ -29,12 +30,32 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({
     hideRightSection,
     disableScroll,
 }) => {
+
+    const [adminName, setAdminName] = useState<string>('');
+
+    useEffect(() => {
+        const loadAdminName = async () => {
+            try {
+                const userData = await StorageService.getUserData();
+                if (userData?.userId) {
+                    const user = await UserDetailService.getUserById(userData.userId);
+                    if (user) {
+                        setAdminName(`${user.firstName} ${user.lastName}`);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load admin name:', e);
+            }
+        };
+        loadAdminName();
+    }, []);
+
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={['top']}>
             <View>
                 <TopNavbar
                     title={title}
-                    userName={userName}
+                    userName={adminName}
                     profileImage={profileImage}
                     onNotificationPress={onNotificationPress}
                     onProfilePress={onProfilePress}

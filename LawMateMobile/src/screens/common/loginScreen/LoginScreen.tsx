@@ -97,6 +97,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     return;
                 }
             }
+
+            if (response.role === 2) {
+                if (response.accountStatus === 2) {
+                    showError('Your membership has been suspended. Please contact the administrator.');
+                    return;
+                }
+
+                if (response.accountStatus !== 1) {
+                    showError('Your account is not active. Please contact the administrator.');
+                    return;
+                }
+            }
             // Navigate based on role from backend
             // Backend returns: 1 = Lawyer, 2 = Client, 0 = Admin
             navigateBasedOnRole(response.role);
