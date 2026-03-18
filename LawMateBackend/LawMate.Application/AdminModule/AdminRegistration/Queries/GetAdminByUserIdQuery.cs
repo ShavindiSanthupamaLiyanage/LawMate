@@ -58,8 +58,6 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Queries
                 Email = admin.Email,
                 NIC = admin.NIC,
                 ContactNumber = admin.ContactNumber,
-                DateOfBirth = admin.DateOfBirth,
-                Nationality = admin.Nationality,
                 RecordStatus = admin.RecordStatus,
                 RegistrationDate = admin.RegistrationDate,
                 LastLoginDate = admin.LastLoginDate,

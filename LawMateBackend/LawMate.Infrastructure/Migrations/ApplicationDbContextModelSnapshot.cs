@@ -144,9 +144,6 @@ namespace LawMate.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<DateTime?>("DateOfBirth")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
@@ -173,9 +170,6 @@ namespace LawMate.Infrastructure.Migrations
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("NIC")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nationality")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")

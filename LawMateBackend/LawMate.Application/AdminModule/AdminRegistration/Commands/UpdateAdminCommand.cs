@@ -15,8 +15,6 @@ public class UpdateAdminCommand : IRequest<bool>
     public string? Email { get; set; }
     public string? NIC { get; set; }
     public string? ContactNumber { get; set; }
-    public DateTime? DateOfBirth { get; set; }
-    public string? Nationality { get; set; }
 }
 
 public class UpdateAdminCommandHandler : IRequestHandler<UpdateAdminCommand, bool>
@@ -53,12 +51,6 @@ public class UpdateAdminCommandHandler : IRequestHandler<UpdateAdminCommand, boo
 
         if (request.Gender.HasValue)
             admin.Gender = request.Gender.Value;
-
-        if (request.DateOfBirth.HasValue)
-            admin.DateOfBirth = request.DateOfBirth.Value.Date;
-
-        if (!string.IsNullOrWhiteSpace(request.Nationality))
-            admin.Nationality = request.Nationality.Trim();
 
         // NIC is intentionally excluded from updates here to keep identity-critical values immutable.
 
