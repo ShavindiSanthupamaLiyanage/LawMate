@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import './polyfills';
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,6 +75,7 @@ import HelpScreen from './src/screens/common/HelpScreen';
 import VerificationPending from "./src/screens/lawyer/lawyerSignUp/VerificationPending";
 import TabIcon from "./src/components/BottomNavBar";
 import {AuthProvider} from "./src/context/AuthContext";
+import {setNavigationRef} from "./src/api/httpClient";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -424,11 +425,16 @@ function AdminTabs() {
 
 // Main App Navigation
 export default function App() {
+    const navigationRef = useNavigationContainerRef();
+
     return (
         <SafeAreaProvider>
             <ToastProvider>
                 <AuthProvider>
-                <NavigationContainer>
+                <NavigationContainer
+                    ref={navigationRef}
+                    onReady={() => setNavigationRef(navigationRef)}  // ← add this
+                    >
                     <Stack.Navigator
                         initialRouteName="Splash"
                         screenOptions={{
