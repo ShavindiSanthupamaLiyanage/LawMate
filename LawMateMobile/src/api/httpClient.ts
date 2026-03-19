@@ -1,5 +1,3 @@
-// src/api/client.ts
-
 import axios, {AxiosInstance, AxiosError, InternalAxiosRequestConfig} from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { StorageService } from '../utils/storage';
@@ -113,8 +111,12 @@ apiClient.interceptors.response.use(
             // Clear all auth data
             await StorageService.clearAll();
 
-            // You can emit an event here to redirect to login
-            // or use a navigation reference (see below)
+            if (navigationRef) {
+                navigationRef.reset({
+                    index: 0,
+                    routes: [{ name: 'Login' }],
+                });
+            }
 
             return Promise.reject({
                 message: 'Session expired. Please login again.',
@@ -228,34 +230,3 @@ export const isAuthError = (error: any): boolean => {
 
 // Export the configured client
 export default apiClient;
-
-/**
- * USAGE EXAMPLES:
- *
- * import apiClient from './api/client';
- *
- * // GET request
- * const response = await apiClient.get('/endpoint');
- *
- * // POST request
- * const response = await apiClient.post('/endpoint', { data });
- *
- * // PUT request
- * const response = await apiClient.put('/endpoint/123', { data });
- *
- * // DELETE request
- * const response = await apiClient.delete('/endpoint/123');
- *
- * // With query parameters
- * const response = await apiClient.get('/endpoint', {
- *   params: { page: 1, limit: 10 }
- * });
- *
- * // Error handling
- * try {
- *   const response = await apiClient.post('/login', credentials);
- * } catch (error: any) {
- *   console.error(error.message);
- *   console.error(error.statusCode);
- * }
- */

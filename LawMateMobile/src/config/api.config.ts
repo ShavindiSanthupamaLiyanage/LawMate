@@ -145,6 +145,12 @@ export const ENDPOINTS = {
     CHATBOT: {
         CLASSIFY: '/chatbot/classify',
     },
+    ADMIN_FINANCE: {
+        ALL_FINANCE_DETAILS: '/admin/finance/all-finance-details',
+        CONFIRM_PAYOUT: '/admin/finance/confirm-payout',
+        GET_PENDING: '/admin/finance/pending',
+        GET_PAID:    '/admin/finance/paid',
+    },
 
      BOOKING: {
         GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>`/bookings/lawyer/${lawyerId}`,
