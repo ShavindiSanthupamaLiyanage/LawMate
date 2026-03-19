@@ -119,6 +119,8 @@ export const ENDPOINTS = {
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
         CASES: '/client/cases',
+        DASHBOARD_HOME: '/client/dashboard/home',
+        DASHBOARD_ACTIVITY: '/client/dashboard/activity',
     },
 
     // Admin endpoints
