@@ -11,11 +11,11 @@ namespace LawMate.API.Controllers.AdminModule;
 [ApiController]
 [Route("api/admin/payments")]
 [Authorize]
-public class PaymentMaintenanceController : ControllerBase
+public class UpdateMembershipPaymentStatusCommandHandler : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public PaymentMaintenanceController(IMediator mediator)
+    public UpdateMembershipPaymentStatusCommandHandler(IMediator mediator)
     {
         _mediator = mediator;
     }
