@@ -1,15 +1,41 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import ClientLayout from "../../../components/ClientLayout";
 import { colors, spacing, fontSize, fontWeight, borderRadius } from "../../../config/theme";
+import { ClientDashboardService } from "../../../services/clientDashboard.service";
+import { ClientActivity } from "../../../interfaces/clientDashboard.interface";
 
-type ActivityStatus = "Active" | "Completed";
+type ActivityStatus = string;
 
-const statusColors = (status: ActivityStatus) => {
-    if (status === "Active") return { bg: "#E8F0FF", fg: "#2F6BFF" };
-    return { bg: "#EAF8EE", fg: "#2E9B4B" };
+const statusColors = (status: string) => {
+    const normalized = status.toLowerCase();
+
+    if (normalized === "completed" || normalized === "verified") {
+        return { bg: "#EAF8EE", fg: "#2E9B4B" };
+    }
+
+    return { bg: "#E8F0FF", fg: "#2F6BFF" };
+};
+
+const normalizeStatus = (status: string): "Active" | "Completed" => {
+    const normalized = status.toLowerCase();
+
+    if (normalized === "completed" || normalized === "verified") {
+        return "Completed";
+    }
+
+    return "Active";
+};
+
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
 };
 
 const ActivityCard: React.FC<{
@@ -59,7 +85,7 @@ const ActivityCard: React.FC<{
                 <View style={{ flex: 1 }}>
                     <Text style={styles.lawyerName}>{lawyerName}</Text>
                     <Text style={styles.lawyerMeta}>{lawyerMeta1}</Text>
-                    <Text style={styles.lawyerMeta}>{lawyerMeta2}</Text>
+                    {!!lawyerMeta2 && <Text style={styles.lawyerMeta}>{lawyerMeta2}</Text>}
                 </View>
             </View>
 
@@ -71,38 +97,67 @@ const ActivityCard: React.FC<{
 const ClientActivityList: React.FC = () => {
     const navigation = useNavigation<any>();
 
-    // Replace with API data later
-    const activities = [
-        {
-            title: "Property Dispute",
-            caseId: "LC2024-001",
-            status: "Active" as const,
-            lawyerName: "Mr. Roshan Manawadu",
-            lawyerMeta1: "LL.B (UoL), BSc in Science in International",
-            lawyerMeta2: "Commercial & Business Lawyer and MBA.",
-            filedDate: "Nov 20, 2025",
-            avatarUri: "https://i.pravatar.cc/100?img=12",
-        },
-        {
-            title: "Divorce Settlement",
-            caseId: "LC2024-002",
-            status: "Completed" as const,
-            lawyerName: "Mrs. Dhana de Silva",
-            lawyerMeta1: "LL.B (UoL), BSc in Science in International",
-            lawyerMeta2: "Commercial & Business Lawyer and MBA.",
-            filedDate: "Nov 10, 2025",
-            avatarUri: "https://i.pravatar.cc/100?img=44",
-        },
+    const [activities, setActivities] = useState<ClientActivity[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-        // add more…
-    ];
+    useEffect(() => {
+        const loadActivities = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const data = await ClientDashboardService.getDashboardActivity();
+                setActivities(data);
+            } catch (err: any) {
+                setError(err?.message || "Failed to load activities");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadActivities();
+    }, []);
+
+    if (loading) {
+        return (
+            <ClientLayout title="My Activity" showBackButton onBackPress={() => navigation.goBack()}>
+                <View style={styles.centerState}>
+                    <Text>Loading activities...</Text>
+                </View>
+            </ClientLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <ClientLayout title="My Activity" showBackButton onBackPress={() => navigation.goBack()}>
+                <View style={styles.centerState}>
+                    <Text>{error}</Text>
+                </View>
+            </ClientLayout>
+        );
+    }
 
     return (
         <ClientLayout title="My Activity" showBackButton onBackPress={() => navigation.goBack()}>
             <View style={styles.body}>
-                {activities.map((a) => (
-                    <ActivityCard key={a.caseId} {...a} />
-                ))}
+                {activities.length ? (
+                    activities.map((activity) => (
+                        <ActivityCard
+                            key={activity.bookingId}
+                            title={activity.title}
+                            caseId={activity.caseNumber}
+                            status={normalizeStatus(activity.status)}
+                            lawyerName={activity.lawyerName}
+                            lawyerMeta1={activity.lawyerDetails}
+                            lawyerMeta2=""
+                            filedDate={formatDate(activity.filedDate)}
+                        />
+                    ))
+                ) : (
+                    <Text style={styles.emptyText}>No activity available.</Text>
+                )}
             </View>
         </ClientLayout>
     );
@@ -113,6 +168,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.lg,
         paddingBottom: spacing.lg,
+    },
+
+    centerState: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: spacing.lg,
+    },
+
+    emptyText: {
+        fontSize: fontSize.sm,
+        color: colors.textSecondary,
+        textAlign: "center",
+        marginTop: spacing.lg,
     },
 
     activityCard: {
