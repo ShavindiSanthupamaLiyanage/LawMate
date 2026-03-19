@@ -9,40 +9,6 @@
  *
  * Look for IPv4 Address (something like 192.168.x.x or 10.0.x.x)
  */
-// import {Platform} from "react-native";
-// // import { API_BASE_URL } from '@env';
-//
-// const getBaseUrl = () => {
-//     if (!__DEV__) {
-//         // Production
-//         return 'https://your-production-api.com/api';
-//     }
-//
-//     // Development - check environment
-//     // You can set this manually when testing on real device
-//     const USE_REAL_DEVICE = true;  //Change to true for real device
-//
-//     if (USE_REAL_DEVICE) {
-//         // Real device - use your computer's IP
-//         return 'http://192.168.1.10:5102/api';
-//     }
-//
-//     // Emulator/Simulator
-//     if (Platform.OS === 'android') {
-//         return 'http://10.0.2.2:5102/api';  // Android Emulator
-//     } else {
-//         return 'http://localhost:5102/api';  // iOS Simulator
-//     }
-// };
-//
-// export const API_CONFIG = {
-//     BASE_URL: getBaseUrl(),
-//     TIMEOUT: 30000,
-//     HEADERS: {
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/json',
-//     },
-// };
 
 import { Platform } from "react-native";
 import Constants from "expo-constants";
@@ -126,14 +92,13 @@ export const ENDPOINTS = {
         UPDATE_PROFILE: '/client/profile',
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
-        CASES: '/client/cases',
+        SUSPEND: (userId: string) => `/clients/suspend/${userId}`,
     },
 
     // Admin endpoints
     ADMIN: {
         USERS: '/admin/users',
         USER_COUNTS: '/users/counts',
-        STATISTICS: '/admin/statistics',
         LAWYER_VERIFICATION: '/lawyer-verification/all',
         REPORTS: {
             LAWYER_DETAILS: '/admin/reports/lawyer-details',
@@ -153,6 +118,12 @@ export const ENDPOINTS = {
     },
     CHATBOT: {
         CLASSIFY: '/chatbot/classify',
+    },
+    ADMIN_FINANCE: {
+        ALL_FINANCE_DETAILS: '/admin/finance/all-finance-details',
+        CONFIRM_PAYOUT: '/admin/finance/confirm-payout',
+        GET_PENDING: '/admin/finance/pending',
+        GET_PAID:    '/admin/finance/paid',
     },
 
      BOOKING: {
@@ -187,5 +158,10 @@ export const ENDPOINTS = {
             const base = `/admin/payments/details?lawyerId=${lawyerId}&type=${type}`;
             return clientId ? `${base}&clientId=${clientId}` : base;
         },
+    },
+    LAWYER_FINANCE: {
+        DASHBOARD:     '/lawyer/finance/dashboard',
+        TRANSACTIONS:  '/lawyer/finance/transactions',
+        REPORT:        '/lawyer/finance/report',
     },
 };

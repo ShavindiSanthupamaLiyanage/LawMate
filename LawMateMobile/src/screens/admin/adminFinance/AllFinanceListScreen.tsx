@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
   View,
   Text,
@@ -17,6 +17,10 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AdminFinanceStackParamList } from "./AdminFinanceStack";
 import AdminLayout from '../../../components/AdminLayout';
 import SearchBar from '../../../components/SearchBar';
+import {FinanceDetailsDto} from "../../../interfaces/adminFinance.interface";
+import {AdminFinanceService} from "../../../services/adminFinanceService";
+import {useNavigation} from "@react-navigation/native";
+import {AdminTabParamList} from "../../../types";
 
 type Props = {
   navigation: NativeStackNavigationProp<
@@ -40,74 +44,8 @@ export interface FinanceItem {
   baseAmount?: string;
   platformFee?: string;
   totalAmount?: string;
+  bookingId?: number;
 }
-
-const dummyData: FinanceItem[] = [
-  {
-    id: "1",
-    name: "Maya Wickramasinghe",
-    category: "Family Law",
-    code: "PV-CODE/0001",
-    amount: "LKR 25,000.00",
-    status: "Pending",
-    email: "maya@example.com",
-    phone: "+94 771234567",
-    serviceType: "Legal Consultation",
-    duration: "1 Hour Session",
-    sessionDate: "Jan 28, 2025",
-    baseAmount: "LKR 15,000.00",
-    platformFee: "LKR 150.00",
-    totalAmount: "LKR 14,850.00",
-  },
-  {
-    id: "2",
-    name: "Nisal Silva",
-    category: "Criminal Law",
-    code: "PV-CODE/0002",
-    amount: "LKR 35,000.00",
-    status: "Paid Out",
-    email: "nisal@example.com",
-    phone: "+94 771234568",
-    serviceType: "Legal Consultation",
-    duration: "1 Hour Session",
-    sessionDate: "Jan 25, 2025",
-    baseAmount: "LKR 20,000.00",
-    platformFee: "LKR 200.00",
-    totalAmount: "LKR 19,800.00",
-  },
-  {
-    id: "3",
-    name: "Tharindu Lakshan",
-    category: "Contract Law",
-    code: "PV-CODE/0003",
-    amount: "LKR 30,000.00",
-    status: "Pending",
-    email: "tharindu@example.com",
-    phone: "+94 771234569",
-    serviceType: "Legal Consultation",
-    duration: "1 Hour Session",
-    sessionDate: "Jan 29, 2025",
-    baseAmount: "LKR 18,000.00",
-    platformFee: "LKR 180.00",
-    totalAmount: "LKR 17,820.00",
-  },
-  {
-    id: "4",
-    name: "Suresh Wickramasinghe",
-    category: "Family Law",
-    code: "PV-CODE/0004",
-    amount: "LKR 28,000.00",
-    status: "Pending",
-    email: "suresh@example.com",
-    phone: "+94 771234570",
-    serviceType: "Legal Consultation",
-    duration: "1 Hour Session",
-    sessionDate: "Jan 30, 2025",
-    baseAmount: "LKR 16,000.00",
-    platformFee: "LKR 160.00",
-    totalAmount: "LKR 15,840.00",
-  },
-];
 
 function FinanceCard({
                        item,
@@ -162,16 +100,58 @@ export default function FinanceListScreen({ navigation }: Props) {
   const [selectedTab, setSelectedTab] = useState<
       "All" | "Pending" | "Paid Out"
   >("All");
+  const [financeData, setFinanceData] = useState<FinanceDetailsDto[]>([]);
+  // @ts-ignore
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const filteredData = dummyData.filter((item) => {
-    const matchesTab =
-        selectedTab === "All" ? true : item.status === selectedTab;
-    const matchesSearch =
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
-  });
+  const parentNavigation = useNavigation<NativeStackNavigationProp<AdminTabParamList>>();
+
+  const formatDateTime = (dateTime: string) => {
+    const date = new Date(dateTime);
+    return date.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: true,
+    });
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await AdminFinanceService.getAllFinanceDetails();
+        setFinanceData(data);
+      } catch (error) {
+        console.error('Error fetching finance data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const filteredData = financeData
+      .filter(item => selectedTab === 'All' ||
+          (selectedTab === 'Paid Out' ? item.isPaid : !item.isPaid))
+      .filter(item =>
+          item.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.transactionId?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .map(item => ({
+        id: item.bookingId.toString(),
+        name: item.fullName,
+        bookingId: item.bookingId,
+        slipNumber: item.slipNumber,
+        category: item.nic,
+        code: item.transactionId ?? '-',
+        amount: `LKR ${item.amount.toLocaleString()}`,      // total paid by client
+        status: item.isPaid ? 'Paid Out' : 'Pending',
+        email: item.email,
+        phone: item.contactNumber,                           // ← add this
+        baseAmount: `LKR ${item.amount.toLocaleString()}`,   // amount = base amount
+        platformFee: `LKR ${item.platformCommission.toLocaleString()}`,
+        totalAmount: `LKR ${item.lawyerFee.toLocaleString()}`, // lawyerFee = total pay & paid amount
+        duration: item.duration ? `${item.duration}` : undefined,
+        sessionDate: formatDateTime(item.scheduledDateTime),
+      } as FinanceItem));
 
   const renderItem = ({ item }: { item: FinanceItem }) => (
       <FinanceCard
@@ -189,7 +169,11 @@ export default function FinanceListScreen({ navigation }: Props) {
   };
 
   return (
-      <AdminLayout title="Finanace Managenent" disableScroll>
+      <AdminLayout
+          title="Finance Management"
+          disableScroll
+          onProfilePress={() => parentNavigation.navigate('AdminProfile')}
+      >
         <View style={styles.container}>
           {/* Search Bar */}
           <View style={styles.searchContainer}>

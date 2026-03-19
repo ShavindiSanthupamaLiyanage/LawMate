@@ -1,76 +1,93 @@
-import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, FlatList, Pressable } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from "react-native";
 
 import ScreenWrapper from "../../../components/ScreenWrapper";
 import InitialTopNavbar from "../../../components/InitialTopNavbar";
 import SearchBar from "../../../components/SearchBar";
+import TransactionDetailsSheet, { TransactionDetails } from "../../../components/TransactionDetailsSheet";
 
 import { colors, spacing, fontSize, fontWeight, borderRadius } from "../../../config/theme";
-
-import TransactionDetailsSheet, { TransactionDetails } from "../../../components/TransactionDetailsSheet";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../../types";
+import { LawyerFinanceStackParamList } from "./LawyerFinanceStack";
+import { LawyerFinanceService } from "../../../services/lawyerFinanceService";
+import { LawyerFinanceTransactionItemDto } from "../../../interfaces/lawyerFinance.interface";
 
-type TxStatus = "Verified Payment" | "Pending Verification";
-
-const transactions: TransactionDetails[] = [
-    { id: "1", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
-    { id: "2", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
-    { id: "3", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
-    { id: "4", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Pending Verification" as TxStatus, amount: 5000 },
-    { id: "5", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Pending Verification" as TxStatus, amount: 5000 },
-    { id: "6", title: "John Silva | APT-0500", date: "12 Nov 2025", status: "Verified Payment" as TxStatus, amount: 5000 },
-];
-
-const getStatusChipStyle = (status: TxStatus) => {
+const getStatusChipStyle = (status: string) => {
     if (status === "Verified Payment") return { bg: "#E7F8EE", text: "#16794C" };
-    return { bg: "#FFF4D6", text: "#8A5A00" };
+    if (status === "Pending Verification") return { bg: "#FFF4D6", text: "#8A5A00" };
+    return { bg: "#FFE4E4", text: "#B91C1C" };
 };
 
-function TransactionCard({ item, onPress }: { item: TransactionDetails; onPress: () => void }) {
-    const chip = getStatusChipStyle(item.status);
+const toTransactionDetails = (item: LawyerFinanceTransactionItemDto): TransactionDetails => ({
+    id: String(item.paymentId),
+    title: `${item.clientDisplay} | ${item.referenceNo}`,
+    date: new Date(item.transactionDate).toLocaleDateString("en-GB", {
+        day: "2-digit", month: "short", year: "numeric",
+    }),
+    status: item.status as TransactionDetails["status"],
+    amount: item.amount,
+});
 
+function TransactionCard({ item, onPress }: { item: LawyerFinanceTransactionItemDto; onPress: () => void }) {
+    const chip = getStatusChipStyle(item.status);
+    const details = toTransactionDetails(item);
     return (
         <Pressable style={styles.txCard} onPress={onPress}>
             <View style={styles.txTopRow}>
-                <Text style={styles.txTitle}>{item.title}</Text>
-                <Text style={styles.txDate}>{item.date}</Text>
+                <Text style={styles.txTitle}>{details.title}</Text>
+                <Text style={styles.txDate}>{details.date}</Text>
             </View>
-
             <View style={styles.txBottomRow}>
                 <View style={[styles.chip, { backgroundColor: chip.bg }]}>
                     <Text style={[styles.chipText, { color: chip.text }]}>{item.status}</Text>
                 </View>
-                <Text style={styles.txAmount}>{`LKR ${item.amount.toLocaleString()}.00`}</Text>
+                <Text style={styles.txAmount}>{`LKR ${item.amount.toLocaleString("en-LK", { minimumFractionDigits: 2 })}`}</Text>
             </View>
         </Pressable>
     );
 }
 
 type Props = {
-    navigation: NativeStackNavigationProp<RootStackParamList, "ViewTransactions">;
+    navigation: NativeStackNavigationProp<LawyerFinanceStackParamList, "ViewTransactions">;
 };
 
 export default function ViewTransactions({ navigation }: Props) {
+    const [allTransactions, setAllTransactions] = useState<LawyerFinanceTransactionItemDto[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
-
     const [sheetOpen, setSheetOpen] = useState(false);
     const [selectedTx, setSelectedTx] = useState<TransactionDetails | null>(null);
 
-    const openSheet = (tx: TransactionDetails) => {
-        setSelectedTx(tx);
-        setSheetOpen(true);
-    };
+    const fetchTransactions = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await LawyerFinanceService.getTransactions();
+            setAllTransactions(data);
+        } catch (e) {
+            console.error("Failed to load transactions", e);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
+    useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
+
+    // Client-side search filter (referenceNo + clientDisplay)
     const filtered = useMemo(() => {
         const q = searchQuery.trim().toLowerCase();
-        if (!q) return transactions;
-        return transactions.filter(
+        if (!q) return allTransactions;
+        return allTransactions.filter(
             (t) =>
-                t.title.toLowerCase().includes(q) ||
+                t.referenceNo.toLowerCase().includes(q) ||
+                t.clientDisplay.toLowerCase().includes(q) ||
                 t.status.toLowerCase().includes(q)
         );
-    }, [searchQuery]);
+    }, [searchQuery, allTransactions]);
+
+    const openSheet = (item: LawyerFinanceTransactionItemDto) => {
+        setSelectedTx(toTransactionDetails(item));
+        setSheetOpen(true);
+    };
 
     return (
         <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
@@ -91,17 +108,25 @@ export default function ViewTransactions({ navigation }: Props) {
                     />
                 </View>
 
-                <FlatList
-                    data={filtered}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <TransactionCard item={item} onPress={() => openSheet(item)} />
-                    )}
-                    contentContainerStyle={styles.listContent}
-                    showsVerticalScrollIndicator={false}
-                />
+                {loading ? (
+                    <View style={styles.centered}>
+                        <ActivityIndicator size="large" color={colors.primary} />
+                    </View>
+                ) : (
+                    <FlatList
+                        data={filtered}
+                        keyExtractor={(item) => String(item.paymentId)}
+                        renderItem={({ item }) => (
+                            <TransactionCard item={item} onPress={() => openSheet(item)} />
+                        )}
+                        contentContainerStyle={styles.listContent}
+                        showsVerticalScrollIndicator={false}
+                        ListEmptyComponent={
+                            <Text style={styles.empty}>No transactions found.</Text>
+                        }
+                    />
+                )}
 
-                {/* ✅ Bottom Sheet */}
                 <TransactionDetailsSheet
                     visible={sheetOpen}
                     item={selectedTx}
@@ -118,10 +143,22 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
 
+    centered: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+
     searchWrap: {
         paddingHorizontal: spacing.md,
         paddingTop: spacing.md,
         paddingBottom: spacing.sm,
+    },
+
+    empty: {
+        textAlign: "center",
+        color: colors.textSecondary,
+        marginTop: spacing.xl
     },
 
     listContent: {

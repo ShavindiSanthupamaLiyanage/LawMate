@@ -148,7 +148,6 @@ const LawyerKnowledgeHubFeed: React.FC = () => {
   return (
     <LawyerLayout
       title="Knowledge Hub"
-      userName="Kavindu Gimsara"
       onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}
     >
       <ScrollView contentContainerStyle={styles.contentWrapper}>

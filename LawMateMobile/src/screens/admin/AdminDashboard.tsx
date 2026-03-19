@@ -10,9 +10,6 @@ import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
 import AdminLayout from '../../components/AdminLayout';
 
-/* ----------------------------- */
-/* Donut Chart Helpers           */
-/* ----------------------------- */
 type DonutItem = { label: string; value: number; color: string };
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LawMate.Application.AdminModule.FinanceVerification.Commands;
 
-public record ApproveFinancePaymentCommand(int BookingId, string VerifiedBy) : IRequest<string>;
+public record ApproveFinancePaymentCommand(int BookingId, string VerifiedBy, string slipNo) : IRequest<string>;
 
 public class ApproveFinancePaymentCommandHandler 
     : IRequestHandler<ApproveFinancePaymentCommand, string>
@@ -28,6 +28,7 @@ public class ApproveFinancePaymentCommandHandler
         if (payment == null)
             throw new Exception("Payment not found");
 
+        payment.SlipNumber = request.slipNo;
         payment.VerificationStatus = VerificationStatus.Verified;
         payment.VerifiedBy = request.VerifiedBy;
         payment.VerifiedAt = DateTime.UtcNow;
