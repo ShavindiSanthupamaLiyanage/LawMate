@@ -1,13 +1,19 @@
-import apiClient from "../api/client";
+import apiClient from "../api/httpClient";
 import {
   AppointmentDto,
   AvailabilitySlotDto,
+  LawyerEventDto,
   CreateManualBookingRequest,
+  CreateLawyerEventRequest,
+  UpdateLawyerEventRequest,
   CreateAvailabilitySlotRequest,
   UpdateAvailabilitySlotRequest,
   UpdateBookingStatusRequest,
   CreateBookingResponse,
   CreateSlotResponse,
+  CreateLawyerEventResponse,
+  UpdateLawyerEventResponse,
+  DeleteLawyerEventResponse,
 } from "../interfaces/calendar.interface";
 import { ENDPOINTS } from "../config/api.config";
 
@@ -94,6 +100,90 @@ export const updateBookingStatus = async (
     await apiClient.patch(ENDPOINTS.BOOKING.UPDATE_STATUS(bookingId), request);
   } catch (error) {
     console.error("Error updating booking status:", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch all custom events for a lawyer with optional date filtering
+ */
+export const getLawyerEvents = async (
+  lawyerId: string,
+  startDate?: Date,
+  endDate?: Date,
+): Promise<LawyerEventDto[]> => {
+  try {
+    const params = new URLSearchParams();
+    if (startDate) {
+      params.append("startDate", startDate.toISOString());
+    }
+    if (endDate) {
+      params.append("endDate", endDate.toISOString());
+    }
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `${ENDPOINTS.LAWYER_EVENT.GET_LAWYER_EVENTS(lawyerId)}?${queryString}`
+      : ENDPOINTS.LAWYER_EVENT.GET_LAWYER_EVENTS(lawyerId);
+
+    const response = await apiClient.get<LawyerEventDto[]>(url);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching lawyer events:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create a custom calendar event for a lawyer
+ */
+export const createLawyerEvent = async (
+  request: CreateLawyerEventRequest,
+): Promise<CreateLawyerEventResponse> => {
+  try {
+    const response = await apiClient.post<CreateLawyerEventResponse>(
+      ENDPOINTS.LAWYER_EVENT.CREATE,
+      request,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating lawyer event:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing lawyer event
+ */
+export const updateLawyerEvent = async (
+  eventId: number,
+  request: UpdateLawyerEventRequest,
+): Promise<UpdateLawyerEventResponse> => {
+  try {
+    const response = await apiClient.put<UpdateLawyerEventResponse>(
+      ENDPOINTS.LAWYER_EVENT.UPDATE(eventId),
+      request,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating lawyer event:", error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a lawyer event
+ */
+export const deleteLawyerEvent = async (
+  eventId: number,
+): Promise<DeleteLawyerEventResponse> => {
+  try {
+    const response = await apiClient.delete<DeleteLawyerEventResponse>(
+      ENDPOINTS.LAWYER_EVENT.DELETE(eventId),
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting lawyer event:", error);
     throw error;
   }
 };

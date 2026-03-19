@@ -100,5 +100,18 @@ namespace LawMate.API.Controllers.ClientModule
             await _mediator.Send(new DeleteClientCommand(userId));
             return NoContent();
         }
+        
+        [Authorize]
+        [HttpPut("suspend/{userId}")]
+        public async Task<IActionResult> SuspendClient(
+            string userId,
+            [FromBody] SuspendClientCommand command)
+        {
+            if (userId != command.UserId)
+                return BadRequest("UserId mismatch");
+
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
     }
 }

@@ -29,6 +29,8 @@ const Button: React.FC<ButtonProps> = ({
                 return styles.acceptButton;
             case 'reject':
                 return styles.rejectButton;
+            case 'danger':
+                return styles.dangerButton;
             default:
                 return {};
         }
@@ -131,6 +133,11 @@ const styles = StyleSheet.create({
     /* Reject */
     rejectButton: {
         backgroundColor: '#EF4444',
+    },
+
+    /* Danger */
+    dangerButton: {
+        backgroundColor: '#D32F2F',
     },
 
     disabled: {

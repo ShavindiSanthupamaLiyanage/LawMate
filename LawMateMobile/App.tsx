@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import './polyfills';
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,6 +31,8 @@ import LawyerRequests from './src/screens/lawyer/lawyerRequest/LawyerRequests';
 import AppointmentView from './src/screens/lawyer/lawyerRequest/AppointmentView';
 import LawyerFinanceStack from "./src/screens/lawyer/lawyerFinance/LawyerFinanceStack";
 import CalendarScreen from './src/screens/lawyer/lawyerCalender/CalendarScreen';
+import AddEventScreen from './src/screens/lawyer/lawyerCalender/AddEventScreen';
+import EditEventScreen from './src/screens/lawyer/lawyerCalender/EditEventScreen';
 import AddAppointmentScreen from './src/screens/lawyer/lawyerProfile/AddAppointmentScreen';
 import SetAvailabilityScreen from './src/screens/lawyer/lawyerProfile/SetAvailabilityScreen';
 import LawyerKnowledgeHubFeed from './src/screens/lawyer/lawyerKnowledgeHub/LawyerKnowledgeHubFeed';
@@ -73,6 +75,7 @@ import HelpScreen from './src/screens/common/HelpScreen';
 import VerificationPending from "./src/screens/lawyer/lawyerSignUp/VerificationPending";
 import TabIcon from "./src/components/BottomNavBar";
 import {AuthProvider} from "./src/context/AuthContext";
+import {setNavigationRef} from "./src/api/httpClient";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const LawyerTab = createBottomTabNavigator<LawyerTabParamList>();
@@ -113,6 +116,17 @@ function LawyerSearchStackNavigator() {
         </ClientStack.Navigator>
     );
 }
+
+const useTabResetListener = (navigation: any, tabName: string) => ({
+    tabPress: (e: any) => {
+        e.preventDefault();
+        navigation.reset({
+            index: 0,
+            routes: [{ name: tabName }],
+        });
+    },
+});
+
 // Lawyer Bottom Tabs (Only visible tabs)
 function LawyerTabNavigator() {
     const insets = useSafeAreaInsets();
@@ -146,6 +160,7 @@ function LawyerTabNavigator() {
                         <TabIcon iconName="mail-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Requests')}
             />
 
             <LawyerTab.Screen
@@ -156,6 +171,7 @@ function LawyerTabNavigator() {
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Finance')}
             />
 
             <LawyerTab.Screen
@@ -167,6 +183,7 @@ function LawyerTabNavigator() {
                     ),
                     tabBarLabel: '',
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Dashboard')}
             />
 
             <LawyerTab.Screen
@@ -177,6 +194,7 @@ function LawyerTabNavigator() {
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Knowledge')}
             />
 
             <LawyerTab.Screen
@@ -187,6 +205,7 @@ function LawyerTabNavigator() {
                         <TabIcon iconName="calendar-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Calendar')}
             />
 
         </LawyerTab.Navigator>
@@ -207,6 +226,8 @@ function LawyerTabs() {
             <LawyerStack.Screen name="AddNewArticle" component={AddNewArticle} />
             <LawyerStack.Screen name="ManageArticle" component={ManageArticle} />
             <LawyerStack.Screen name="AddAppointment" component={AddAppointmentScreen} />
+            <LawyerStack.Screen name="AddEvent" component={AddEventScreen} />
+            <LawyerStack.Screen name="EditEvent" component={EditEventScreen} />
             <LawyerStack.Screen name="SetAvailability" component={SetAvailabilityScreen} />
         </LawyerStack.Navigator>
     );
@@ -243,6 +264,7 @@ function ClientTabNavigator() {
                         <TabIcon iconName="search-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Lawyers')}
             />
 
             <ClientTab.Screen
@@ -253,6 +275,7 @@ function ClientTabNavigator() {
                         <TabIcon iconName="mail-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Requests')}
             />
 
             <ClientTab.Screen
@@ -264,6 +287,7 @@ function ClientTabNavigator() {
                     ),
                     tabBarLabel: '',
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Dashboard')}
             />
 
             <ClientTab.Screen
@@ -274,6 +298,7 @@ function ClientTabNavigator() {
                         <TabIcon iconName="book-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Knowledge')}
             />
 
             <ClientTab.Screen
@@ -284,6 +309,7 @@ function ClientTabNavigator() {
                         <TabIcon iconName="chatbubble-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Contacts')}
             />
         </ClientTab.Navigator>
     );
@@ -333,6 +359,7 @@ function AdminTabNavigator() {
                         <TabIcon iconName="bookmark-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Verifications')}
             />
 
             <AdminTab.Screen
@@ -343,6 +370,7 @@ function AdminTabNavigator() {
                         <TabIcon iconName="cash-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Finance')}
             />
 
             <AdminTab.Screen
@@ -354,6 +382,7 @@ function AdminTabNavigator() {
                     ),
                     tabBarLabel: '',
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Dashboard')}
             />
 
             <AdminTab.Screen
@@ -364,6 +393,7 @@ function AdminTabNavigator() {
                         <TabIcon iconName="person-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Payment')}
             />
 
             <AdminTab.Screen
@@ -374,6 +404,7 @@ function AdminTabNavigator() {
                         <TabIcon iconName="document-text-outline" color={color} focused={focused} />
                     ),
                 }}
+                listeners={({ navigation }) => useTabResetListener(navigation, 'Reports')}
             />
         </AdminTab.Navigator>
     );
@@ -394,11 +425,16 @@ function AdminTabs() {
 
 // Main App Navigation
 export default function App() {
+    const navigationRef = useNavigationContainerRef();
+
     return (
         <SafeAreaProvider>
             <ToastProvider>
                 <AuthProvider>
-                <NavigationContainer>
+                <NavigationContainer
+                    ref={navigationRef}
+                    onReady={() => setNavigationRef(navigationRef)}  // ← add this
+                    >
                     <Stack.Navigator
                         initialRouteName="Splash"
                         screenOptions={{

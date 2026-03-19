@@ -1,4 +1,4 @@
-import apiClient from '../api/client';
+import apiClient from '../api/httpClient';
 import { ENDPOINTS } from '../config/api.config';
 import { LoginRequest, LoginResponse, UserData } from '../interfaces/auth.interface';
 import { StorageService } from '../utils/storage';

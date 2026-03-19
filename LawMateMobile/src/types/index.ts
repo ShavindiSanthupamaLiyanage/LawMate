@@ -10,6 +10,8 @@ export type LawyerStackParamList = {
     SettingsPreferences: undefined;
     Help: undefined;
     AddAppointment: undefined;
+    AddEvent: { date?: string } | undefined;
+    EditEvent: { event: any } | undefined;
     SetAvailability: undefined;
 };
 
@@ -126,7 +128,8 @@ export interface ButtonProps {
         | 'secondary'
         | 'transparent'
         | 'accept'
-        | 'reject';
+        | 'reject'
+        | 'danger';
     disabled?: boolean;
     loading?: boolean;
     style?: any;

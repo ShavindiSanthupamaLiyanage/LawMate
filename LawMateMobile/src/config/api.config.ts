@@ -118,14 +118,13 @@ export const ENDPOINTS = {
         UPDATE_PROFILE: '/client/profile',
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
-        CASES: '/client/cases',
+        SUSPEND: (userId: string) => `/clients/suspend/${userId}`,
     },
 
     // Admin endpoints
     ADMIN: {
         USERS: '/admin/users',
         USER_COUNTS: '/users/counts',
-        STATISTICS: '/admin/statistics',
         LAWYER_VERIFICATION: '/lawyer-verification/all',
         REPORTS: {
             LAWYER_DETAILS: '/admin/reports/lawyer-details',
@@ -146,6 +145,12 @@ export const ENDPOINTS = {
     CHATBOT: {
         CLASSIFY: '/chatbot/classify',
     },
+    ADMIN_FINANCE: {
+        ALL_FINANCE_DETAILS: '/admin/finance/all-finance-details',
+        CONFIRM_PAYOUT: '/admin/finance/confirm-payout',
+        GET_PENDING: '/admin/finance/pending',
+        GET_PAID:    '/admin/finance/paid',
+    },
 
      BOOKING: {
         GET_LAWYER_APPOINTMENTS: (lawyerId: string) =>`/bookings/lawyer/${lawyerId}`,
@@ -153,6 +158,12 @@ export const ENDPOINTS = {
         CREATE: "/bookings",
         UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
   },
+      LAWYER_EVENT: {
+          GET_LAWYER_EVENTS: (lawyerId: string) => `/lawyer-events/lawyer/${lawyerId}`,
+          CREATE: "/lawyer-events",
+          UPDATE: (eventId: number) => `/lawyer-events/${eventId}`,
+          DELETE: (eventId: number) => `/lawyer-events/${eventId}`,
+      },
   AVAILABILITY: {
         GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
         CREATE: "/availability",

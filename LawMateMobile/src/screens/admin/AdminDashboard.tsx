@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useMemo} from 'react';
 import {
     View,
     Text,
@@ -6,8 +6,75 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
 import AdminLayout from '../../components/AdminLayout';
+
+type DonutItem = { label: string; value: number; color: string };
+
+function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
+    const angleRad = (Math.PI / 180) * angleDeg;
+    return { x: cx + r * Math.cos(angleRad), y: cy + r * Math.sin(angleRad) };
+}
+
+function arcPath(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
+    const start = polarToCartesian(cx, cy, r, startAngle);
+    const end = polarToCartesian(cx, cy, r, endAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
+}
+const DonutChart: React.FC<{
+    size?: number;
+    strokeWidth?: number;
+    totalText: string;
+    data: DonutItem[];
+}> = ({ size = 140, strokeWidth = 18, totalText, data }) => {
+
+    const r = (size - strokeWidth) / 2;
+    const cx = size / 2;
+    const cy = size / 2;
+
+    const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data]);
+
+    let cursor = -90;
+    const GAP = 2;
+    return (
+        <Svg width={size} height={size}>
+            <G>
+                {data.map((seg, i) => {
+                    const sweep = total === 0 ? 0 : (seg.value / total) * 360;
+
+                    const start = cursor + GAP / 2;
+                    const end = cursor + sweep - GAP / 2;
+
+                    cursor += sweep;
+
+                    return (
+                        <Path
+                            key={i}
+                            d={arcPath(cx, cy, r, start, end)}
+                            stroke={seg.color}
+                            strokeWidth={strokeWidth}
+                            fill="none"
+                        />
+                    );
+                })}
+                <Circle cx={cx} cy={cy} r={r - strokeWidth / 2} fill={colors.white} />
+
+                <SvgText
+                    x={cx}
+                    y={cy + 5}
+                    fontSize={fontSize.lg}
+                    fontWeight={fontWeight.bold as any}
+                    fill={colors.textPrimary}
+                    textAnchor="middle"
+                >
+                    {totalText}
+                </SvgText>
+            </G>
+        </Svg>
+    );
+};
 
 interface ActivityItemProps {
     name: string;
@@ -36,12 +103,12 @@ const AdminDashboard: React.FC = () => {
     const navigation = useNavigation<any>();
 
     // Sample data for charts
-    const lawyerCategories = [
-        { label: 'Criminal', percentage: 30, color: '#A78BFA' },
-        { label: 'Civil', percentage: 25, color: '#EC4899' },
-        { label: 'Cyber', percentage: 20, color: '#60A5FA' },
-        { label: 'Family', percentage: 15, color: '#F59E0B' },
-        { label: 'Corporate', percentage: 10, color: '#10B981' },
+    const lawyerCategories:DonutItem[] = [
+        { label: 'Criminal', value: 30, color: '#A78BFA' },
+        { label: 'Civil', value: 25, color: '#EC4899' },
+        { label: 'Cyber', value: 20, color: '#60A5FA' },
+        { label: 'Family', value: 15, color: '#F59E0B' },
+        { label: 'Corporate', value: 10, color: '#10B981' },
     ];
 
     const recentActivities = [
@@ -59,8 +126,6 @@ const AdminDashboard: React.FC = () => {
                 {/* Dashboard Stats */}
                 <LinearGradient
                     colors={['#3B82F6', '#7C3AED']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
                     style={styles.headerCard}
                 >
                     <Text style={[styles.cardTitle, {color: colors.white}]}>System Users</Text>
@@ -84,27 +149,13 @@ const AdminDashboard: React.FC = () => {
 
                 </LinearGradient>
 
-                {/* Total Lawyers Pie Chart */}
+                {/* Total Lawyers Donut Chart */}
                 <View style={styles.card}>
-                    <View style={styles.cardHeader}>
-                        <Text style={styles.cardTitle}>Total Lawyers</Text>
-                        <Text style={styles.cardSubtitle}>56,945 Active</Text>
-                    </View>
+                    <Text style={styles.cardTitle}>Total Lawyers</Text>
+                    <Text style={styles.cardSubtitle}>56,945 Active</Text>
 
                     <View style={styles.pieChartContainer}>
-                        {/* Simple Pie Chart Representation */}
-                        <View style={styles.pieChart}>
-                            <LinearGradient
-                                colors={['#A78BFA', '#EC4899', '#60A5FA', '#F59E0B', '#10B981']}
-                                style={styles.pieGradient}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                            >
-                                <View style={styles.pieCenter}>
-                                    <Text style={styles.pieCenterNumber}>769.66</Text>
-                                </View>
-                            </LinearGradient>
-                        </View>
+                        <DonutChart totalText="100%" data={lawyerCategories} />
 
                         <View style={styles.legendContainer}>
                             {lawyerCategories.map((category, index) => (

@@ -1,4 +1,5 @@
-﻿using LawMate.Application.AdminModule.FinanceVerification.Commands;
+﻿using LawMate.Application.AdminModule.AdminFinanceVerification.Queries;
+using LawMate.Application.AdminModule.FinanceVerification.Commands;
 using LawMate.Application.AdminModule.FinanceVerification.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +26,13 @@ public class FinanceController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("all-finance-details")]
+    public async Task<IActionResult> GetAllFinanceDetails()
+    {
+        var result = await _mediator.Send(new GetAllFinanceDetailsQuery());
+        return Ok(result);
+    }
+    
     [HttpGet("pending")]
     public async Task<IActionResult> GetPendingFinance()
     {
@@ -40,10 +48,10 @@ public class FinanceController : ControllerBase
     }
     
     [HttpPost("approve/{bookingId}")]
-    public async Task<IActionResult> ApproveFinance(int bookingId)
+    public async Task<IActionResult> ApproveFinance(int bookingId, string slipNo)
     {
         var result = await _mediator.Send(
-            new ApproveFinancePaymentCommand(bookingId, User.Identity?.Name ?? "Admin")
+            new ApproveFinancePaymentCommand(bookingId, User.Identity?.Name ?? "Admin", slipNo)
         );
 
         return Ok(result);

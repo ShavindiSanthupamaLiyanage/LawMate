@@ -43,6 +43,19 @@ export interface AvailabilitySlotDto {
   bookingId?: number;
 }
 
+export interface LawyerEventDto {
+  eventId: number;
+  eventCode: string;
+  lawyerId: string;
+  title: string;
+  eventType: string;
+  dateTime: string;
+  duration: number;
+  mode: string;
+  location?: string;
+  notes?: string;
+}
+
 export interface CreateManualBookingRequest {
   lawyerId: string;
   clientEmail: string;
@@ -77,6 +90,27 @@ export interface UpdateBookingStatusRequest {
   rejectionReason?: string;
 }
 
+export interface CreateLawyerEventRequest {
+  lawyerId: string;
+  title: string;
+  eventType: string;
+  dateTime: string;
+  duration: number;
+  mode: string;
+  location?: string;
+  notes?: string;
+}
+
+export interface UpdateLawyerEventRequest {
+  title?: string;
+  eventType?: string;
+  dateTime?: string;
+  duration?: number;
+  mode?: string;
+  location?: string;
+  notes?: string;
+}
+
 export interface CreateBookingResponse {
   message: string;
   bookingId: number;
@@ -87,4 +121,20 @@ export interface CreateSlotResponse {
   message: string;
   timeSlotId: number;
   id: string;
+}
+
+export interface CreateLawyerEventResponse {
+  message: string;
+  eventId: number;
+  eventCode: string;
+}
+
+export interface UpdateLawyerEventResponse {
+  message: string;
+  success: boolean;
+}
+
+export interface DeleteLawyerEventResponse {
+  message: string;
+  success: boolean;
 }

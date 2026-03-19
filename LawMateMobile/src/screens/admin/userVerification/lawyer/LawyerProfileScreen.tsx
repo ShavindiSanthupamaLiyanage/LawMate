@@ -145,7 +145,7 @@ const LawyerProfileScreen = () => {
                     <Ionicons name="calendar-outline" size={22} color={colors.primary} />
                     <Text
                         style={styles.menuText}
-                        onPress={() => navigation.navigate("Availability")}
+                        onPress={() => navigation.navigate("Availability", { lawyerId: lawyer.userId })}
                     >
                         Availability
                     </Text>
