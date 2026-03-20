@@ -69,13 +69,6 @@ export const registerLawyer = async (
     data.append("ContactNumber", form.mobileContact);
     data.append("Gender",        String(form.gender));
 
-    if (form.dob) {
-        data.append("DateOfBirth", form.dob.toISOString());
-        console.log("[registerLawyer] DateOfBirth:", form.dob.toISOString());
-    } else {
-        console.warn("[registerLawyer] DateOfBirth is null — field will be omitted");
-    }
-
     // Professional
     data.append("SCECertificateNo",         form.sceCertificateNo);
     data.append("Bio",                      form.designation);

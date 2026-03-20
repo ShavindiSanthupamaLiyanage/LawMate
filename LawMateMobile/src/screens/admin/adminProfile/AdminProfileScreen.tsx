@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -6,7 +6,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert as RNAlert,
+    ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +15,8 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import AdminLayout from '../../../components/AdminLayout';
 import Alert from '../../../components/Alert';
 import { AuthService } from '../../../services/authService';
+import apiClient from '../../../api/client';
+import { ENDPOINTS } from '../../../config/api.config';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -27,20 +29,43 @@ interface MenuItemProps {
     onToggle?: () => void;
 }
 
-interface SubItemProps {
-    title: string;
-    onPress: () => void;
+interface AdminProfileApiData {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    userRole?: number | null;
+    profileImage?: string | null;
 }
 
-const SubMenuItem: React.FC<SubItemProps> = ({ title, onPress }) => (
-    <TouchableOpacity style={styles.subMenuItem} onPress={onPress} activeOpacity={0.7}>
-        <View style={styles.subMenuLeft}>
-            <View style={styles.dotIndicator} />
-            <Text style={styles.subMenuTitle}>{title}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-    </TouchableOpacity>
-);
+interface AdminProfileData {
+    name: string;
+    adminId: string;
+    role: string;
+    profileImage: string | null;
+}
+
+const toRoleLabel = (role?: number | null): string => {
+    if (role === 0) {
+        return 'Admin';
+    }
+
+    if (role === 1) {
+        return 'Lawyer';
+    }
+
+    if (role === 2) {
+        return 'Client';
+    }
+
+    return '-';
+};
+
+const toProfileData = (data: AdminProfileApiData): AdminProfileData => ({
+    name: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || '-',
+    adminId: data.userId ?? '-',
+    role: toRoleLabel(data.userRole),
+    profileImage: data.profileImage ? `data:image/jpeg;base64,${data.profileImage}` : null,
+});
 
 const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout, hasSubItems, isExpanded, onToggle }) => (
     <>
@@ -66,26 +91,57 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 
 const AdminProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
     const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [profileData, setProfileData] = useState<AdminProfileData>({
+        name: '-',
+        adminId: '-',
+        role: '-',
+        profileImage: null,
+    });
 
-    // TODO: Replace with actual API data
-    const profileData = {
-        name: 'Admin User',
-        adminId: 'ADM 001234',
-        role: 'Super Admin',
-        totalUsers: 1250,
-        pendingVerifications: 18,
-        totalRevenue: 'Rs.2.5M',
-        profileImage: null, // Set to image URL when available
-    };
+    useEffect(() => {
+        let isMounted = true;
 
-    const toggleExpand = (key: string) => {
-        setExpandedItems(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
+        const loadAdminProfile = async () => {
+            try {
+                setLoading(true);
+                setErrorMessage(null);
+
+                const currentUser = await AuthService.getCurrentUser();
+                const userId = currentUser?.userId;
+
+                if (!userId) {
+                    throw new Error('User session not found. Please log in again.');
+                }
+
+                const response = await apiClient.get<AdminProfileApiData>(
+                    ENDPOINTS.ADMIN.GET_BY_USER_ID(userId)
+                );
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setProfileData(toProfileData(response.data));
+            } catch (error: any) {
+                if (isMounted) {
+                    setErrorMessage(error?.message ?? 'Failed to load profile data.');
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadAdminProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleLogout = () => {
         setShowLogoutAlert(true);
@@ -143,6 +199,9 @@ const AdminProfileScreen: React.FC = () => {
                     <View style={styles.roleBadge}>
                         <Text style={styles.roleText}>{profileData.role}</Text>
                     </View>
+
+                    {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.sm }} />}
+                    {!loading && errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
                     {/* Stats */}
                     {/* <View style={styles.statsContainer}>
@@ -363,6 +422,9 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
         paddingTop: spacing.md,
     },
+    loader: {
+        marginTop: spacing.sm,
+    },
     fixedHeader: {
         height: 80,
         flexDirection: 'row',
@@ -476,6 +538,12 @@ const styles = StyleSheet.create({
         fontSize: fontSize.sm,
         color: colors.primary,
         fontWeight: fontWeight.bold,
+    },
+    errorText: {
+        color: colors.error,
+        fontSize: fontSize.sm,
+        textAlign: 'center',
+        marginTop: spacing.sm,
     },
     statsContainer: {
         flexDirection: 'row',

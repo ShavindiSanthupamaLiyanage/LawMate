@@ -70,6 +70,7 @@ export const ENDPOINTS = {
         MEMBERSHIP_PAYMENT: (lawyerId: string) => `/lawyers/${lawyerId}/membership-payment`,
         PROFILE: '/lawyer/profile',
         UPDATE_PROFILE: '/lawyer/profile',
+        UPDATE_BY_USER_ID: (userId: string) => `/lawyers/${userId}`,
         CASES: '/lawyer/cases',
         CASE_DETAIL: (caseId: string) => `/lawyer/cases/${caseId}`,
         APPOINTMENTS: '/lawyer/appointments',
@@ -91,6 +92,8 @@ export const ENDPOINTS = {
         REGISTER: '/clients',
         PROFILE: '/client/profile',
         UPDATE_PROFILE: '/client/profile',
+        GET_BY_USER_ID: (userId: string) => `/clients/${userId}`,
+        UPDATE_BY_USER_ID: (userId: string) => `/clients/${userId}`,
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
         SUSPEND: (userId: string) => `/clients/suspend/${userId}`,
@@ -98,6 +101,9 @@ export const ENDPOINTS = {
 
     // Admin endpoints
     ADMIN: {
+        GET_BY_USER_ID: (userId: string) =>
+            `/admin-registration/get-admin-by-userId?userId=${encodeURIComponent(userId)}`,
+        UPDATE_BY_USER_ID: (userId: string) => `/admin-registration/${userId}`,
         USERS: '/admin/users',
         USER_COUNTS: '/users/counts',
         LAWYER_VERIFICATION: '/lawyer-verification/all',
