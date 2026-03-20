@@ -149,6 +149,7 @@ const ActivityCard: React.FC<{
         </View>
     );
 };
+
 const categoryColors: Record<string, string> = {
     Criminal: "#6D7CFF",
     Civil: "#FF8C86",
@@ -241,7 +242,7 @@ const ClientDashboard: React.FC = () => {
 
     return (
         <ClientLayout
-            userName="client"
+            userName="Client"
             onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
         >
             <View style={{ flex: 1 }}>
