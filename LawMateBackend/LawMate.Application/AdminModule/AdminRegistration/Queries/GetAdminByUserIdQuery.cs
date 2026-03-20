@@ -1,4 +1,4 @@
-﻿using LawMate.Application.Common.Interfaces;
+﻿﻿using LawMate.Application.Common.Interfaces;
 using LawMate.Domain.Common.Enums;
 using LawMate.Domain.DTOs;
 using LawMate.Domain.Entities.Auth;
@@ -53,6 +53,8 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Queries
                 UserId = admin.UserId,
                 FirstName = admin.FirstName,
                 LastName = admin.LastName,
+                UserRole = admin.UserRole,
+                Gender = admin.Gender,
                 Email = admin.Email,
                 NIC = admin.NIC,
                 ContactNumber = admin.ContactNumber,
@@ -60,6 +62,7 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Queries
                 RegistrationDate = admin.RegistrationDate,
                 LastLoginDate = admin.LastLoginDate,
                 State = admin.State,
+                ProfileImage = admin.ProfileImage,
                 CreatedBy = admin.CreatedBy,
                 CreatedAt = admin.CreatedAt,
                 ModifiedBy = admin.ModifiedBy,
@@ -69,4 +72,3 @@ namespace LawMate.Application.AdminModule.AdminRegistration.Queries
     }
 
 }
-
