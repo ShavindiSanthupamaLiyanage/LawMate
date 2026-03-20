@@ -30,8 +30,8 @@ export interface GetClientDto {
     state:             number;
     registrationDate:  string;
     profileImage:      string | null;
-    address:           number;
-    district:          string;
+    address:           string;
+    district:          number;
     prefferedLanguage: number;
 }
 
