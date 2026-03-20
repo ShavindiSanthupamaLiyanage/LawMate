@@ -24,14 +24,15 @@ public class GetBookingByIdQueryHandler
     {
         var result = await (
             from booking in _context.BOOKING
-            join client   in _context.USER_DETAIL
-                on booking.ClientId    equals client.UserId
-            join slot     in _context.TIMESLOT
-                on booking.TimeSlotId  equals slot.TimeSlotId
+            join client in _context.USER_DETAIL
+                on booking.ClientId   equals client.UserId
+            join lawyer in _context.USER_DETAIL
+                on booking.LawyerId   equals lawyer.UserId   // ← second join for lawyer name
+            join slot   in _context.TIMESLOT
+                on booking.TimeSlotId equals slot.TimeSlotId
             where booking.BookingId == request.BookingId
             select new GetAppointmentDto
             {
-                
                 // ── IDs ──────────────────────────────────────────────────
                 BookingId     = booking.BookingId,
                 AppointmentId = "APT-" + booking.BookingId.ToString().PadLeft(4, '0'),
@@ -41,21 +42,23 @@ public class GetBookingByIdQueryHandler
                 ClientName    = client.FirstName + " " + client.LastName,
                 Email         = client.Email ?? string.Empty,
                 ContactNumber = client.ContactNumber,
-              
+
+                // ── Lawyer ───────────────────────────────────────────────
+                LawyerName    = lawyer.FirstName + " " + lawyer.LastName,
 
                 // ── Date & Time ──────────────────────────────────────────
-                DateTime  = booking.ScheduledDateTime,              // date from BOOKING
-                StartTime = slot.StartTime.ToString("o"),           // start from TIMESLOT
-                EndTime   = slot.EndTime.ToString("o"),             // end from TIMESLOT
+                DateTime  = booking.ScheduledDateTime,
+                StartTime = slot.StartTime.ToString("o"),
+                EndTime   = slot.EndTime.ToString("o"),
                 Duration  = (int)((slot.EndTime - slot.StartTime).TotalMinutes),
 
-                // ── Mode — "Physical" or "Online" string ─────────────────
+                // ── Mode ─────────────────────────────────────────────────
                 Mode = booking.Mode == AppointmentMode.Physical
                            ? "Physical"
                            : "Online",
 
                 // ── Payment ──────────────────────────────────────────────
-                Price                = 2000,                        // always Rs.2000
+                Price                = 2000,
                 PaymentStatus        = booking.PaymentStatus,
                 PaymentStatusDisplay = booking.PaymentStatus == PaymentStatus.Paid
                                            ? "Verified Payment"
@@ -71,13 +74,15 @@ public class GetBookingByIdQueryHandler
                     : booking.BookingStatus == BookingStatus.Cancelled ? "Cancelled"
                     : "Pending",
 
-                Notes  = booking.IssueDescription,
-                
+                // ── Case & Notes ─────────────────────────────────────────
+                Notes    = booking.IssueDescription,
                 CaseType = booking.CaseType == LegalCategory.FamilyLaw   ? "Family Law"
                     : booking.CaseType == LegalCategory.CriminalLaw ? "Criminal Law"
                     : booking.CaseType == LegalCategory.PropertyLaw ? "Property Law"
                     : booking.CaseType == LegalCategory.Cyber       ? "Cyber"
                     : "General",
+
+                RejectionReason = booking.RejectionReason,
             }
         ).FirstOrDefaultAsync(cancellationToken);
 
