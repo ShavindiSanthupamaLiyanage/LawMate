@@ -3,7 +3,6 @@ name: LawMate CI/CD
 on:
   push:
     branches:
-      - development
       - qa
       - main
 
