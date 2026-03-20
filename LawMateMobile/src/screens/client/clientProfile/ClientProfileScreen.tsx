@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -6,7 +6,7 @@ import {
     ScrollView,
     TouchableOpacity,
     Image,
-    Alert as RNAlert,
+    ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +15,8 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Alert from '../../../components/Alert';
 import { AuthService } from '../../../services/authService';
+import apiClient from '../../../api/httpClient';
+import { ENDPOINTS } from '../../../config/api.config';
 
 interface MenuItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -27,20 +29,41 @@ interface MenuItemProps {
     onToggle?: () => void;
 }
 
-interface SubItemProps {
-    title: string;
-    onPress: () => void;
+interface ClientProfileApiData {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    registrationDate?: string | null;
+    profileImage?: string | null;
 }
 
-const SubMenuItem: React.FC<SubItemProps> = ({ title, onPress }) => (
-    <TouchableOpacity style={styles.subMenuItem} onPress={onPress} activeOpacity={0.7}>
-        <View style={styles.subMenuLeft}>
-            <View style={styles.dotIndicator} />
-            <Text style={styles.subMenuTitle}>{title}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-    </TouchableOpacity>
-);
+interface ClientProfileData {
+    name: string;
+    userId: string;
+    memberSince: string;
+    profileImage: string | null;
+}
+
+const toMemberSince = (registrationDate?: string | null): string => {
+    if (!registrationDate) {
+        return '-';
+    }
+
+    const parsed = new Date(registrationDate);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return '-';
+    }
+
+    return parsed.getFullYear().toString();
+};
+
+const toProfileData = (data: ClientProfileApiData): ClientProfileData => ({
+    name: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || '-',
+    userId: data.userId ?? '-',
+    memberSince: toMemberSince(data.registrationDate),
+    profileImage: data.profileImage ? `data:image/jpeg;base64,${data.profileImage}` : null,
+});
 
 const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, isLogout, hasSubItems, isExpanded, onToggle }) => (
     <>
@@ -66,26 +89,57 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, title, onPress, iconColor, is
 
 const ClientProfileScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-    const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
     const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [profileData, setProfileData] = useState<ClientProfileData>({
+        name: '-',
+        userId: '-',
+        memberSince: '-',
+        profileImage: null,
+    });
 
-    // TODO: Replace with actual API data
-    const profileData = {
-        name: 'Sarah Johnson',
-        userId: 'CLT 892456',
-        memberSince: '2023',
-        totalBookings: 12,
-        activeBookings: 3,
-        completedBookings: 9,
-        profileImage: null, // Set to image URL when available
-    };
+    useEffect(() => {
+        let isMounted = true;
 
-    const toggleExpand = (key: string) => {
-        setExpandedItems(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
+        const loadClientProfile = async () => {
+            try {
+                setLoading(true);
+                setErrorMessage(null);
+
+                const currentUser = await AuthService.getCurrentUser();
+                const userId = currentUser?.userId;
+
+                if (!userId) {
+                    throw new Error('User session not found. Please log in again.');
+                }
+
+                const response = await apiClient.get<ClientProfileApiData>(
+                    ENDPOINTS.CLIENT.GET_BY_USER_ID(userId)
+                );
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setProfileData(toProfileData(response.data));
+            } catch (error: any) {
+                if (isMounted) {
+                    setErrorMessage(error?.message ?? 'Failed to load profile data.');
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadClientProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleLogout = () => {
         setShowLogoutAlert(true);
@@ -160,6 +214,9 @@ const ClientProfileScreen: React.FC = () => {
                     <View style={styles.memberBadge}>
                         <Text style={styles.memberText}>Member since {profileData.memberSince}</Text>
                     </View>
+
+                    {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.sm }} />}
+                    {!loading && errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
                     {/* Stats */}
                     {/* <View style={styles.statsContainer}>
@@ -380,6 +437,9 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
         paddingTop: 110,
     },
+    loader: {
+        marginTop: spacing.sm,
+    },
     fixedHeader: {
         height: 80,
         flexDirection: 'row',
@@ -493,6 +553,12 @@ const styles = StyleSheet.create({
         fontSize: fontSize.sm,
         color: colors.textPrimary,
         fontWeight: fontWeight.medium,
+    },
+    errorText: {
+        color: colors.error,
+        fontSize: fontSize.sm,
+        textAlign: 'center',
+        marginTop: spacing.sm,
     },
     statsContainer: {
         flexDirection: 'row',

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, ScrollView, Text } from "react-native";
 import FloatingInput from "../../../components/FloatingInput";
-import DateInput from "../../../components/DateInput";
 import SelectInput from "../../../components/SelectInput";
 import { colors, spacing } from "../../../config/theme";
 import { AntDesign } from "@expo/vector-icons";
@@ -62,12 +61,6 @@ export default function PersonalDetailsScreen({ values, onChange }: Props) {
                 label="NIC"
                 value={values.nic}
                 onChangeText={(v) => onChange({ nic: v })}
-            />
-
-            <DateInput
-                label="Date of Birth"
-                value={values.dob}
-                onChange={(v) => onChange({ dob: v })}
             />
 
             <FloatingInput

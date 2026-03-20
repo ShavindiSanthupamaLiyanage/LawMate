@@ -9,7 +9,6 @@ import {
   Modal,
   FlatList,
   Platform,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -267,7 +266,7 @@ const AddAppointmentScreen: React.FC = () => {
 
       const duration = parseInt(form.duration.replace(" min", ""));
 
-      const response = await createManualBooking({
+      await createManualBooking({
         lawyerId,
         clientEmail: form.email.trim(),
         clientName: form.clientName.trim(),
