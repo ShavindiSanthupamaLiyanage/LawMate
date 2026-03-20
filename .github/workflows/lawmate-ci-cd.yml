@@ -1,0 +1,115 @@
+name: LawMate CI/CD
+
+on:
+  push:
+    branches:
+      - development
+      - qa
+      - main
+
+jobs:
+
+# -------------------------
+# BACKEND BUILD + TEST
+# -------------------------
+  backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Run xUnit Tests
+        run: dotnet test --no-build
+
+
+# -------------------------
+# BUILD REACT NATIVE APK
+# -------------------------
+  mobile:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: LawMateMobile
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LawMate-APK
+          path: LawMateMobile/android/app/build/outputs/apk/release/app-release.apk
+
+
+# -------------------------
+# DEPLOY TO AZURE (QA)
+# -------------------------
+  deploy-qa:
+    if: github.ref == 'refs/heads/qa'
+    needs: backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Publish .NET API
+        run: dotnet publish -c Release -o publish
+
+      - name: Deploy to Azure (QA)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: lawmate-api
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: ./publish
+
+
+# -------------------------
+# DEPLOY TO PRODUCTION
+# -------------------------
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    needs: backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Publish .NET API
+        run: dotnet publish -c Release -o publish
+
+      - name: Deploy to Azure (PROD)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: lawmate-api
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: ./publish
