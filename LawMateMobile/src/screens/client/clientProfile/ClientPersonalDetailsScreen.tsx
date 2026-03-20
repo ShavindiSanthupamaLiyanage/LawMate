@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import ClientLayout from '../../../components/ClientLayout';
-import apiClient from '../../../api/client';
+import apiClient from '../../../api/httpClient';
 import { AuthService } from '../../../services/authService';
 import { ENDPOINTS } from '../../../config/api.config';
 
