@@ -75,6 +75,7 @@ export const ENDPOINTS = {
         APPOINTMENTS: '/lawyer/appointments',
         CLIENTS: '/lawyer/clients',
         GET_BY_USER_ID: (userId: string) => `/lawyers/${userId}`,
+        GET_PROFILE: (lawyerId: string) => `/lawyers/${lawyerId}/profile`,  
     },
 
     KNOWLEDGE_HUB: {
@@ -94,6 +95,9 @@ export const ENDPOINTS = {
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
         SUSPEND: (userId: string) => `/clients/suspend/${userId}`,
+
+        LAWYER_SEARCH_DROPDOWNS: '/client/lawyers/dropdowns',
+        LAWYER_SEARCH:           '/client/lawyers/search',
     },
 
     // Admin endpoints
@@ -140,11 +144,12 @@ export const ENDPOINTS = {
           DELETE: (eventId: number) => `/lawyer-events/${eventId}`,
       },
   AVAILABILITY: {
-        GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
-        CREATE: "/availability",
-        UPDATE: (slotId: number) => `/availability/${slotId}`,
-        DELETE: (slotId: number) => `/availability/${slotId}`,
-  },
+    GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
+    GET_SLOT_BY_ID:   (slotId: number)   => `/availability/slots/${slotId}`,
+    CREATE:           "/availability",
+    UPDATE:           (slotId: number)   => `/availability/${slotId}`,
+    DELETE:           (slotId: number)   => `/availability/${slotId}`,
+},
 
     LAWYER_VERIFICATION: {
         ACCEPT: (userId: string) => `/lawyer-verification/${userId}/accept`,
