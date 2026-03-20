@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,11 +8,15 @@ import {
     Modal,
     TextInput,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import LawyerLayout from '../../../components/LawyerLayout';
+import apiClient from '../../../api/client';
+import { AuthService } from '../../../services/authService';
+import { ENDPOINTS } from '../../../config/api.config';
 
 interface EditModalProps {
     visible: boolean;
@@ -24,6 +28,10 @@ interface EditModalProps {
 
 const EditModal: React.FC<EditModalProps> = ({ visible, title, value, onClose, onSave }) => {
     const [tempValue, setTempValue] = useState(value);
+
+    useEffect(() => {
+        setTempValue(value);
+    }, [value, visible]);
 
     const handleSave = () => {
         if (tempValue.trim() === '') {
@@ -94,43 +102,187 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, onPress }) => (
     </TouchableOpacity>
 );
 
+interface LawyerApiData {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
+    nic?: string | null;
+    contactNumber?: string | null;
+    gender?: number | null;
+    bio?: string | null;
+    yearOfExperience?: number | null;
+    workingDistrict?: number | null;
+    areaOfPractice?: number | null;
+    officeContactNumber?: string | null;
+}
+
+interface PersonalData {
+    name: string;
+    address: string;
+    contactNumber: string;
+    emailAddress: string;
+    nic: string;
+    gender: string;
+}
+
+type EditableField = 'contactNumber' | 'gender';
+
+const toGenderLabel = (gender?: number | null): string => {
+    if (gender === 1) {
+        return 'Male';
+    }
+
+    if (gender === 2) {
+        return 'Female';
+    }
+
+    return '-';
+};
+
+const toGenderCode = (genderText: string): number | null => {
+    const normalized = genderText.trim().toLowerCase();
+
+    if (normalized === 'male') {
+        return 1;
+    }
+
+    if (normalized === 'female') {
+        return 2;
+    }
+
+    return null;
+};
+
+const toPersonalData = (data: LawyerApiData): PersonalData => ({
+    name: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || '-',
+    address: '-',
+    contactNumber: data.contactNumber ?? '-',
+    emailAddress: data.email ?? '-',
+    nic: data.nic ?? '-',
+    gender: toGenderLabel(data.gender),
+});
+
 const LawyerPersonalDetailsScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-
-    // TODO: Replace with actual API data
-    const [personalData, setPersonalData] = useState({
-        name: 'Alex Motor',
-        address: 'Maple Terrace, Pitipana North, Homagama',
-        contactNumber: '07231253',
-        emailAddress: 'alexmotor@gmail.com',
-        nic: '200350500030',
-        dateOfBirth: '05/03/2000',
-        gender: 'Male',
-        nationality: 'Sri Lankan',
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [apiData, setApiData] = useState<LawyerApiData | null>(null);
+    const [personalData, setPersonalData] = useState<PersonalData>({
+        name: '-',
+        address: '-',
+        contactNumber: '-',
+        emailAddress: '-',
+        nic: '-',
+        gender: '-',
     });
-
     const [editModalVisible, setEditModalVisible] = useState(false);
-    const [editingField, setEditingField] = useState<keyof typeof personalData | null>(null);
+    const [editingField, setEditingField] = useState<EditableField | null>(null);
 
-    const openEditModal = (field: keyof typeof personalData) => {
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadLawyerProfile = async () => {
+            try {
+                setLoading(true);
+                setErrorMessage(null);
+
+                const currentUser = await AuthService.getCurrentUser();
+                const userId = currentUser?.userId;
+
+                if (!userId) {
+                    throw new Error('User session not found. Please log in again.');
+                }
+
+                const response = await apiClient.get<LawyerApiData>(ENDPOINTS.LAWYER.GET_BY_USER_ID(userId));
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setApiData(response.data);
+                setPersonalData(toPersonalData(response.data));
+            } catch (error: any) {
+                if (isMounted) {
+                    setErrorMessage(error?.message ?? 'Failed to load personal details.');
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadLawyerProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const openEditModal = (field: EditableField) => {
         setEditingField(field);
         setEditModalVisible(true);
     };
 
-    const handleSaveField = (newValue: string) => {
-        if (editingField) {
-            setPersonalData(prev => ({
-                ...prev,
-                [editingField]: newValue,
-            }));
-            // TODO: Call API to update the field
-            // Example: await updateLawyerProfile({ [editingField]: newValue });
+    const handleSaveField = async (newValue: string) => {
+        if (!editingField || !apiData) {
+            return;
+        }
+
+        const sanitizedValue = newValue.trim();
+        const previousPersonalData = personalData;
+        const updatedPersonalData: PersonalData = {
+            ...personalData,
+            [editingField]: sanitizedValue,
+        };
+
+        if (editingField === 'gender') {
+            const parsedGender = toGenderCode(sanitizedValue);
+
+            if (!parsedGender) {
+                Alert.alert('Invalid value', 'Gender should be Male or Female.');
+                return;
+            }
+        }
+
+        setPersonalData(updatedPersonalData);
+
+        try {
+            const updatedApiData: LawyerApiData = {
+                ...apiData,
+                contactNumber:
+                    editingField === 'contactNumber'
+                        ? sanitizedValue
+                        : apiData.contactNumber,
+                gender:
+                    editingField === 'gender'
+                        ? toGenderCode(sanitizedValue)
+                        : apiData.gender,
+            };
+
+            await apiClient.put(ENDPOINTS.LAWYER.UPDATE_BY_USER_ID(updatedApiData.userId), {
+                userId: updatedApiData.userId,
+                contactNumber: updatedApiData.contactNumber ?? '',
+                gender: updatedApiData.gender,
+                bio: updatedApiData.bio ?? '',
+                yearOfExperience: updatedApiData.yearOfExperience ?? 0,
+                workingDistrict: updatedApiData.workingDistrict ?? 0,
+                areaOfPractice: updatedApiData.areaOfPractice ?? 0,
+                officeContactNumber: updatedApiData.officeContactNumber ?? '',
+            });
+
+            setApiData(updatedApiData);
+            setPersonalData(toPersonalData(updatedApiData));
+        } catch (error: any) {
+            setPersonalData(previousPersonalData);
+            Alert.alert('Update failed', error?.message ?? 'Failed to update profile. Please try again.');
         }
     };
 
     return (
         <LawyerLayout
-            title="Personal Detailsss"
+            title="Personal Details"
             showBackButton
             onBackPress={() => navigation.goBack()}
             hideRightSection
@@ -142,55 +294,52 @@ const LawyerPersonalDetailsScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                <View style={styles.card}>
-                    <DetailRow
-                        label="Name"
-                        value={personalData.name}
-                        onPress={() => openEditModal('name')}
-                    />
-                    <DetailRow
-                        label="Address"
-                        value={personalData.address}
-                        onPress={() => openEditModal('address')}
-                    />
-                    <DetailRow
-                        label="Contact Number"
-                        value={personalData.contactNumber}
-                        onPress={() => openEditModal('contactNumber')}
-                    />
-                    <DetailRow
-                        label="Email Address"
-                        value={personalData.emailAddress}
-                        onPress={() => openEditModal('emailAddress')}
-                    />
-                    <DetailRow
-                        label="NIC"
-                        value={personalData.nic}
-                        onPress={() => openEditModal('nic')}
-                    />
-                    <DetailRow
-                        label="Date of Birth"
-                        value={personalData.dateOfBirth}
-                        onPress={() => openEditModal('dateOfBirth')}
-                    />
-                    <DetailRow
-                        label="Gender"
-                        value={personalData.gender}
-                        onPress={() => openEditModal('gender')}
-                    />
-                    <DetailRow
-                        label="Nationality"
-                        value={personalData.nationality}
-                        onPress={() => openEditModal('nationality')}
-                    />
-                </View>
+                {loading ? (
+                    <ActivityIndicator color={colors.primary} style={{ margin: 20 }} />
+                ) : errorMessage ? (
+                    <View style={styles.infoBox}>
+                        <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
+                        <Text style={styles.infoText}>{errorMessage}</Text>
+                    </View>
+                ) : (
+                    <>
+                        <View style={styles.card}>
+                            <DetailRow
+                                label="Name"
+                                value={personalData.name}
+                            />
+                            <DetailRow
+                                label="Address"
+                                value={personalData.address}
+                            />
+                            <DetailRow
+                                label="Contact Number"
+                                value={personalData.contactNumber}
+                                onPress={() => openEditModal('contactNumber')}
+                            />
+                            <DetailRow
+                                label="Email Address"
+                                value={personalData.emailAddress}
+                            />
+                            <DetailRow
+                                label="NIC"
+                                value={personalData.nic}
+                            />
+                            <DetailRow
+                                label="Gender"
+                                value={personalData.gender}
+                                onPress={() => openEditModal('gender')}
+                            />
+                        </View>
 
-                <View style={styles.infoBox}>
-                    <Ionicons name="information-circle-outline" size={20} color={colors.info} />
-                    <Text style={styles.infoText}>
-                        To update your personal information, tap on any field above.
-                    </Text>
-                </View>
+                        <View style={styles.infoBox}>
+                            <Ionicons name="information-circle-outline" size={20} color={colors.info} />
+                            <Text style={styles.infoText}>
+                                Contact number and gender can be updated here.
+                            </Text>
+                        </View>
+                    </>
+                )}
             </ScrollView>
 
             <EditModal

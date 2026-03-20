@@ -27,9 +27,7 @@ interface PersonalData {
     contactNumber: string;
     emailAddress: string;
     nic: string;
-    dateOfBirth: string;
     gender: string;
-    nationality: string;
 }
 
 /* ---------- EDIT MODAL ---------- */
@@ -137,9 +135,7 @@ const ClientPersonalDetailsScreen: React.FC = () => {
         contactNumber: '0771234567',
         emailAddress: 'sarah.johnson@email.com',
         nic: '199856789012',
-        dateOfBirth: '15/08/1998',
         gender: 'Female',
-        nationality: 'Sri Lankan',
     });
 
     /* ---------- OPEN EDIT ---------- */
@@ -219,19 +215,9 @@ const ClientPersonalDetailsScreen: React.FC = () => {
                             onPress={!viewOnly ? () => openEditModal('nic') : undefined}
                         />
                         <DetailRow
-                            label="Date of Birth"
-                            value={personalData.dateOfBirth}
-                            onPress={!viewOnly ? () => openEditModal('dateOfBirth') : undefined}
-                        />
-                        <DetailRow
                             label="Gender"
                             value={personalData.gender}
                             onPress={!viewOnly ? () => openEditModal('gender') : undefined}
-                        />
-                        <DetailRow
-                            label="Nationality"
-                            value={personalData.nationality}
-                            onPress={!viewOnly ? () => openEditModal('nationality') : undefined}
                         />
                     </View>
                 </ScrollView>
