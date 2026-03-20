@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Input from '../../../components/Input';
 import { useNavigation } from '@react-navigation/native';
+import { KnowledgeHubService } from "../../../services/knowledgeHubService";
+import { useToast } from '../../../context/ToastContext';
 import InitialTopNavbar from '../../../components/InitialTopNavbar';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 
@@ -11,76 +13,76 @@ const AddNewArticle: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { showSuccess, showError } = useToast();
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!title.trim() || !content.trim()) {
-      Alert.alert('Validation', 'Please fill all fields');
+      showError("Please fill all fields");
       return;
     }
+    setLoading(true);
 
-    console.log('Saved Article:', { title, content });
-    navigation.goBack();
+    try {
+      await KnowledgeHubService.createArticle({ title, content }); // only once
+      showSuccess("Article published successfully!");
+      setTimeout(() => navigation.goBack(), 2000);
+    } catch (error: any) {
+      console.log("Create Article Error:", error?.response?.data);
+      showError("Failed to create article");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCancel = () => {
-    navigation.goBack();
-  };
+ return (
+  <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
 
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <InitialTopNavbar
+        title="Add New Article "
+        onBack={() => navigation.goBack()}
+        showLogo={false}
+      />
+    </View>
 
-  return (
-    <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
-      <View style={styles.page}>
-        <InitialTopNavbar
-          title="Add New Article"
-          onBack={() => navigation.goBack()}
-          showLogo={false}
-        />
+    <ScrollView contentContainerStyle={styles.container}>
+      <Input
+        label="Article Title"
+        value={title}
+        onChangeText={setTitle}
+        placeholder="Enter article title"
+      />
+
+      <Input
+        label="Article Content"
+        value={content}
+        onChangeText={setContent}
+        placeholder="Enter article content"
+        multiline
+        style={styles.textArea}
+      />
+
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={[styles.publishBtn, loading && { opacity: 0.6 }]}
+          onPress={handlePublish}
+          disabled={loading}
+        >
+          <Text style={styles.publishText}>
+            {loading ? "Publishing..." : "Publish"}
+          </Text>
+        </TouchableOpacity>
       </View>
+    </ScrollView>
 
-        <ScrollView contentContainerStyle={styles.container}>
-          <Input
-            label="Article Title"
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Enter article title"
-          />
-
-          <Input
-            label="Article Content"
-            value={content}
-            onChangeText={setContent}
-            placeholder="Enter article content"
-            multiline
-            style={styles.textArea}
-          />
-
-      
-          {/* Cancel and Publish Buttons */}
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={handleCancel}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.publishBtn}
-              onPress={handlePublish}
-            >
-              <Text style={styles.publishText}>Publish</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-
-    </ScreenWrapper>
-  );
+  </ScreenWrapper>
+);
+    
 };
 
 const styles = StyleSheet.create({
-    container: {
-    padding: spacing.lg,
-  },
+  container: { padding: spacing.lg },
 
   textArea: {
     height: 340,
@@ -96,38 +98,17 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
 
-  uploadWrapper: {
-    marginBottom: spacing.lg,
-    alignItems: 'center',
-  },
-
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: spacing.md,
-  },
-
-  cancelBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    paddingVertical: spacing.md,
-borderRadius: 999,
-    alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-
-  cancelText: {
-    color: colors.primary,
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
+    marginTop: spacing.md
   },
 
   publishBtn: {
     flex: 1,
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
-borderRadius: 999,
+    borderRadius: 999,
     alignItems: 'center',
     marginLeft: spacing.sm,
   },
@@ -135,12 +116,7 @@ borderRadius: 999,
   publishText: {
     color: colors.white,
     fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
-  },
-
-  page: {
-    flex: 1,
-    backgroundColor: colors.background,
+    fontWeight: fontWeight.semibold
   },
 });
 

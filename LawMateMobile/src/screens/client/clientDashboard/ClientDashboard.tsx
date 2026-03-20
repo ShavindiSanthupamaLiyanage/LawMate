@@ -10,9 +10,6 @@ import { ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-/* ----------------------------- */
-/* Donut chart helpers (SVG)     */
-/* ----------------------------- */
 type DonutItem = { label: string; value: number; color: string };
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
@@ -161,8 +158,6 @@ const ClientDashboard: React.FC = () => {
 
     return (
         <ClientLayout
-            // title="Dashboard"
-            userName="Kavindi Gimsara"
             onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
         >
             <View style={{ flex: 1 }}>
@@ -180,9 +175,6 @@ const ClientDashboard: React.FC = () => {
                             end={{ x: 1, y: 0 }}
                             style={styles.heroCard}
                         >
-                            <Text style={styles.heroSmall}>Good Morning</Text>
-                            <Text style={styles.heroName}>Kavindi Gimsara</Text>
-
                             <View style={styles.heroStatsRow}>
                                 <View style={[styles.heroStatTile, { backgroundColor: "#BFD9FF" }]}>
                                     <Text style={styles.heroStatNumber}>1234</Text>
@@ -294,7 +286,7 @@ const styles = StyleSheet.create({
     heroStatsRow: {
         flexDirection: "row",
         gap: spacing.md,
-        marginTop: spacing.lg,
+        marginTop: spacing.xs,
     },
     heroStatTile: {
         flex: 1,

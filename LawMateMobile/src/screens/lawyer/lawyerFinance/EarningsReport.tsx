@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator } from "react-native";
 
 import ScreenWrapper from "../../../components/ScreenWrapper";
 import InitialTopNavbar from "../../../components/InitialTopNavbar";
@@ -7,60 +7,49 @@ import InitialTopNavbar from "../../../components/InitialTopNavbar";
 import { colors, spacing, fontSize, fontWeight, borderRadius } from "../../../config/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LawyerFinanceService } from "../../../services/lawyerFinanceService";
+import { LawyerEarningsReportDto } from "../../../interfaces/lawyerFinance.interface";
 
-type FilterMode = "THIS_MONTH" | "CUSTOM";
+type FilterMode = "THIS_MONTH" | "LAST_MONTH" | "THIS_WEEK";
+
+const formatLKR = (value: number) =>
+    `LKR ${value.toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
+
+const PRESET_MAP: Record<FilterMode, "thismonth" | "lastmonth" | "thisweek"> = {
+    THIS_MONTH: "thismonth",
+    LAST_MONTH: "lastmonth",
+    THIS_WEEK: "thisweek",
+};
 
 export default function EarningsReport({ navigation }: any) {
     const [mode, setMode] = useState<FilterMode>("THIS_MONTH");
+    const [report, setReport] = useState<LawyerEarningsReportDto | null>(null);
+    const [loading, setLoading] = useState(true);
     const insets = useSafeAreaInsets();
 
-    // TEMP dummy data (later replace with API results)
-    const report = useMemo(() => {
-        if (mode === "CUSTOM") {
-            return {
-                overviewBars: [
-                    { label: "LKR 29,000.00", value: 29000 },
-                    { label: "LKR 21,000.00", value: 21000 },
-                    { label: "LKR 20,000.00", value: 20000 },
-                ],
-                info: {
-                    totalSessions: "1000",
-                    totalEarnings: "LKR 100,000.00",
-                    verifiedThisMonth: "LKR 10,000.00",
-                    pending: "LKR 12,000.00",
-                },
-                topClients: [
-                    { name: "John Silva", amount: "LKR 15,200.00" },
-                    { name: "Maya Perera", amount: "LKR 10,000.00" },
-                    { name: "Alex Fernando", amount: "LKR 10,000.00" },
-                    { name: "Hasara Moris", amount: "LKR 12,000.00" },
-                ],
-            };
+    const fetchReport = useCallback(async (selectedMode: FilterMode) => {
+        try {
+            setLoading(true);
+            const data = await LawyerFinanceService.getReport({ preset: PRESET_MAP[selectedMode] });
+            setReport(data);
+        } catch (e) {
+            console.error("Failed to load earnings report", e);
+        } finally {
+            setLoading(false);
         }
+    }, []);
 
-        return {
-            overviewBars: [
-                { label: "LKR 29,000.00", value: 29000 },
-                { label: "LKR 21,000.00", value: 21000 },
-                { label: "LKR 20,000.00", value: 20000 },
-            ],
-            info: {
-                totalSessions: "LKR 15,200.00",
-                totalEarnings: "LKR 100,000.00",
-                verifiedThisMonth: "LKR 10,000.00",
-                pending: "LKR 12,000.00",
-            },
-            topClients: [
-                { name: "John Silva", amount: "LKR 15,200.00" },
-                { name: "Maya Perera", amount: "LKR 10,000.00" },
-                { name: "Alex Fernando", amount: "LKR 10,000.00" },
-                { name: "Hasara Moris", amount: "LKR 12,000.00" },
-            ],
-        };
-    }, [mode]);
+    useEffect(() => { fetchReport(mode); }, [mode, fetchReport]);
 
-    const maxBar = Math.max(...report.overviewBars.map((b) => b.value));
+    const overviewBars = report
+        ? [
+            { label: formatLKR(report.verifiedAmount), value: report.verifiedAmount },
+            { label: formatLKR(report.pendingAmount), value: report.pendingAmount },
+            { label: formatLKR(report.transferredAmount), value: report.transferredAmount },
+        ]
+        : [];
 
+    const maxBar = overviewBars.length > 0 ? Math.max(...overviewBars.map((b) => b.value), 1) : 1;
 
     const TAB_BAR_HEIGHT = -20;
     const bottomSpace = spacing.xxl + insets.bottom + TAB_BAR_HEIGHT + 20;
@@ -74,80 +63,85 @@ export default function EarningsReport({ navigation }: any) {
                     showLogo={false}
                 />
 
-                {/* ✅ SCROLL + ✅ bottom padding space */}
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={[styles.content, { paddingBottom: bottomSpace }]}
                 >
                     {/* Filter row */}
                     <View style={styles.filterRow}>
-                        <Pressable
-                            style={[styles.filterBtn, mode === "THIS_MONTH" && styles.filterBtnActive]}
-                            onPress={() => setMode("THIS_MONTH")}
-                        >
-                            <Text style={[styles.filterText, mode === "THIS_MONTH" && styles.filterTextActive]}>
-                                This Month
-                            </Text>
-                            <Ionicons
-                                name="chevron-down"
-                                size={16}
-                                color={mode === "THIS_MONTH" ? colors.primary : colors.textSecondary}
-                            />
-                        </Pressable>
-
-                        <Pressable
-                            style={[styles.filterBtn, mode === "CUSTOM" && styles.filterBtnActive]}
-                            onPress={() => setMode("CUSTOM")}
-                        >
-                            <Text style={[styles.filterText, mode === "CUSTOM" && styles.filterTextActive]}>
-                                Custom
-                            </Text>
-                            <Ionicons
-                                name="calendar-outline"
-                                size={16}
-                                color={mode === "CUSTOM" ? colors.primary : colors.textSecondary}
-                            />
-                        </Pressable>
-                    </View>
-
-                    {/* Earnings Overview */}
-                    <View style={styles.card}>
-                        <Text style={styles.cardTitle}>Earnings Overview</Text>
-
-                        {report.overviewBars.map((b, idx) => {
-                            const w = (b.value / maxBar) * 100;
-                            return (
-                                <View key={idx} style={styles.barRow}>
-                                    <View style={styles.barTrack}>
-                                        <View style={[styles.barFill, { width: `${w}%` }]} />
-                                    </View>
-                                    <Text style={styles.barLabel}>{b.label}</Text>
-                                </View>
-                            );
-                        })}
-                    </View>
-
-                    {/* Info */}
-                    <View style={styles.card}>
-                        <Text style={styles.cardTitle}>Info</Text>
-
-                        <InfoRow label="Total Sessions" value={report.info.totalSessions} />
-                        <InfoRow label="Total Earnings" value={report.info.totalEarnings} />
-                        <InfoRow label="Verified this month" value={report.info.verifiedThisMonth} />
-                        <InfoRow label="Pending" value={report.info.pending} />
-                    </View>
-
-                    {/* Top Clients */}
-                    <View style={styles.card}>
-                        <Text style={styles.cardTitle}>Top Clients (By Income)</Text>
-
-                        {report.topClients.map((c, idx) => (
-                            <View key={idx} style={styles.clientRow}>
-                                <Text style={styles.clientName}>{c.name}</Text>
-                                <Text style={styles.clientAmount}>{c.amount}</Text>
-                            </View>
+                        {(["THIS_MONTH", "LAST_MONTH", "THIS_WEEK"] as FilterMode[]).map((m) => (
+                            <Pressable
+                                key={m}
+                                style={[styles.filterBtn, mode === m && styles.filterBtnActive]}
+                                onPress={() => setMode(m)}
+                            >
+                                <Text style={[styles.filterText, mode === m && styles.filterTextActive]}>
+                                    {m === "THIS_MONTH" ? "This Month" : m === "LAST_MONTH" ? "Last Month" : "This Week"}
+                                </Text>
+                                <Ionicons
+                                    name="chevron-down"
+                                    size={14}
+                                    color={mode === m ? colors.primary : colors.textSecondary}
+                                />
+                            </Pressable>
                         ))}
                     </View>
+
+                    {loading ? (
+                        <View style={styles.centered}>
+                            <ActivityIndicator size="large" color={colors.primary} />
+                        </View>
+                    ) : (
+                        <>
+                            {/* Earnings Overview */}
+                            <View style={styles.card}>
+                                <Text style={styles.cardTitle}>Earnings Overview</Text>
+                                {[
+                                    { label: "Verified", bar: overviewBars[0] },
+                                    { label: "Pending", bar: overviewBars[1] },
+                                    { label: "Transferred", bar: overviewBars[2] },
+                                ].map(({ label, bar }, idx) => (
+                                    <View key={idx} style={styles.barRow}>
+                                        <Text style={styles.barCategoryLabel}>{label}</Text>
+                                        <View style={styles.barTrack}>
+                                            <View
+                                                style={[
+                                                    styles.barFill,
+                                                    { width: `${((bar?.value ?? 0) / maxBar) * 100}%` },
+                                                ]}
+                                            />
+                                        </View>
+                                        <Text style={styles.barLabel}>{bar?.label ?? "LKR 0.00"}</Text>
+                                    </View>
+                                ))}
+                            </View>
+
+                            {/* Info */}
+                            <View style={styles.card}>
+                                <Text style={styles.cardTitle}>Info</Text>
+                                <InfoRow label="Total Sessions" value={String(report?.totalSessions ?? 0)} />
+                                <InfoRow label="Total Earnings" value={formatLKR(report?.totalEarnings ?? 0)} />
+                                <InfoRow label="Verified Amount" value={formatLKR(report?.verifiedAmount ?? 0)} />
+                                <InfoRow label="Pending" value={formatLKR(report?.pendingAmount ?? 0)} />
+                                <InfoRow label="Transferred" value={formatLKR(report?.transferredAmount ?? 0)} />
+                            </View>
+
+                            {/* Top Clients */}
+                            <View style={styles.card}>
+                                <Text style={styles.cardTitle}>Top Clients (By Income)</Text>
+                                {(report?.topClients ?? []).length === 0 ? (
+                                    <Text style={styles.empty}>No data available.</Text>
+                                ) : (
+                                    report?.topClients.map((c, idx) => (
+                                        <View key={idx} style={styles.clientRow}>
+                                            <Text style={styles.clientName}>{c.clientId}</Text>
+                                            <Text style={styles.clientAmount}>{formatLKR(c.amount)}</Text>
+                                        </View>
+                                    ))
+                                )}
+                            </View>
+                        </>
+                    )}
                 </ScrollView>
             </View>
         </ScreenWrapper>
@@ -166,6 +160,11 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
     page: { flex: 1, backgroundColor: colors.background },
 
+    centered: {
+        paddingVertical:
+        spacing.xxl,
+        alignItems: "center"
+    },
     content: {
         paddingHorizontal: spacing.md,
         paddingTop: spacing.md,
@@ -219,6 +218,13 @@ const styles = StyleSheet.create({
         fontWeight: fontWeight.semibold,
         marginBottom: spacing.sm,
     },
+
+    barCategoryLabel: {
+        width: 70,
+        fontSize:
+        fontSize.xs,
+        color: colors.textSecondary }
+    ,
 
     barRow: {
         flexDirection: "row",
@@ -283,5 +289,12 @@ const styles = StyleSheet.create({
         fontSize: fontSize.sm,
         color: colors.textPrimary,
         fontWeight: fontWeight.semibold,
+    },
+
+    empty: {
+        fontSize: fontSize.sm,
+        color: colors.textSecondary,
+        textAlign: "center",
+        paddingVertical: spacing.md
     },
 });

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import React, {useCallback, useEffect, useState} from "react";
+import {View, Text, StyleSheet, Pressable, ActivityIndicator} from "react-native";
 
 import LawyerLayout from "../../../components/LawyerLayout";
 import Button from "../../../components/Button";
@@ -19,92 +19,94 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LawyerFinanceStackParamList } from "./LawyerFinanceStack";
 import {LawyerStackParamList} from "../../../types";
+import {LawyerFinanceDashboardDto, LawyerFinanceTransactionItemDto} from "../../../interfaces/lawyerFinance.interface";
+import {LawyerFinanceService} from "../../../services/lawyerFinanceService";
 
-type TxStatus = "Verified Payment" | "Pending Verification";
+const formatLKR = (value: number) =>
+    `LKR ${value.toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
 
-const transactions: TransactionDetails[] = [
-    {
-        id: "1",
-        title: "John Silva | APT-0500",
-        date: "12 Nov 2025",
-        status: "Verified Payment" as TxStatus,
-        amount: 5000,
-    },
-    {
-        id: "2",
-        title: "John Silva | APT-0500",
-        date: "12 Nov 2025",
-        status: "Pending Verification" as TxStatus,
-        amount: 5000,
-    },
-    {
-        id: "3",
-        title: "John Silva | APT-0500",
-        date: "12 Nov 2025",
-        status: "Verified Payment" as TxStatus,
-        amount: 5000,
-    },
-    {
-        id: "4",
-        title: "John Silva | APT-0500",
-        date: "12 Nov 2025",
-        status: "Verified Payment" as TxStatus,
-        amount: 5000,
-    },
-];
-
-const formatLKR = (value: number) => `LKR ${value.toFixed(2)}`;
-
-const getStatusChipStyle = (status: TxStatus) => {
-    if (status === "Verified Payment") {
-        return { bg: "#E7F8EE", text: "#16794C" };
-    }
-    return { bg: "#FFF4D6", text: "#8A5A00" };
+const getStatusChipStyle = (status: string) => {
+    if (status === "Verified Payment") return { bg: "#E7F8EE", text: "#16794C" };
+    if (status === "Pending Verification") return { bg: "#FFF4D6", text: "#8A5A00" };
+    return { bg: "#FFE4E4", text: "#B91C1C" };
 };
 
+const toTransactionDetails = (item: LawyerFinanceTransactionItemDto): TransactionDetails => ({
+    id: String(item.paymentId),
+    title: `${item.clientDisplay} | ${item.referenceNo}`,
+    date: new Date(item.transactionDate).toLocaleDateString("en-GB", {
+        day: "2-digit", month: "short", year: "numeric",
+    }),
+    status: item.status as TransactionDetails["status"],
+    amount: item.amount,
+});
+
 export default function FinanceMain() {
-    // ✅ MUST use LawyerFinanceStackParamList (NOT RootStackParamList)
     const navigation =
         useNavigation<NativeStackNavigationProp<LawyerFinanceStackParamList>>();
 
     const parentNavigation =
         useNavigation<NativeStackNavigationProp<LawyerStackParamList>>();
 
+    const [dashboard, setDashboard] = useState<LawyerFinanceDashboardDto | null>(null);
+    const [loading, setLoading] = useState(true);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [selectedTx, setSelectedTx] = useState<TransactionDetails | null>(null);
+
+    const fetchDashboard = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await LawyerFinanceService.getDashboard();
+            setDashboard(data);
+        } catch (e) {
+            console.error("Failed to load finance dashboard", e);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+
 
     const openSheet = (tx: TransactionDetails) => {
         setSelectedTx(tx);
         setSheetOpen(true);
     };
 
+    if (loading) {
+        return (
+            <LawyerLayout title="Finance Details"
+                          onProfilePress={() => parentNavigation.navigate("LawyerProfile")}>
+                <View style={styles.centered}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            </LawyerLayout>
+        );
+    }
+
     return (
-        <LawyerLayout userName="Kavindi Dilhara"
-                      onProfilePress={() => parentNavigation.navigate('LawyerProfile')}
-        >
+        <LawyerLayout title="Finance Details"
+                      onProfilePress={() => parentNavigation.navigate("LawyerProfile")}>
             <View style={styles.wrapper}>
                 {/* Earning Summary Card */}
                 <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Earning Summery</Text>
+                    <Text style={styles.cardTitle}>Earning Summary</Text>
 
                     <View style={styles.row}>
                         <Text style={styles.label}>Total Earnings</Text>
-                        <Text style={styles.value}>{formatLKR(152000)}</Text>
+                        <Text style={styles.value}>{formatLKR(dashboard?.totalEarnings ?? 0)}</Text>
                     </View>
-
                     <View style={styles.row}>
                         <Text style={styles.label}>This Month</Text>
-                        <Text style={styles.value}>{formatLKR(100000)}</Text>
+                        <Text style={styles.value}>{formatLKR(dashboard?.thisMonth ?? 0)}</Text>
                     </View>
-
                     <View style={styles.row}>
                         <Text style={styles.label}>Pending Verification</Text>
-                        <Text style={styles.value}>{formatLKR(10000)}</Text>
+                        <Text style={styles.value}>{formatLKR(dashboard?.pendingVerification ?? 0)}</Text>
                     </View>
-
                     <View style={[styles.row, styles.rowLast]}>
                         <Text style={styles.label}>Transferred to Bank</Text>
-                        <Text style={styles.value}>{formatLKR(120000)}</Text>
+                        <Text style={styles.value}>{formatLKR(dashboard?.transferredToBank ?? 0)}</Text>
                     </View>
 
                     <Button
@@ -120,44 +122,29 @@ export default function FinanceMain() {
                     <Text style={styles.sectionTitle}>Recent Transactions</Text>
                 </View>
 
-                {transactions.map((tx) => {
+                {(dashboard?.recentTransactions ?? []).map((tx) => {
+                    const item = toTransactionDetails(tx);
                     const chip = getStatusChipStyle(tx.status);
-
                     return (
-                        <Pressable
-                            key={tx.id}
-                            style={styles.txCard}
-                            onPress={() => openSheet(tx)}
-                        >
+                        <Pressable key={item.id} style={styles.txCard} onPress={() => openSheet(item)}>
                             <View style={styles.txTopRow}>
-                                <Text style={styles.txTitle}>{tx.title}</Text>
-                                <Text style={styles.txDate}>{tx.date}</Text>
+                                <Text style={styles.txTitle}>{item.title}</Text>
+                                <Text style={styles.txDate}>{item.date}</Text>
                             </View>
-
                             <View style={styles.txBottomRow}>
                                 <View style={[styles.chip, { backgroundColor: chip.bg }]}>
-                                    <Text style={[styles.chipText, { color: chip.text }]}>
-                                        {tx.status}
-                                    </Text>
+                                    <Text style={[styles.chipText, { color: chip.text }]}>{tx.status}</Text>
                                 </View>
-
-                                <Text style={styles.txAmount}>
-                                    {`LKR ${tx.amount.toLocaleString()}.00`}
-                                </Text>
+                                <Text style={styles.txAmount}>{formatLKR(tx.amount)}</Text>
                             </View>
                         </Pressable>
                     );
                 })}
 
-                {/* View All */}
-                <Pressable
-                    onPress={() => navigation.navigate("ViewTransactions")}
-                    style={styles.viewAllWrap}
-                >
+                <Pressable onPress={() => navigation.navigate("ViewTransactions")} style={styles.viewAllWrap}>
                     <Text style={styles.viewAllText}>VIEW ALL</Text>
                 </Pressable>
 
-                {/* Bottom Sheet */}
                 <TransactionDetailsSheet
                     visible={sheetOpen}
                     item={selectedTx}
@@ -169,6 +156,12 @@ export default function FinanceMain() {
 }
 
 const styles = StyleSheet.create({
+    centered: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+
     wrapper: {
         paddingHorizontal: spacing.md,
         paddingTop: spacing.md,

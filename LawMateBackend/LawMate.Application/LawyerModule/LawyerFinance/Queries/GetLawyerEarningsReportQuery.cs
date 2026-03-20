@@ -89,9 +89,13 @@ public class GetLawyerEarningsReportQueryHandler
 
         return new LawyerEarningsReportDto
         {
-            TotalSessions = payments.Count,
+            TotalSessions = payments.Count(x =>
+                x.VerificationStatus == VerificationStatus.Verified ||
+                x.VerificationStatus == VerificationStatus.Pending),
+
             TotalEarnings = payments
-                .Where(x => x.VerificationStatus == VerificationStatus.Verified)
+                .Where(x => x.VerificationStatus == VerificationStatus.Verified ||
+                    x.VerificationStatus == VerificationStatus.Pending)
                 .Sum(x => (decimal)x.LawyerFee),
 
             VerifiedAmount = payments
@@ -99,11 +103,13 @@ public class GetLawyerEarningsReportQueryHandler
                 .Sum(x => (decimal)x.LawyerFee),
 
             PendingAmount = payments
-                .Where(x => x.VerificationStatus == VerificationStatus.Pending)
+                .Where(x => x.VerificationStatus == VerificationStatus.Verified && 
+                            x.IsPaid == false)
                 .Sum(x => (decimal)x.LawyerFee),
 
             TransferredAmount = payments
-                .Where(x => x.IsPaid)
+                .Where(x => x.VerificationStatus == VerificationStatus.Verified && 
+                            x.IsPaid)
                 .Sum(x => (decimal)x.LawyerFee),
 
             TopClients = topClients

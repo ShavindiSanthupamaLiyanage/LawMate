@@ -3,6 +3,7 @@ import { FlatList } from 'react-native';
 import LawyerLayout from '../../../components/LawyerLayout';
 import RequestTabs from './RequestTabs';
 import RequestCard from './RequestCard';
+import {useNavigation} from "@react-navigation/native";
 
 type Request = {
   id: string;
@@ -32,6 +33,8 @@ const REQUEST_DATA: Request[] = [
 const LawyerRequests: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'Pending' | 'Confirmed' | 'Accepted' | 'Rejected'>('Pending');
 
+  const navigation = useNavigation<any>();
+
   const filteredRequests = REQUEST_DATA.filter(req => {
     if (activeTab === 'Confirmed') {
       return req.status === 'Confirmed' || req.status === 'Accepted';
@@ -40,7 +43,10 @@ const LawyerRequests: React.FC = () => {
   });
 
   return (
-    <LawyerLayout title="Requests" disableScroll>
+    <LawyerLayout
+        title="Requests"
+                  onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}
+                  disableScroll>
       <FlatList
         data={filteredRequests}
         keyExtractor={item => item.id}

@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LawMate.API.Controllers.Common;
+namespace LawMate.API.Controllers.AdminModule;
 
 [ApiController]
 [Route("api/users")]
