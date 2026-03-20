@@ -37,6 +37,7 @@ namespace LawMate.Application.LawyerModule.LawyerKnowledgeHub.Queries
                     ModifiedBy =   a.ModifiedBy,
                     ModifiedAt = a.ModifiedAt,
                   LikeCount = a.LikeCount,
+                  
 
                     
                 })
