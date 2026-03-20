@@ -121,6 +121,7 @@ export const ENDPOINTS = {
         CASES: '/client/cases',
         DASHBOARD_HOME: '/client/dashboard/home',
         DASHBOARD_ACTIVITY: '/client/dashboard/activity',
+        SUSPEND: (userId: string) => `/clients/suspend/${userId}`,
     },
 
     // Admin endpoints
