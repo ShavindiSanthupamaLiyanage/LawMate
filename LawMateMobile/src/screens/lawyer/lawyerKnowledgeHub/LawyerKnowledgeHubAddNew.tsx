@@ -4,8 +4,9 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import Input from '../../../components/Input';
 import { useNavigation } from '@react-navigation/native';
 import { KnowledgeHubService } from "../../../services/knowledgeHubService";
-import LawyerLayout from "../../../components/LawyerLayout";
 import { useToast } from '../../../context/ToastContext';
+import InitialTopNavbar from '../../../components/InitialTopNavbar';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const AddNewArticle: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -34,46 +35,50 @@ const AddNewArticle: React.FC = () => {
     }
   };
 
-  return (
-      <LawyerLayout
-          title="Knowledge Hub"
-          showBackButton
-          onBackPress={() => navigation.goBack()}
-          onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}
-      >
+ return (
+  <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        <Input
-          label="Article Title"
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Enter article title"
-        />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <InitialTopNavbar
+        title="Add New Article "
+        onBack={() => navigation.goBack()}
+        showLogo={false}
+      />
+    </View>
 
-        <Input
-          label="Article Content"
-          value={content}
-          onChangeText={setContent}
-          placeholder="Enter article content"
-          multiline
-          style={styles.textArea}
-        />
+    <ScrollView contentContainerStyle={styles.container}>
+      <Input
+        label="Article Title"
+        value={title}
+        onChangeText={setTitle}
+        placeholder="Enter article title"
+      />
 
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.publishBtn, loading && { opacity: 0.6 }]}
-            onPress={handlePublish}
-            disabled={loading}
-          >
-            <Text style={styles.publishText}>
-              {loading ? "Publishing..." : "Publish"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-      </LawyerLayout>
+      <Input
+        label="Article Content"
+        value={content}
+        onChangeText={setContent}
+        placeholder="Enter article content"
+        multiline
+        style={styles.textArea}
+      />
 
-  );
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={[styles.publishBtn, loading && { opacity: 0.6 }]}
+          onPress={handlePublish}
+          disabled={loading}
+        >
+          <Text style={styles.publishText}>
+            {loading ? "Publishing..." : "Publish"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+
+  </ScreenWrapper>
+);
+    
 };
 
 const styles = StyleSheet.create({
