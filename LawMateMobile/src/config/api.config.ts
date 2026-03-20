@@ -83,6 +83,7 @@ export const ENDPOINTS = {
         CREATE: "/lawyers/knowledgehub/create",
         UPDATE: (id: number) => `/lawyers/knowledgehub/update/${id}`,
         DELETE: (id: number) => `/lawyers/knowledgehub/delete/${id}`,
+         RECENT: "/client/knowledgehub/recent-articles",
     },
 
     // Client endpoints

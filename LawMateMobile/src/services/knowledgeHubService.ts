@@ -37,10 +37,10 @@ export class KnowledgeHubService {
 
     // Resolve all author names in parallel
     const articles = await Promise.all(
-        response.data.map(async (a: any) => {
-          const authorName = await resolveAuthorName(a.lawyerId);
-          return mapArticle(a, authorName);
-        })
+      response.data.map(async (a: any) => {
+        const authorName = await resolveAuthorName(a.lawyerId);
+        return mapArticle(a, authorName);
+      })
     );
 
     return articles;
@@ -49,8 +49,8 @@ export class KnowledgeHubService {
   static async getArticlesByLawyer(lawyerId: string) {
     const headers = await authHeader();
     const response = await apiClient.get(
-        ENDPOINTS.KNOWLEDGE_HUB.GET_BY_LAWYER(lawyerId),
-        { headers }
+      ENDPOINTS.KNOWLEDGE_HUB.GET_BY_LAWYER(lawyerId),
+      { headers }
     );
 
     // All articles belong to same lawyer — resolve name once
@@ -62,9 +62,9 @@ export class KnowledgeHubService {
   static async createArticle(article: { title: string; content: string }) {
     const headers = await authHeader();
     const response = await apiClient.post(
-        ENDPOINTS.KNOWLEDGE_HUB.CREATE,
-        article,
-        { headers }
+      ENDPOINTS.KNOWLEDGE_HUB.CREATE,
+      article,
+      { headers }
     );
     return response.data;
   }
@@ -89,9 +89,9 @@ export class KnowledgeHubService {
     };
 
     const response = await apiClient.put(
-        ENDPOINTS.KNOWLEDGE_HUB.UPDATE(id),
-        payload,
-        { headers }
+      ENDPOINTS.KNOWLEDGE_HUB.UPDATE(id),
+      payload,
+      { headers }
     );
     return response.data;
   }
@@ -99,9 +99,23 @@ export class KnowledgeHubService {
   static async deleteArticle(id: number) {
     const headers = await authHeader();
     const response = await apiClient.delete(
-        ENDPOINTS.KNOWLEDGE_HUB.DELETE(id),
-        { headers }
+      ENDPOINTS.KNOWLEDGE_HUB.DELETE(id),
+      { headers }
     );
     return response.data;
+  }
+
+ 
+  static async getRecentArticles() {
+    const response = await apiClient.get(ENDPOINTS.KNOWLEDGE_HUB.RECENT); 
+
+    const articles = await Promise.all(
+      response.data.map(async (a: any) => {
+        const authorName = await resolveAuthorName(a.lawyerId);
+        return mapArticle(a, authorName);
+      })
+    );
+
+    return articles;
   }
 }
