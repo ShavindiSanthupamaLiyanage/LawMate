@@ -45,6 +45,7 @@ yarn-error.*
 /android/.kotlin
 /android/build
 /android/app/build
+/android/app/release/
 /android/local.properties
 
 # Keep these Android source files
