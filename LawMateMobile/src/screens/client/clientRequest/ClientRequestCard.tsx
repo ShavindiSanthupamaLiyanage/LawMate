@@ -57,6 +57,10 @@ const ClientRequestCard: React.FC<Props> = ({ request }) => {
     });
   };
 
+  const subtitle = request.time
+    ? `${request.date}  ${request.time}`
+    : request.date;
+
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
       <View style={styles.card}>
@@ -72,7 +76,7 @@ const ClientRequestCard: React.FC<Props> = ({ request }) => {
 
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={styles.name}>{request.name}</Text>
-            <Text style={styles.time}>2 minutes ago</Text>
+            <Text style={styles.time}>{subtitle}</Text>
           </View>
 
           <Text style={[styles.badge, badgeStyle]}>{badgeText}</Text>

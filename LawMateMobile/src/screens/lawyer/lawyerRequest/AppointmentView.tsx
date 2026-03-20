@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,277 +8,373 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../../types';
 import LawyerLayout from '../../../components/LawyerLayout';
 import Toast from '../../../components/Toast';
+import {
+  lawyerRequestService,
+  BookingDetailDto,
+  statusLabel,
+  modeLabel,
+} from '../../../services/Lawyerrequestservice';
 
-type AppointmentViewRouteProp = RouteProp<
-  RootStackParamList,
-  'AppointmentView'
->;
+// ─── Route type ───────────────────────────────────────────────────────────────
+
+type AppointmentViewRouteProp = RouteProp<RootStackParamList, 'AppointmentView'>;
+
+// ─── Status style map ─────────────────────────────────────────────────────────
+
+const STATUS_STYLES: Record<string, { textColor: string; bgColor: string }> = {
+  Pending:   { textColor: '#3B82F6', bgColor: '#E8F0FE' },
+  Accepted:  { textColor: '#2d1585', bgColor: '#e2fafe' },
+  Verified:  { textColor: '#10B981', bgColor: '#D1FAE5' },
+  Confirmed: { textColor: '#10B981', bgColor: '#D1FAE5' },
+  Rejected:  { textColor: '#EF4444', bgColor: '#FEE2E2' },
+  Cancelled: { textColor: '#EF4444', bgColor: '#FEE2E2' },
+  Suspended: { textColor: '#F59E0B', bgColor: '#FEF3C7' },
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const AppointmentView: React.FC = () => {
   const navigation = useNavigation();
-  const route = useRoute<AppointmentViewRouteProp>();
-  const appointment = route.params?.request;
+  const route      = useRoute<AppointmentViewRouteProp>();
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const bookingId: number = (route.params as any)?.bookingId
+    ?? (route.params as any)?.request?.bookingId;
+
+  // ── state ──────────────────────────────────────────────────────────────────
+  const [appointment, setAppointment]           = useState<BookingDetailDto | null>(null);
+  const [loading, setLoading]                   = useState(true);
+  const [error, setError]                       = useState<string | null>(null);
+  const [actionLoading, setActionLoading]       = useState(false);
+
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const [rejectReason, setRejectReason] = useState('');
-  const [toastVisible, setToastVisible] = useState(false);
+  const [cancelReason, setCancelReason]             = useState('');
+  const [rejectReason, setRejectReason]             = useState('');
 
-  if (!appointment) {
+  const [toastVisible, setToastVisible]         = useState(false);
+  const [toastMessage, setToastMessage]         = useState('');
+  const [toastType, setToastType]               = useState<'success' | 'error'>('success');
+
+  // ── fetch ──────────────────────────────────────────────────────────────────
+  const fetchDetail = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await lawyerRequestService.getById(bookingId);
+      setAppointment(data);
+    } catch (err: any) {
+      setError(err.message ?? 'Failed to load appointment');
+    } finally {
+      setLoading(false);
+    }
+  }, [bookingId]);
+
+  useEffect(() => {
+    fetchDetail();
+  }, [fetchDetail]);
+
+  // ── toast helper ───────────────────────────────────────────────────────────
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage(msg);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  // ── actions ────────────────────────────────────────────────────────────────
+  const handleAccept = async () => {
+    try {
+      setActionLoading(true);
+      await lawyerRequestService.accept(bookingId);
+      showToast('Appointment accepted successfully!', 'success');
+      await fetchDetail();
+    } catch (err: any) {
+      showToast(err.message ?? 'Failed to accept', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectReason.trim()) return showToast('Please enter a rejection reason', 'error');
+    try {
+      setActionLoading(true);
+      setRejectModalVisible(false);
+      await lawyerRequestService.reject(bookingId, rejectReason.trim());
+      showToast('Appointment rejected.', 'success');
+      setRejectReason('');
+      await fetchDetail();
+    } catch (err: any) {
+      showToast(err.message ?? 'Failed to reject', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!cancelReason.trim()) return showToast('Please enter a cancellation reason', 'error');
+    try {
+      setActionLoading(true);
+      setCancelModalVisible(false);
+      await lawyerRequestService.cancel(bookingId, cancelReason.trim());
+      showToast('Appointment cancelled.', 'success');
+      setCancelReason('');
+      await fetchDetail();
+    } catch (err: any) {
+      showToast(err.message ?? 'Failed to cancel', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ── loading ────────────────────────────────────────────────────────────────
+  if (loading) {
     return (
-      <View style={styles.center}>
-        <Text>No appointment data found.</Text>
-      </View>
+      <LawyerLayout title="View Appointment" showBackButton hideRightSection onBackPress={() => navigation.goBack()}>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#4F46E5" />
+          <Text style={styles.loadingText}>Loading appointment…</Text>
+        </View>
+      </LawyerLayout>
     );
   }
 
-  const isPending = appointment.status === 'Pending';
-  const isConfirmed = appointment.status === 'Confirmed';
-  const isRejected = appointment.status === 'Rejected';
-  const isAccepted = appointment.status === 'Accepted';
+  // ── error ──────────────────────────────────────────────────────────────────
+  if (error || !appointment) {
+    return (
+      <LawyerLayout title="View Appointment" showBackButton hideRightSection onBackPress={() => navigation.goBack()}>
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{error ?? 'Appointment not found.'}</Text>
+          <Text style={styles.retryText} onPress={fetchDetail}>Tap to retry</Text>
+        </View>
+      </LawyerLayout>
+    );
+  }
 
-  const statusStyles = {
-    Pending: { textColor: '#3B82F6', bgColor: '#E8F0FE' },
-    Confirmed: { textColor: '#10B981', bgColor: '#D1FAE5' },
-    Rejected: { textColor: '#EF4444', bgColor: '#FEE2E2' },
-    Accepted: { textColor: '#2d1585', bgColor: '#e2fafe' },
-  };
+  // ── derived display values ─────────────────────────────────────────────────
+  const statusStr = statusLabel(appointment.status as number);
+  const { textColor, bgColor } = STATUS_STYLES[statusStr] ?? STATUS_STYLES['Pending'];
 
-  const { textColor, bgColor } =
-    statusStyles[appointment.status as keyof typeof statusStyles];
+  const isPending   = statusStr === 'Pending';
+  const isAccepted  = statusStr === 'Accepted';
+  const isConfirmed = statusStr === 'Confirmed' || statusStr === 'Verified';
+  const isRejected  = statusStr === 'Rejected';
+  const isCancelled = statusStr === 'Cancelled';
 
-  const handleCancelConfirm = () => {
-    if (!cancelReason) return alert('Please select a reason');
-    console.log('Cancelling appointment with reason:', cancelReason);
-    setModalVisible(false);
-  };
+  const dateObj = new Date(appointment.scheduledDateTime);
+  const dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const timeStr = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-  const handleRejectConfirm = () => {
-    if (!rejectReason) return alert('Please select a reason');
-    console.log('Rejecting appointment with reason:', rejectReason);
-    setRejectModalVisible(false);
-  };
-
+  // ── render ─────────────────────────────────────────────────────────────────
   return (
     <>
-    <LawyerLayout
-      title="View Appointment"
-      showBackButton
-      hideRightSection
-      onBackPress={() => navigation.goBack()}
-    >
-      <StatusBar barStyle="dark-content" />
+      <LawyerLayout
+        title="View Appointment"
+        showBackButton
+        hideRightSection
+        onBackPress={() => navigation.goBack()}
+      >
+        <StatusBar barStyle="dark-content" />
 
-      {/* Full height wrapper */}
-      <View style={styles.wrapper}>
+        <View style={styles.wrapper}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* ── CLIENT INFO ── */}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Client Information</Text>
+              <InfoRow label="Name"    value={appointment.clientName} />
+              <InfoRow label="Email"   value={appointment.email} />
+              <InfoRow label="Phone"   value={appointment.phone} />
+              <InfoRow label="NIC"     value={appointment.nic} />
+              <InfoRow label="Address" value={appointment.address} />
+            </View>
 
-        {/* Scrollable cards — flex:1 so it fills all space above action bar */}
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+            {/* ── CASE DETAILS ── */}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Case Details</Text>
+              <InfoRow label="Case Type"  value={appointment.caseType} />
+              <InfoRow label="Case Note"  value={appointment.caseNote ?? '-'} />
+              <InfoRow label="Created By" value={appointment.createdBy} />
+            </View>
+
+            {/* ── APPOINTMENT INFO ── */}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Appointment Info</Text>
+              <InfoRow label="Date"     value={dateStr} />
+              <InfoRow label="Time"     value={timeStr} />
+              <InfoRow label="Mode"     value={modeLabel(appointment.paymentMode)} />
+              <InfoRow label="Location" value={appointment.location ?? '-'} />
+              <View style={styles.row}>
+                <Text style={styles.label}>Status</Text>
+                <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
+                  <Text style={[styles.statusText, { color: textColor }]}>
+                    {statusStr}
+                  </Text>
+                </View>
+              </View>
+              {(isRejected || isCancelled) && appointment.rejectionReason ? (
+                <InfoRow label="Reason" value={appointment.rejectionReason} />
+              ) : null}
+            </View>
+          </ScrollView>
+
+          {/* ── ACTION BAR ── */}
+          {actionLoading && (
+            <View style={styles.actionLoader}>
+              <ActivityIndicator size="small" color="#4F46E5" />
+            </View>
+          )}
+
+          {isPending && !actionLoading && (
+            <View style={styles.bottomActions}>
+              <TouchableOpacity style={styles.rejectBtn} onPress={() => setRejectModalVisible(true)}>
+                <Text style={styles.btnText}>REJECT</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.acceptBtn} onPress={handleAccept}>
+                <Text style={styles.btnText}>ACCEPT</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {(isAccepted || isConfirmed) && !actionLoading && (
+            <View style={styles.acceptedWrapper}>
+              <Text style={styles.acceptedInfoText}>
+                This appointment has been accepted. Waiting for the client's payment.
+              </Text>
+              <View style={styles.bottomActions}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setCancelModalVisible(true)}>
+                  <Text style={styles.btnText}>CANCEL APPOINTMENT</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {(isRejected || isCancelled) && !actionLoading && (
+            <View style={styles.rejectedActions}>
+              <Text style={styles.rejectedText}>
+                This appointment has been {statusStr.toLowerCase()}.
+                {appointment.rejectionReason ? ` Reason: ${appointment.rejectionReason}` : ''}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* ── CANCEL MODAL (free-text) ── */}
+        <Modal
+          visible={cancelModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setCancelModalVisible(false)}
         >
-          {/* CLIENT INFO */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Client Information</Text>
-            <InfoRow label="Name" value={appointment.name} />
-            <InfoRow label="Email" value={appointment.email} />
-            <InfoRow label="Phone" value={appointment.phone} />
-            <InfoRow label="NIC" value={appointment.nic} />
-            <InfoRow label="Address" value={appointment.address} />
-          </View>
-
-          {/* CASE DETAILS */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Case Details</Text>
-            <InfoRow label="Case Type" value={appointment.caseType} />
-            <InfoRow label="Case Note" value={appointment.caseNote || ''} />
-            <InfoRow label="Created By" value={appointment.createdBy} />
-          </View>
-
-          {/* APPOINTMENT INFO */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Appointment Info</Text>
-            <InfoRow label="Date" value={appointment.date} />
-            <InfoRow label="Time" value={appointment.time} />
-            <InfoRow label="Mode" value={appointment.mode} />
-            <InfoRow label="Location" value={appointment.location} />
-            <View style={styles.row}>
-              <Text style={styles.label}>Status</Text>
-              <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
-                <Text style={[styles.statusText, { color: textColor }]}>
-                  {appointment.status}
-                </Text>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Cancel Appointment</Text>
+              <Text style={styles.modalText}>
+                Are you sure you want to cancel this appointment? This will notify the client.
+              </Text>
+              <Text style={[styles.modalText, { marginTop: 12, marginBottom: 8 }]}>
+                Please enter the cancellation reason:
+              </Text>
+              <TextInput
+                style={styles.reasonInput}
+                placeholder="e.g. Client unavailable, schedule conflict…"
+                placeholderTextColor="#9CA3AF"
+                value={cancelReason}
+                onChangeText={setCancelReason}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+              <View style={styles.modalButtons}>
+                <Pressable
+                  style={[styles.modalBtn, { backgroundColor: '#E5E7EB' }]}
+                  onPress={() => {
+                    setCancelModalVisible(false);
+                    setCancelReason('');
+                  }}
+                >
+                  <Text style={{ color: '#111', fontWeight: '600' }}>Back</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalBtn, { backgroundColor: '#F87171' }]}
+                  onPress={handleCancelConfirm}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>Confirm</Text>
+                </Pressable>
               </View>
             </View>
           </View>
-        </ScrollView>
+        </Modal>
 
-        {/* ── STICKY ACTION BAR — always fixed above bottom navbar ── */}
-        {isPending && (
-          <View style={styles.bottomActions}>
-            <TouchableOpacity
-              style={styles.rejectBtn}
-              onPress={() => setRejectModalVisible(true)}
-            >
-              <Text style={styles.rejectText}>REJECT</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.acceptBtn}
-              onPress={() => {
-              console.log('Appointment Accepted');
-              setToastVisible(true);
-            }}
-            >
-              <Text style={styles.acceptText}>ACCEPT</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {isConfirmed && (
-          <View style={styles.bottomActions}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={styles.rejectText}>CANCEL APPOINTMENT</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {isRejected && (
-          <View style={styles.rejectedActions}>
-            <Text style={styles.rejectedText}>
-              This Appointment has been Rejected due to schedule conflict
-            </Text>
-          </View>
-        )}
-
-        {isAccepted && (
-          <View style={styles.acceptedWrapper}>
-            <Text style={styles.acceptedInfoText}>
-              This Appointment has been Accepted. Waiting for the customer payment.
-            </Text>
-            <View style={styles.bottomActions}>
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setModalVisible(true)}
-              >
-                <Text style={styles.rejectText}>CANCEL APPOINTMENT</Text>
-              </TouchableOpacity>
+        {/* ── REJECT MODAL (free-text) ── */}
+        <Modal
+          visible={rejectModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setRejectModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Reject Appointment</Text>
+              <Text style={styles.modalText}>
+                Are you sure you want to reject this appointment? This will notify the client.
+              </Text>
+              <Text style={[styles.modalText, { marginTop: 12, marginBottom: 8 }]}>
+                Please enter the rejection reason:
+              </Text>
+              <TextInput
+                style={styles.reasonInput}
+                placeholder="e.g. Schedule conflict, unavailable on this date…"
+                placeholderTextColor="#9CA3AF"
+                value={rejectReason}
+                onChangeText={setRejectReason}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+              <View style={styles.modalButtons}>
+                <Pressable
+                  style={[styles.modalBtn, { backgroundColor: '#E5E7EB' }]}
+                  onPress={() => {
+                    setRejectModalVisible(false);
+                    setRejectReason('');
+                  }}
+                >
+                  <Text style={{ color: '#111', fontWeight: '600' }}>Back</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalBtn, { backgroundColor: '#F87171' }]}
+                  onPress={handleRejectConfirm}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>Confirm</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        )}
+        </Modal>
+      </LawyerLayout>
 
-      </View>
-
-      {/* ── CANCEL MODAL ── */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Cancel Appointment</Text>
-            <Text style={styles.modalText}>
-              Are you sure you want to cancel this appointment? This will notify the client.
-            </Text>
-            <Text style={[styles.modalText, { marginTop: 10 }]}>
-              Please select the cancel reason:
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={cancelReason}
-                onValueChange={(itemValue) => setCancelReason(itemValue)}
-              >
-                <Picker.Item label="Select reason" value="" />
-                <Picker.Item label="Client unavailable" value="Client unavailable" />
-                <Picker.Item label="Schedule conflict" value="Schedule conflict" />
-                <Picker.Item label="Other" value="Other" />
-              </Picker>
-            </View>
-            <View style={styles.modalButtons}>
-              <Pressable
-                style={[styles.modalBtn, { backgroundColor: '#E5E7EB' }]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={{ color: '#111', fontWeight: '600' }}>Back</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalBtn, { backgroundColor: '#F87171' }]}
-                onPress={handleCancelConfirm}
-              >
-                <Text style={{ color: '#fff', fontWeight: '600' }}>Confirm</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* ── REJECT MODAL ── */}
-      <Modal
-        visible={rejectModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setRejectModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Reject Appointment</Text>
-            <Text style={styles.modalText}>
-              Are you sure you want to reject this appointment? This will notify the client.
-            </Text>
-            <Text style={[styles.modalText, { marginTop: 10 }]}>
-              Please select the reject reason:
-            </Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={rejectReason}
-                onValueChange={(itemValue) => setRejectReason(itemValue)}
-              >
-                <Picker.Item label="Select reason" value="" />
-                <Picker.Item label="Client unavailable" value="Client unavailable" />
-                <Picker.Item label="Schedule conflict" value="Schedule conflict" />
-                <Picker.Item label="Other" value="Other" />
-              </Picker>
-            </View>
-            <View style={styles.modalButtons}>
-              <Pressable
-                style={[styles.modalBtn, { backgroundColor: '#E5E7EB' }]}
-                onPress={() => setRejectModalVisible(false)}
-              >
-                <Text style={{ color: '#111', fontWeight: '600' }}>Back</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalBtn, { backgroundColor: '#F87171' }]}
-                onPress={handleRejectConfirm}
-              >
-                <Text style={{ color: '#fff', fontWeight: '600' }}>Confirm</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </LawyerLayout>
-    <Toast
+      <Toast
         visible={toastVisible}
-        message="Appointment Accepted Successfully!"
-        type="success"
+        message={toastMessage}
+        type={toastType}
         duration={3000}
         onDismiss={() => setToastVisible(false)}
       />
-      </>
+    </>
   );
 };
+
+// ─── InfoRow ──────────────────────────────────────────────────────────────────
 
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
   <View style={styles.row}>
@@ -287,27 +383,40 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
   </View>
 );
 
-const styles = StyleSheet.create({
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
-  /* ── Core layout ── */
+const styles = StyleSheet.create({
   wrapper: {
-    flex: 1,                      // fills entire LawyerLayout content area
+    flex: 1,
     backgroundColor: '#F9FAFB',
   },
   scrollView: {
-    flex: 1,                      // takes all space above the action bar
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: 24,
   },
-
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
   },
-
-  /* ── Cards ── */
+  loadingText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+  retryText: {
+    color: '#4F46E5',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   card: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
@@ -341,8 +450,6 @@ const styles = StyleSheet.create({
     maxWidth: '55%',
     textAlign: 'right',
   },
-
-  /* ── Status badge ── */
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -352,16 +459,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
   },
-
-  /* ── Action bar — never scrolls, always at bottom ── */
+  actionLoader: {
+    padding: 16,
+    alignItems: 'center',
+  },
   bottomActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingRight: 10,
-    paddingLeft: 10,
-    borderColor: '#E5E7EB',
+    paddingHorizontal: 10,
   },
-
   rejectBtn: {
     flex: 1,
     backgroundColor: '#F87171',
@@ -385,18 +491,11 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
   },
-  rejectText: {
+  btnText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
   },
-  acceptText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-
-  /* ── Rejected banner ── */
   rejectedActions: {
     margin: 16,
     borderColor: '#F87171',
@@ -413,8 +512,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 14,
   },
-
-  /* ── Accepted banner + cancel ── */
   acceptedWrapper: {
     backgroundColor: '#fff',
     borderColor: '#E5E7EB',
@@ -426,15 +523,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     paddingHorizontal: 20,
     padding: 10,
-    borderWidth:2,
-    borderColor:'#3B82F6',
-    marginLeft:10,
-    marginRight:10,
-    marginBottom:15,
-    borderRadius:15
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+    marginLeft: 10,
+    marginRight: 10,
+    marginBottom: 15,
+    borderRadius: 15,
   },
-
-  /* ── Modals ── */
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -455,11 +550,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4B5563',
   },
-  pickerContainer: {
+  reasonInput: {
     borderWidth: 1,
     borderColor: '#D1D5DB',
-    borderRadius: 8,
-    marginTop: 10,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    color: '#111827',
+    minHeight: 90,
+    backgroundColor: '#F9FAFB',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -472,48 +571,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     marginHorizontal: 5,
-  },
-
-  /* ── Accept modal ── */
-  acceptModalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    paddingTop: 50,
-  },
-  acceptModalContainer: {
-    backgroundColor: '#fff',
-    width: '90%',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  acceptModalClose: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 10,
-  },
-  acceptModalContent: {
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  checkCircle: {
-    backgroundColor: '#10B981',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  acceptModalText: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: '#111',
   },
 });
 

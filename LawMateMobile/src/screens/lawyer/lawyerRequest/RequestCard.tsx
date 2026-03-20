@@ -30,6 +30,8 @@ type NavigationProp = NativeStackNavigationProp<
   'AppointmentView'
 >;
 
+
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const RequestCard: React.FC<Props> = ({ request }) => {
@@ -41,8 +43,11 @@ const RequestCard: React.FC<Props> = ({ request }) => {
     Accepted:  { text: 'Accepted Request',  style: styles.acceptedBadge  },
     Rejected:  { text: 'Rejected Request',  style: styles.rejectedBadge  },
   };
-
-  const { text: badgeText, style: badgeStyle } = statusMap[request.status];
+  // AFTER
+  const subtitle = request.time
+    ? `${request.date}  ${request.time}`
+    : request.date;
+    const { text: badgeText, style: badgeStyle } = statusMap[request.status];
 
   const handlePress = () => {
     navigation.navigate('AppointmentView', {
@@ -66,7 +71,7 @@ const RequestCard: React.FC<Props> = ({ request }) => {
 
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={styles.name}>{request.name}</Text>
-            <Text style={styles.time}>2 minutes ago</Text>
+            <Text style={styles.time}>{subtitle}</Text>
           </View>
 
           <Text style={[styles.badge, badgeStyle]}>{badgeText}</Text>

@@ -84,10 +84,11 @@ const LawyerRequests: React.FC = () => {
       setError(null);
 
       // Retrieve the lawyer's userId from local storage (stored at login)
-      const lawyerId = await StorageService.getUserId();
-      if (!lawyerId) throw new Error('Lawyer identity not found. Please log in again.');
-
-      const data = await bookingService.getLawyerAppointments(lawyerId);
+      const userData = await StorageService.getUserData();
+      if (!userData?.userId) {
+          throw new Error('Lawyer identity not found. Please log in again.');
+      }
+    const data = await bookingService.getLawyerAppointments(userData.userId);
       setAppointments(data);
     } catch (err: any) {
       setError(err.message ?? 'Failed to load requests');
