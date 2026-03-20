@@ -113,5 +113,37 @@ namespace LawMate.API.Controllers.LawyerModule
                 TransactionId = transactionId
             });
         }
+        [Authorize]
+        [HttpGet("{userId}/profile")]
+        public async Task<IActionResult> GetLawyerProfile(string userId)
+        {
+            try
+            {
+                var lawyer = await _mediator.Send(new GetLawyerByUserIdQuery(userId));
+
+                var profile = new LawyerProfileDto
+                {
+                    LawyerId                = lawyer.UserId,
+                    FullName                = $"{lawyer.FirstName} {lawyer.LastName}".Trim(),
+                    ProfileImageBase64      = lawyer.ProfileImage != null
+                        ? Convert.ToBase64String(lawyer.ProfileImage)
+                        : null,
+                    AreaOfPractice          = lawyer.AreaOfPractice.ToString(),
+                    ProfessionalDesignation = lawyer.ProfessionalDesignation,
+                    YearOfExperience        = lawyer.YearOfExperience,
+                    AverageRating           = (double)lawyer.AverageRating,
+                };
+
+                return Ok(profile);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "Failed to retrieve lawyer profile", Error = ex.Message });
+            }
+        }
     }
 }
