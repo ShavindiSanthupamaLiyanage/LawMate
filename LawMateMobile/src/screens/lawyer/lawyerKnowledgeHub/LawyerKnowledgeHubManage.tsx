@@ -1,36 +1,43 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import Input from '../../../components/Input';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import InitialTopNavbar from '../../../components/InitialTopNavbar';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import { KnowledgeHubService } from "../../../services/knowledgeHubService";
+import {useToast} from "../../../context/ToastContext";
 
 const ManageArticle: React.FC = () => {
+
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { article } = route.params;
 
-  const [title, setTitle] = useState('Law category Identification');
-const [content, setContent] = useState(
-  '"Understanding property law is essential when buying, selling, leasing, or inheriting land and buildings. It defines ownership rights, transfer procedures, land registration requirements, and dispute resolution methods. In Sri Lanka, property ownership is governed by title registration, deeds, and local authority approvals. Individuals must verify clear titles, zoning regulations, and tax obligations before transactions. Legal remedies exist for boundary disputes, unlawful occupation, and inheritance conflicts, making professional legal guidance crucial.'
-);
+  const [title, setTitle] = useState(article.title);
+  const [content, setContent] = useState(article.content);
+  const { showSuccess, showError, showWarning } = useToast();
 
-  const handleupdate = () => {
+  const handleupdate = async () => {
     if (!title.trim() || !content.trim()) {
-      Alert.alert('Validation', 'Please fill all fields');
+      showWarning("Please fill all fields");
       return;
     }
 
-    console.log('Saved Article:', { title, content });
-    navigation.goBack();
+    try {
+      await KnowledgeHubService.updateArticle(Number(article.id), { title, content });
+      setTimeout(() => {
+        showSuccess("Successfully updated article");
+        navigation.goBack();
+      }, 2000);
+    } catch (error) {
+      showError("Failed to update article");
+    }
   };
-
-  const handleCancel = () => {
-    navigation.goBack();
-  };
-
 
   return (
     <ScreenWrapper backgroundColor={colors.background} edges={["top"]}>
+
       <View style={styles.page}>
         <InitialTopNavbar
           title="Manage Article"
@@ -39,48 +46,41 @@ const [content, setContent] = useState(
         />
       </View>
 
-        <ScrollView contentContainerStyle={styles.container}>
-          <Input
-            label="Article Title"
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Enter article title"
-          />
+      <ScrollView contentContainerStyle={styles.container}>
 
-          <Input
-            label="Article Content"
-            value={content}
-            onChangeText={setContent}
-            placeholder="Enter article content"
-            multiline
-            style={styles.textArea}
-          />
+        <Input
+          label="Article Title"
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Enter article title"
+        />
 
-      
-          {/* Cancel and update Buttons */}
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.cancelBtn}
-              onPress={handleCancel}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+        <Input
+          label="Article Content"
+          value={content}
+          onChangeText={setContent}
+          placeholder="Enter article content"
+          multiline
+          style={styles.textArea}
+        />
 
-            <TouchableOpacity
-              style={styles.updateBtn}
-              onPress={handleupdate}
-            >
-              <Text style={styles.updateText}>Update</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={styles.updateBtn}
+            onPress={handleupdate}
+          >
+            <Text style={styles.updateText}>Update</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
 
     </ScreenWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-    container: {
+  container: {
     padding: spacing.lg,
   },
 
@@ -109,27 +109,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
 
-  cancelBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    paddingVertical: spacing.md,
-borderRadius: 999,
-    alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-
-  cancelText: {
-    color: colors.primary,
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.semibold,
-  },
-
   updateBtn: {
     flex: 1,
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
-borderRadius: 999,
+    borderRadius: 999,
     alignItems: 'center',
     marginLeft: spacing.sm,
   },
