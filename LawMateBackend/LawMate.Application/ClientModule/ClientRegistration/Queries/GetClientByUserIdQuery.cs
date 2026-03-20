@@ -1,4 +1,5 @@
-﻿using LawMate.Application.Common.Interfaces;
+﻿﻿using LawMate.Application.Common.Interfaces;
+using LawMate.Domain.Common.Enums;
 using LawMate.Domain.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -21,34 +22,37 @@ namespace LawMate.Application.ClientModule.ClientRegistration.Queries
             GetClientByUserIdQuery request,
             CancellationToken cancellationToken)
         {
-            var result = await (
-                from u in _context.USER_DETAIL
-                join c in _context.CLIENT_DETAILS on u.UserId equals c.UserId
-                where u.UserId == request.UserId && u.RecordStatus == 0
-                select new GetClientDto
-                {
-                    UserId = u.UserId!,
-                    Prefix = u.Prefix,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email,
-                    NIC = u.NIC,
-                    Gender = u.Gender,
-                    ContactNumber = u.ContactNumber,
-                    RecordStatus = u.RecordStatus,
-                    State = u.State,
-                    RegistrationDate = u.RegistrationDate,
-                    ProfileImage = u.ProfileImage,
-                    IsDualAccount = u.IsDualAccount,
+            var user = await _context.USER_DETAIL
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == request.UserId && u.RecordStatus == 0, cancellationToken);
 
-                    Address = c.Address,
-                    District = c.District,
-                    PrefferedLanguage = c.PrefferedLanguage
-                }
-            ).FirstOrDefaultAsync(cancellationToken);
-
-            if (result == null)
+            if (user == null)
                 throw new KeyNotFoundException("Client not found");
+
+            var client = await _context.CLIENT_DETAILS
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.UserId == request.UserId, cancellationToken);
+
+            var result = new GetClientDto
+            {
+                UserId = user.UserId!,
+                Prefix = user.Prefix,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                NIC = user.NIC,
+                Gender = user.Gender,
+                ContactNumber = user.ContactNumber,
+                RecordStatus = user.RecordStatus,
+                State = user.State,
+                RegistrationDate = user.RegistrationDate,
+                ProfileImage = user.ProfileImage,
+                IsDualAccount = user.IsDualAccount,
+
+                Address = client?.Address,
+                District = client?.District,
+                PrefferedLanguage = client?.PrefferedLanguage ?? Language.English,
+            };
 
             return result;
         }
