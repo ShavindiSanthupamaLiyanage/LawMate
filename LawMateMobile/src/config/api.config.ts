@@ -76,6 +76,7 @@ export const ENDPOINTS = {
         APPOINTMENTS: '/lawyer/appointments',
         CLIENTS: '/lawyer/clients',
         GET_BY_USER_ID: (userId: string) => `/lawyers/${userId}`,
+        DASHBOARD: '/lawyer/dashboard',
     },
 
     KNOWLEDGE_HUB: {

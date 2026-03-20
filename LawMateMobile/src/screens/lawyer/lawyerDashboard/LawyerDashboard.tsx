@@ -1,13 +1,15 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, StyleSheet, Image, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
 import LawyerLayout from "../../../components/LawyerLayout";
+import { LawyerDashboardService, DonutItem, LawyerDashboardDto, LawyerActivityDto } from "../../../services/lawyerDashboardService";
 
-type DonutItem = { label: string; value: number; color: string };
-
+/* ----------------------------- */
+/* Donut Chart                   */
+/* ----------------------------- */
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
     const angleRad = (Math.PI / 180) * angleDeg;
     return { x: cx + r * Math.cos(angleRad), y: cy + r * Math.sin(angleRad) };
@@ -87,23 +89,21 @@ const statusColors = (status: ActivityStatus) => {
     return { bg: "#EAF8EE", fg: "#2E9B4B" };
 };
 
-const ActivityCard: React.FC<{
-    title: string;
-    caseId: string;
-    status: ActivityStatus;
-    lawyerName: string;
-    lawyerMeta1: string;
-    lawyerMeta2: string;
-    filedDate: string;
-    avatarUri?: string;
-}> = ({ title, caseId, status, lawyerName, lawyerMeta1, lawyerMeta2, filedDate, avatarUri }) => {
+const ActivityCard: React.FC<LawyerActivityDto & { status: ActivityStatus }> = ({
+    title,
+    caseNumber,
+    status,
+    clientName,
+    filedDate,
+    clientImage,
+}) => {
     const st = statusColors(status);
     return (
         <View style={styles.activityCard}>
             <View style={styles.activityTopRow}>
-                <View style={{ flex: 1 }}>
+                <View>
                     <Text style={styles.activityTitle}>{title}</Text>
-                    <Text style={styles.activityCaseId}>Case #{caseId}</Text>
+                    <Text style={styles.activityCaseId}>{caseNumber}</Text>
                 </View>
                 <View style={[styles.statusPill, { backgroundColor: st.bg }]}>
                     <Text style={[styles.statusText, { color: st.fg }]}>{status}</Text>
@@ -111,13 +111,11 @@ const ActivityCard: React.FC<{
             </View>
             <View style={styles.lawyerRow}>
                 <Image
-                    source={avatarUri ? { uri: avatarUri } : { uri: "https://i.pravatar.cc/100?img=12" }}
+                    source={clientImage ? { uri: clientImage } : { uri: "https://i.pravatar.cc/100?img=12" }}
                     style={styles.avatar}
                 />
                 <View style={{ flex: 1 }}>
-                    <Text style={styles.lawyerName}>{lawyerName}</Text>
-                    <Text style={styles.lawyerMeta}>{lawyerMeta1}</Text>
-                    <Text style={styles.lawyerMeta}>{lawyerMeta2}</Text>
+                    <Text style={styles.lawyerName}>{clientName}</Text>
                 </View>
             </View>
             <Text style={styles.filedText}>Filed: {filedDate}</Text>
@@ -128,79 +126,49 @@ const ActivityCard: React.FC<{
 /* ----------------------------- */
 /* Main Dashboard Component       */
 /* ----------------------------- */
-const LawyerDashboard: React.FC = () => {
+const LawyerDashboard: React.FC<{ lawyerId: string }> = ({ lawyerId }) => {
     const navigation = useNavigation<any>();
+    const [dashboard, setDashboard] = useState<LawyerDashboardDto | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const donutData: DonutItem[] = [
-        { label: "Criminal", value: 12, color: "#6D7CFF" },
-        { label: "Civil", value: 8, color: "#FF8C86" },
-        { label: "Cyber", value: 15, color: "#26C6DA" },
-        { label: "Family", value: 10, color: "#FFB74D" },
-        { label: "Corporate", value: 5, color: "#3F51B5" },
-    ];
+    useEffect(() => {
+        fetchDashboard();
+    }, []);
 
-   const activityData: {
-    title: string;
-    caseId: string;
-    status: ActivityStatus; // <-- enforce correct type
-    lawyerName: string;
-    lawyerMeta1: string;
-    lawyerMeta2: string;
-    filedDate: string;
-    avatarUri?: string;
-}[] = [
-    {
-        title: "Property Dispute",
-        caseId: "LC2026-001",
-        status: "Approved", // must match ActivityStatus
-        lawyerName: "Mr. John Doe",
-        lawyerMeta1: "LL.B (UoL)",
-        lawyerMeta2: "Property & Commercial Law",
-        filedDate: "Feb 28, 2026",
-        avatarUri: "https://i.pravatar.cc/100?img=32",
-    },
-    {
-        title: "Divorce Settlement",
-        caseId: "LC2026-002",
-        status: "Pending",
-        lawyerName: "Mrs. Jane Smith",
-        lawyerMeta1: "LL.B (UoL)",
-        lawyerMeta2: "Family Law Specialist",
-        filedDate: "Feb 15, 2026",
-        avatarUri: "https://i.pravatar.cc/100?img=45",
-    },
-];
-    
+    const fetchDashboard = async () => {
+        try {
+            const data = await LawyerDashboardService.getDashboard(lawyerId);
+            setDashboard(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const donutData: DonutItem[] = useMemo(() => {
+        if (!dashboard) return [];
+        const colorsPalette = ["#6D7CFF", "#FF8C86", "#26C6DA", "#FFB74D", "#3F51B5"];
+        return dashboard.appointmentBreakdown.map((item, idx) => ({
+            label: item.category,
+            value: item.count,
+            color: colorsPalette[idx % colorsPalette.length],
+        }));
+    }, [dashboard]);
 
     return (
-        <LawyerLayout
-            onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}
-        >
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                    paddingBottom: spacing.md, // stops scrolling at last card
-                }}
-            >
+        <LawyerLayout onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing.md }}>
                 <View style={styles.body}>
                     {/* Gradient hero card */}
-                    <LinearGradient
-                        colors={[colors.primary, "#6D49FF"]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.heroCard}
-                    >
-                        {/*<Text style={styles.heroSmall}>Good Morning</Text>*/}
-                        {/*<Text style={styles.heroName}>Kavindu Gimsara</Text>*/}
-
+                    <LinearGradient colors={[colors.primary, "#6D49FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.heroCard}>
                         <View style={styles.heroStatsRow}>
                             <View style={[styles.heroStatTile, { backgroundColor: "#BFD9FF" }]}>
-                                <Text style={styles.heroStatNumber}>1234</Text>
+                                <Text style={styles.heroStatNumber}>{dashboard?.summary.totalAppointments ?? 0}</Text>
                                 <Text style={styles.heroStatLabel}>Total Appointments</Text>
                             </View>
-
                             <View style={[styles.heroStatTile, { backgroundColor: "#CFF7D0" }]}>
-                                <Text style={styles.heroStatNumber}>$5,678</Text>
+                                <Text style={styles.heroStatNumber}>${dashboard?.summary.totalRevenue.toFixed(2) ?? 0}</Text>
                                 <Text style={styles.heroStatLabel}>Total Earnings</Text>
                             </View>
                         </View>
@@ -211,7 +179,7 @@ const LawyerDashboard: React.FC = () => {
                         <Text style={styles.sectionTitle}>Total Appointments</Text>
                         <Text style={styles.sectionSub}>Since - 2025</Text>
                         <View style={styles.card}>
-                            <DonutChart totalText="50" data={donutData} />
+                            <DonutChart totalText={`${dashboard?.summary.totalAppointments ?? 0}`} data={donutData} />
                             <View style={styles.legend}>
                                 {donutData.map((d) => (
                                     <LegendItem key={d.label} color={d.color} label={d.label} />
@@ -225,16 +193,17 @@ const LawyerDashboard: React.FC = () => {
                         <View style={styles.sectionHeaderRow}>
                             <View>
                                 <Text style={styles.sectionTitle}>My Activity</Text>
-                                <Text style={styles.sectionSub}>15 Apr - 21 Apr</Text>
                             </View>
                         </View>
 
-                        {activityData.length === 0 ? (
+                        {dashboard?.recentActivities.length === 0 ? (
                             <Text style={{ textAlign: "center", marginTop: spacing.md, color: colors.textSecondary }}>
                                 No activity yet
                             </Text>
                         ) : (
-                            activityData.map((act, idx) => <ActivityCard key={idx} {...act} />)
+                            dashboard?.recentActivities.map((act, idx) => (
+                                <ActivityCard key={idx} {...act} status={act.status as ActivityStatus} />
+                            ))
                         )}
                     </View>
                 </View>
@@ -242,6 +211,7 @@ const LawyerDashboard: React.FC = () => {
         </LawyerLayout>
     );
 };
+
 
 /* ----------------------------- */
 /* Styles                         */
