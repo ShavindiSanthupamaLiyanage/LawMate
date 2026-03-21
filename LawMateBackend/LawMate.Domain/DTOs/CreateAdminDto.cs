@@ -15,6 +15,7 @@ namespace LawMate.Domain.DTOs
         public string? LastName { get; set; }
         public string? UserName { get; set; }
         public UserRole UserRole { get; set; }
+        public Gender Gender { get; set; }
         public string? Email { get; set; }
         public string? NIC { get; set; }
         public string? Password { get; set; }

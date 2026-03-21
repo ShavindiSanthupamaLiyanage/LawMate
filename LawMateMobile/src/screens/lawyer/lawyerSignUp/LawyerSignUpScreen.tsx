@@ -31,7 +31,6 @@ const defaultPersonal = (): LawyerPersonalDetails => ({
     address: "",
     officeAddress: "",
     nic: "",
-    dob: null,
     mobileContact: "",
     officeContact: "",
     email: "",
@@ -96,7 +95,6 @@ export default function LawyerSignUpScreen() {
             personal.address.trim() !== "" &&
             personal.officeAddress.trim() !== "" &&
             personal.nic.trim() !== "" &&
-            personal.dob !== null &&
             phoneRegex.test(personal.mobileContact) &&
             phoneRegex.test(personal.officeContact) &&
             emailRegex.test(personal.email) &&

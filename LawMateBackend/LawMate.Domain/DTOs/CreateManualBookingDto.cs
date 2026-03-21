@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using LawMate.Domain.Common.Enums;
 
 namespace LawMate.Domain.DTOs;
 
@@ -17,9 +18,6 @@ public class CreateManualBookingDto
     public string? ContactNumber { get; set; }
     
     [Required]
-    public string CaseType { get; set; }
-    
-    [Required]
     public DateTime DateTime { get; set; }
     
     [Required]
@@ -35,4 +33,8 @@ public class CreateManualBookingDto
     public string? Notes { get; set; }
     
     public int? TimeSlotId { get; set; }
+    public string? Location { get; set; }
+    public PaymentMode PaymentMode { get; set; } = PaymentMode.Online; 
+    
+    public LegalCategory CaseType   { get; set; } 
 }

@@ -1,14 +1,15 @@
-import React, { useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
-
-import ClientLayout from "../../../components/ClientLayout";
-import { colors, spacing, fontSize, fontWeight} from "../../../config/theme";
-import { ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import ClientLayout from "../../../components/ClientLayout";
+import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
+import { ClientDashboardService } from "../../../services/clientDashboardService";
+import { ClientDashboardHomeResponse } from "../../../interfaces/clientDashboard.interface";
 
 type DonutItem = { label: string; value: number; color: string };
 
@@ -34,10 +35,10 @@ const DonutChart: React.FC<{
     const cx = size / 2;
     const cy = size / 2;
 
-    const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data]);
+    const total = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
 
-    const GAP_DEG = 2; // visual gap between segments
-    let cursor = -90; // start top
+    const GAP_DEG = 2;
+    let cursor = -90;
 
     return (
         <Svg width={size} height={size}>
@@ -50,7 +51,6 @@ const DonutChart: React.FC<{
 
                     cursor += sweep;
 
-                    // prevent weird gaps for tiny slices
                     const safeStart = sweep < GAP_DEG ? cursor - sweep : start;
                     const safeEnd = sweep < GAP_DEG ? cursor : end;
 
@@ -66,10 +66,8 @@ const DonutChart: React.FC<{
                     );
                 })}
 
-                {/* donut hole */}
                 <Circle cx={cx} cy={cy} r={r - strokeWidth / 2} fill={colors.white} />
 
-                {/* center number */}
                 <SvgText
                     x={cx}
                     y={cy + 7}
@@ -85,9 +83,6 @@ const DonutChart: React.FC<{
     );
 };
 
-/* ----------------------------- */
-/* Small UI bits                 */
-/* ----------------------------- */
 const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }) => (
     <View style={styles.legendItem}>
         <View style={[styles.legendDot, { backgroundColor: color }]} />
@@ -95,11 +90,16 @@ const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }
     </View>
 );
 
-type ActivityStatus = "Active" | "Completed";
+type ActivityStatus = string;
 
-const statusColors = (status: ActivityStatus) => {
-    if (status === "Active") return { bg: "#E8F0FF", fg: "#2F6BFF" };
-    return { bg: "#EAF8EE", fg: "#2E9B4B" };
+const statusColors = (status: string) => {
+    const normalized = status.toLowerCase();
+
+    if (normalized === "completed" || normalized === "verified") {
+        return { bg: "#EAF8EE", fg: "#2E9B4B" };
+    }
+
+    return { bg: "#E8F0FF", fg: "#2F6BFF" };
 };
 
 const ActivityCard: React.FC<{
@@ -135,7 +135,7 @@ const ActivityCard: React.FC<{
                 <View style={{ flex: 1 }}>
                     <Text style={styles.lawyerName}>{lawyerName}</Text>
                     <Text style={styles.lawyerMeta}>{lawyerMeta1}</Text>
-                    <Text style={styles.lawyerMeta}>{lawyerMeta2}</Text>
+                    {!!lawyerMeta2 && <Text style={styles.lawyerMeta}>{lawyerMeta2}</Text>}
                 </View>
             </View>
 
@@ -144,72 +144,166 @@ const ActivityCard: React.FC<{
     );
 };
 
+const categoryColors: Record<string, string> = {
+    Criminal: "#6D7CFF",
+    Civil: "#FF8C86",
+    Cyber: "#29C7D8",
+    Family: "#F7B64A",
+    Corporate: "#4A5FD1",
+};
+
+const getCategoryColor = (category: string) => {
+    return categoryColors[category] || "#6D7CFF";
+};
+
+const normalizeStatus = (status: string): "Active" | "Completed" => {
+    const normalized = status.toLowerCase();
+
+    if (normalized === "completed" || normalized === "verified") {
+        return "Completed";
+    }
+
+    return "Active";
+};
+
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+};
+
 const ClientDashboard: React.FC = () => {
     const navigation = useNavigation<any>();
     const insets = useSafeAreaInsets();
 
-    const donutData: DonutItem[] = [
-        { label: "Criminal", value: 25, color: "#6D7CFF" },
-        { label: "Civil", value: 18, color: "#FF8C86" },
-        { label: "Cyber", value: 20, color: "#26C6DA" },
-        { label: "Family", value: 22, color: "#FFB74D" },
-        { label: "Corporate", value: 15, color: "#3F51B5" },
-    ];
+    const [dashboardData, setDashboardData] = useState<ClientDashboardHomeResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const loadDashboard = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const data = await ClientDashboardService.getDashboardHome();
+                setDashboardData(data);
+            } catch (err: any) {
+                setError(err?.message || "Failed to load dashboard");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadDashboard();
+    }, []);
+
+    const donutData: DonutItem[] =
+        dashboardData?.appointmentBreakdown.map((item) => ({
+            label: item.category,
+            value: item.count,
+            color: getCategoryColor(item.category),
+        })) ?? [];
+
+    if (loading) {
+        return (
+            <ClientLayout
+                userName="Client"
+                onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
+            >
+                <View style={styles.centerState}>
+                    <Text>Loading dashboard...</Text>
+                </View>
+            </ClientLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <ClientLayout
+                userName="Client"
+                onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
+            >
+                <View style={styles.centerState}>
+                    <Text>{error}</Text>
+                </View>
+            </ClientLayout>
+        );
+    }
 
     return (
         <ClientLayout
+            userName="Client"
             onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
         >
             <View style={{ flex: 1 }}>
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{
-                        paddingBottom: 140 + insets.bottom, // space so last content isn't hidden by FAB/tabbar
+                        paddingBottom: 140 + insets.bottom,
                     }}
                 >
                     <View style={styles.body}>
-                        {/* Gradient summary card */}
                         <LinearGradient
                             colors={[colors.primary, "#6D49FF"]}
                             start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
+                            end={{ x: 1, y: 1 }}
                             style={styles.heroCard}
                         >
+                            <Text style={styles.heroSmall}>Welcome Back</Text>
+                            <Text style={styles.heroName}>Client Dashboard</Text>
+
                             <View style={styles.heroStatsRow}>
-                                <View style={[styles.heroStatTile, { backgroundColor: "#BFD9FF" }]}>
-                                    <Text style={styles.heroStatNumber}>1234</Text>
+                                <View style={[styles.heroStatTile, { backgroundColor: "#DCEBFF" }]}>
+                                    <Text style={styles.heroStatNumber}>
+                                        {dashboardData?.summary.totalAppointments ?? 0}
+                                    </Text>
                                     <Text style={styles.heroStatLabel}>Appointments</Text>
                                 </View>
 
-                                <View style={[styles.heroStatTile, { backgroundColor: "#CFF7D0" }]}>
-                                    <Text style={styles.heroStatNumber}>5,678</Text>
-                                    <Text style={styles.heroStatLabel}>Contacted lawyers</Text>
+                                <View style={[styles.heroStatTile, { backgroundColor: "#E2F6E5" }]}>
+                                    <Text style={styles.heroStatNumber}>
+                                        {dashboardData?.summary.contactedLawyers ?? 0}
+                                    </Text>
+                                    <Text style={styles.heroStatLabel}>Contacted Lawyers</Text>
                                 </View>
                             </View>
                         </LinearGradient>
 
-                        {/* Total Appointments */}
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Total Appointments</Text>
-                            <Text style={styles.sectionSub}>Since - 2025</Text>
+                            <Text style={styles.sectionSub}>Overview</Text>
 
                             <View style={styles.card}>
-                                <DonutChart totalText="1234" data={donutData} />
+                                {donutData.length ? (
+                                    <>
+                                        <DonutChart
+                                            totalText={String(dashboardData?.summary.totalAppointments ?? 0)}
+                                            data={donutData}
+                                        />
 
-                                <View style={styles.legend}>
-                                    {donutData.map((d) => (
-                                        <LegendItem key={d.label} color={d.color} label={d.label} />
-                                    ))}
-                                </View>
+                                        <View style={styles.legend}>
+                                            {donutData.map((d) => (
+                                                <LegendItem key={d.label} color={d.color} label={d.label} />
+                                            ))}
+                                        </View>
+                                    </>
+                                ) : (
+                                    <Text style={{ color: colors.textSecondary }}>
+                                        No appointment breakdown available.
+                                    </Text>
+                                )}
                             </View>
                         </View>
 
-                        {/* My Activity */}
                         <View style={styles.section}>
                             <View style={styles.sectionHeaderRow}>
                                 <View>
                                     <Text style={styles.sectionTitle}>My Activity</Text>
-                                    <Text style={styles.sectionSub}>15 Apr - 21 Apr</Text>
+                                    <Text style={styles.sectionSub}>Recent activity</Text>
                                 </View>
 
                                 <TouchableOpacity onPress={() => navigation.navigate("ClientActivityList")}>
@@ -217,32 +311,28 @@ const ClientDashboard: React.FC = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            <ActivityCard
-                                title="Property Dispute"
-                                caseId="LC2024-001"
-                                status="Active"
-                                lawyerName="Mr. Roshan Manawadu"
-                                lawyerMeta1="LL.B (UoL), BSc in Science in International"
-                                lawyerMeta2="Commercial & Business Lawyer and MBA."
-                                filedDate="Nov 20, 2025"
-                                avatarUri="https://i.pravatar.cc/100?img=12"
-                            />
-
-                            <ActivityCard
-                                title="Divorce Settlement"
-                                caseId="LC2024-002"
-                                status="Completed"
-                                lawyerName="Mrs. Dhana de Silva"
-                                lawyerMeta1="LL.B (UoL), BSc in Science in International"
-                                lawyerMeta2="Commercial & Business Lawyer and MBA."
-                                filedDate="Nov 10, 2025"
-                                avatarUri="https://i.pravatar.cc/100?img=44"
-                            />
+                            {dashboardData?.recentActivities.length ? (
+                                dashboardData.recentActivities.map((activity) => (
+                                    <ActivityCard
+                                        key={activity.bookingId}
+                                        title={activity.title}
+                                        caseId={activity.caseNumber}
+                                        status={normalizeStatus(activity.status)}
+                                        lawyerName={activity.lawyerName}
+                                        lawyerMeta1={activity.lawyerDetails}
+                                        lawyerMeta2=""
+                                        filedDate={formatDate(activity.filedDate)}
+                                    />
+                                ))
+                            ) : (
+                                <Text style={{ color: colors.textSecondary, marginTop: spacing.md }}>
+                                    No recent activities found.
+                                </Text>
+                            )}
                         </View>
                     </View>
                 </ScrollView>
 
-                {/* Floating Chat Button (above bottom tab bar) */}
                 <TouchableOpacity
                     activeOpacity={0.85}
                     onPress={() => navigation.navigate("ClientChatbot")}
@@ -250,7 +340,7 @@ const ClientDashboard: React.FC = () => {
                         styles.fab,
                         {
                             right: spacing.lg,
-                            bottom:spacing.md,
+                            bottom: spacing.md,
                         },
                     ]}
                 >
@@ -265,6 +355,12 @@ const styles = StyleSheet.create({
     body: {
         paddingHorizontal: spacing.lg,
         paddingTop: spacing.lg,
+    },
+    centerState: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: spacing.lg,
     },
 
     heroCard: {
@@ -286,7 +382,7 @@ const styles = StyleSheet.create({
     heroStatsRow: {
         flexDirection: "row",
         gap: spacing.md,
-        marginTop: spacing.xs,
+        marginTop: spacing.lg,
     },
     heroStatTile: {
         flex: 1,

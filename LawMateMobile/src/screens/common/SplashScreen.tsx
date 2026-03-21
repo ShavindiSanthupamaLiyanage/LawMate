@@ -36,7 +36,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
 
         <View style={styles.logoContainer}>
                     <Image
-                        source={require('../../../assets/logo.png')}
+                        source={require('../../../assets/logo_img.png')}
                         style={styles.logoImage}
                         resizeMode="contain"
                     />

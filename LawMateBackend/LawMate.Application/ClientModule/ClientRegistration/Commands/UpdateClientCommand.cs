@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +18,7 @@ namespace LawMate.Application.ClientModule.ClientRegistration.Commands
         public Prefix Prefix { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public Gender Gender { get; set; }
+        public Gender? Gender { get; set; }
         public string? Email { get; set; }
         public string? ContactNumber { get; set; }
 
@@ -78,7 +78,8 @@ namespace LawMate.Application.ClientModule.ClientRegistration.Commands
             user.Prefix = request.Prefix;
             user.FirstName = request.FirstName?.Trim();
             user.LastName = request.LastName?.Trim();
-            user.Gender = request.Gender;
+            if (request.Gender.HasValue)
+                user.Gender = request.Gender.Value;
             user.Email = request.Email?.Trim();
             user.ContactNumber = request.ContactNumber?.Trim();
             user.UserName = $"{user.FirstName} {user.LastName}".Trim();

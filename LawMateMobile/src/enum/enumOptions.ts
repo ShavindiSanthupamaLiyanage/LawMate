@@ -72,6 +72,15 @@ export const AreaOfPracticeOptions: SelectOption[] = [
     { label: "Labour",     value: AreaOfPractice.Labour     },
     { label: "Commercial", value: AreaOfPractice.Commercial },
 ];
+export const AreaOfPracticeLabels: Record<string, string> = {
+    Criminal: 'Criminal Law',
+    Civil: 'Civil Law / Civil Disputes',
+    Family: 'Family Law',
+    Corporate: 'Business / Commercial Law',
+    'Intellectual Property': 'Intellectual Property Law',
+    Labour: 'Employment Law',
+    'Land & Property': 'Property Law',
+};
 
 // ── Legal Category (used in search / filters) ────────────────────────────────
 export const LegalCategoryOptions: SelectOption[] = [

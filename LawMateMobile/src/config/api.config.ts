@@ -70,11 +70,14 @@ export const ENDPOINTS = {
         MEMBERSHIP_PAYMENT: (lawyerId: string) => `/lawyers/${lawyerId}/membership-payment`,
         PROFILE: '/lawyer/profile',
         UPDATE_PROFILE: '/lawyer/profile',
+        UPDATE_BY_USER_ID: (userId: string) => `/lawyers/${userId}`,
         CASES: '/lawyer/cases',
         CASE_DETAIL: (caseId: string) => `/lawyer/cases/${caseId}`,
         APPOINTMENTS: '/lawyer/appointments',
         CLIENTS: '/lawyer/clients',
         GET_BY_USER_ID: (userId: string) => `/lawyers/${userId}`,
+        DASHBOARD: '/lawyer/dashboard',
+        GET_PROFILE: (lawyerId: string) => `/lawyers/${lawyerId}/profile`,  
     },
 
     KNOWLEDGE_HUB: {
@@ -91,13 +94,22 @@ export const ENDPOINTS = {
         REGISTER: '/clients',
         PROFILE: '/client/profile',
         UPDATE_PROFILE: '/client/profile',
+        GET_BY_USER_ID: (userId: string) => `/clients/${userId}`,
+        UPDATE_BY_USER_ID: (userId: string) => `/clients/${userId}`,
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
+        DASHBOARD_HOME: '/client/dashboard/home',
+        DASHBOARD_ACTIVITY: '/client/dashboard/activity',
         SUSPEND: (userId: string) => `/clients/suspend/${userId}`,
+        LAWYER_SEARCH_DROPDOWNS: '/client/lawyers/dropdowns',
+        LAWYER_SEARCH:           '/client/lawyers/search',
     },
 
     // Admin endpoints
     ADMIN: {
+        GET_BY_USER_ID: (userId: string) =>
+            `/admin-registration/get-admin-by-userId?userId=${encodeURIComponent(userId)}`,
+        UPDATE_BY_USER_ID: (userId: string) => `/admin-registration/${userId}`,
         USERS: '/admin/users',
         USER_COUNTS: '/users/counts',
         LAWYER_VERIFICATION: '/lawyer-verification/all',
@@ -109,6 +121,7 @@ export const ENDPOINTS = {
             MONTHLY_REVENUE: '/admin/reports/monthly-revenue',
             FINANCIAL_SUMMARY: '/admin/reports/financial-summary',
         },
+        DASHBOARD: '/admin-dashboard',
     },
     USER: {
         GET_BY_NIC: (nic: string) => `/users/${nic}/email`,
@@ -132,24 +145,27 @@ export const ENDPOINTS = {
         GET_BY_ID: (bookingId: number) => `/bookings/${bookingId}`,
         CREATE: "/bookings",
         UPDATE_STATUS: (bookingId: number) => `/bookings/${bookingId}/status`,
-  },
-      LAWYER_EVENT: {
-          GET_LAWYER_EVENTS: (lawyerId: string) => `/lawyer-events/lawyer/${lawyerId}`,
-          CREATE: "/lawyer-events",
-          UPDATE: (eventId: number) => `/lawyer-events/${eventId}`,
-          DELETE: (eventId: number) => `/lawyer-events/${eventId}`,
-      },
-  AVAILABILITY: {
+     },
+
+    LAWYER_EVENT: {
+        GET_LAWYER_EVENTS: (lawyerId: string) => `/lawyer-events/lawyer/${lawyerId}`,
+        CREATE: "/lawyer-events",
+        UPDATE: (eventId: number) => `/lawyer-events/${eventId}`,
+        DELETE: (eventId: number) => `/lawyer-events/${eventId}`,
+    },
+   AVAILABILITY: {
         GET_LAWYER_SLOTS: (lawyerId: string) => `/availability/lawyer/${lawyerId}`,
-        CREATE: "/availability",
-        UPDATE: (slotId: number) => `/availability/${slotId}`,
-        DELETE: (slotId: number) => `/availability/${slotId}`,
-  },
+        GET_SLOT_BY_ID:   (slotId: number)   => `/availability/slots/${slotId}`,
+        CREATE:           "/availability",
+        UPDATE:           (slotId: number)   => `/availability/${slotId}`,
+        DELETE:           (slotId: number)   => `/availability/${slotId}`,
+   },
 
     LAWYER_VERIFICATION: {
         ACCEPT: (userId: string) => `/lawyer-verification/${userId}/accept`,
         REJECT: (userId: string) => `/lawyer-verification/${userId}/reject`,
     },
+
     PAYMENTS: {
         ALL: '/admin/payments',
         PENDING: '/admin/payments/pending',
@@ -160,6 +176,7 @@ export const ENDPOINTS = {
             return clientId ? `${base}&clientId=${clientId}` : base;
         },
     },
+
     LAWYER_FINANCE: {
         DASHBOARD:     '/lawyer/finance/dashboard',
         TRANSACTIONS:  '/lawyer/finance/transactions',

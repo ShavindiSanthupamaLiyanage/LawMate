@@ -1,4 +1,4 @@
-﻿using LawMate.Application.Common.Interfaces;
+﻿﻿using LawMate.Application.Common.Interfaces;
 using LawMate.Domain.Common.Enums;
 using LawMate.Domain.DTOs;
 using LawMate.Domain.Entities.Auth;
@@ -14,6 +14,7 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
 
         // USER_DETAIL
         public string? ContactNumber { get; set; }
+        public Gender? Gender { get; set; }
 
         // LAWYER_DETAILS
         public string? Bio { get; set; }
@@ -49,6 +50,8 @@ namespace LawMate.Application.LawyerModule.LawyerRegistration.Command
 
             // USER_DETAIL updates
             user.ContactNumber = request.ContactNumber ?? user.ContactNumber;
+            if (request.Gender.HasValue)
+                user.Gender = request.Gender.Value;
 
             // LAWYER_DETAILS updates
             lawyer.Bio = request.Bio;
