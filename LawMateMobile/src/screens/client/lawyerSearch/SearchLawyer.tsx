@@ -37,6 +37,16 @@ const CASE_AREAS = [
     'Criminal', 'Civil', 'Family', 'Corporate',
     'Intellectual Property', 'Labour', 'Land & Property', 'Immigration',
 ];
+const CASE_AREA_LABELS: Record<string, string> = {
+    Criminal: 'Criminal Law',
+    Civil: 'Civil Law / Civil Disputes',
+    Family: 'Family Law',
+    Corporate: 'Business / Commercial Law',
+    'Intellectual Property': 'Intellectual Property Law',
+    Labour: 'Employment Law',
+    'Land & Property': 'Property Law',
+    Immigration: 'Immigration Law',
+};
 
 const DISTRICTS = [
     'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -59,9 +69,11 @@ interface DropdownProps {
     value: string;
     options: string[];
     onSelect: (value: string) => void;
+    getOptionLabel?: (value: string) => string;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect }) => {
+const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect, getOptionLabel = (option) => option,
+                                           }) => {
     const [visible, setVisible] = useState(false);
 
     return (
@@ -74,7 +86,7 @@ const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect }) 
                     activeOpacity={0.7}
                 >
                     <Text style={[styles.dropdownValue, !value && styles.dropdownPlaceholder]}>
-                        {value || ''}
+                        {value ? getOptionLabel(value) : ''}
                     </Text>
                     <Text style={styles.chevron}>⌵</Text>
                 </TouchableOpacity>
@@ -110,7 +122,7 @@ const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect }) 
                                         styles.modalOptionText,
                                         value === option && styles.modalOptionTextSelected,
                                     ]}>
-                                        {option}
+                                        {getOptionLabel(option)}
                                     </Text>
                                     {value === option && (
                                         <Text style={styles.modalOptionCheck}>✓</Text>
@@ -236,6 +248,7 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
                     value={filters.caseArea}
                     options={CASE_AREAS}
                     onSelect={(val) => setFilters((f) => ({ ...f, caseArea: val }))}
+                    getOptionLabel={(val) => CASE_AREA_LABELS[val] ?? val}
                 />
                 <Dropdown
                     label="District"
