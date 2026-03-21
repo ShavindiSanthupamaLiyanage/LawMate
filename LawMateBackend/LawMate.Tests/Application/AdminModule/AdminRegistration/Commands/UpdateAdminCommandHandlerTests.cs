@@ -1,12 +1,11 @@
-﻿using Xunit;
-using FluentAssertions;
+﻿using FluentAssertions;
 using LawMate.Application.AdminModule.AdminRegistration.Commands;
-using LawMate.Domain.Entities.Auth;
 using LawMate.Domain.Common.Enums;
+using LawMate.Domain.Entities.Auth;
 using LawMate.Tests.Common;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+
+namespace LawMate.Tests.Application.AdminModule.AdminRegistration.Commands;
 
 public class UpdateAdminCommandHandlerTests
 {
@@ -38,7 +37,7 @@ public class UpdateAdminCommandHandlerTests
             FirstName = "New",
             LastName = "Admin",
             Email = "new@test.com",
-            NIC = "NEWNIC",
+            NIC = "NEWNIC", // will be ignored
             ContactNumber = "111"
         };
 
@@ -54,9 +53,9 @@ public class UpdateAdminCommandHandlerTests
         updated!.FirstName.Should().Be("New");
         updated.LastName.Should().Be("Admin");
         updated.Email.Should().Be("new@test.com");
-        updated.NIC.Should().Be("NEWNIC");
         updated.ContactNumber.Should().Be("111");
         updated.Prefix.Should().Be(Prefix.Ms);
+        updated.NIC.Should().Be("OLDNIC");
     }
 
     [Fact]
@@ -77,6 +76,6 @@ public class UpdateAdminCommandHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<Exception>()
-                 .WithMessage("Admin not found");
+            .WithMessage("Admin not found");
     }
 }
