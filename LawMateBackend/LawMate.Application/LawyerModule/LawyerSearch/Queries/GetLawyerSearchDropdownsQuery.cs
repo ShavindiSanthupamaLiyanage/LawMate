@@ -1,5 +1,4 @@
-﻿
-using LawMate.Application.Common.Interfaces;
+﻿using LawMate.Application.Common.Interfaces;
 using LawMate.Domain.Common.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -39,14 +38,14 @@ public class GetLawyerSearchDropdownsQueryHandler
         GetLawyerSearchDropdownsQuery request,
         CancellationToken cancellationToken)
     {
-        // Only show verified + active lawyers in the name dropdown
+        // Same State fix — accept Pending(0) and AllVerified(3), exclude only Inactive(2)
         var lawyerNames = await (
             from lawyer in _context.LAWYER_DETAILS
             join user in _context.USER_DETAIL
                 on lawyer.UserId equals user.UserId
             where lawyer.VerificationStatus == VerificationStatus.Verified
-               && user.State                == State.Active
                && user.UserRole             == UserRole.Lawyer
+               && user.State               != State.Inactive
             orderby user.FirstName
             select new LawyerDropdownItem
             {

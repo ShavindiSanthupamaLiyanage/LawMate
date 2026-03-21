@@ -1,36 +1,41 @@
+﻿using System.Security.Claims;
 using LawMate.Application.Common.Interfaces;
 using LawMate.Domain.Common.Enums;
 using LawMate.Domain.DTOs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace LawMate.Application.LawyerModule.LawyerBooking.Queries;
+namespace LawMate.Application.ClientModule.ClientBooking.Queries;
 
-public record GetBookingByIdQuery(int BookingId) : IRequest<GetAppointmentDto>;
+// ─── Query ────────────────────────────────────────────────────────────────────
 
-public class GetBookingByIdQueryHandler
-    : IRequestHandler<GetBookingByIdQuery, GetAppointmentDto>
+public record GetClientAppointmentsQuery(string ClientId)
+    : IRequest<List<GetAppointmentDto>>;
+
+// ─── Handler ──────────────────────────────────────────────────────────────────
+
+public class GetClientAppointmentsQueryHandler
+    : IRequestHandler<GetClientAppointmentsQuery, List<GetAppointmentDto>>
 {
     private readonly IApplicationDbContext _context;
 
-    public GetBookingByIdQueryHandler(IApplicationDbContext context)
+    public GetClientAppointmentsQueryHandler(IApplicationDbContext context)
     {
         _context = context;
     }
 
-    public async Task<GetAppointmentDto> Handle(
-        GetBookingByIdQuery request,
+    public async Task<List<GetAppointmentDto>> Handle(
+        GetClientAppointmentsQuery request,
         CancellationToken cancellationToken)
     {
-        var result = await (
+        var results = await (
             from booking in _context.BOOKING
             join client in _context.USER_DETAIL
                 on booking.ClientId   equals client.UserId
-            join lawyer in _context.USER_DETAIL
-                on booking.LawyerId   equals lawyer.UserId   // ← second join for lawyer name
-            join slot   in _context.TIMESLOT
+            join slot in _context.TIMESLOT
                 on booking.TimeSlotId equals slot.TimeSlotId
-            where booking.BookingId == request.BookingId
+            where booking.ClientId == request.ClientId
+            orderby booking.ScheduledDateTime descending
             select new GetAppointmentDto
             {
                 // ── IDs ──────────────────────────────────────────────────
@@ -42,9 +47,6 @@ public class GetBookingByIdQueryHandler
                 ClientName    = client.FirstName + " " + client.LastName,
                 Email         = client.Email ?? string.Empty,
                 ContactNumber = client.ContactNumber,
-
-                // ── Lawyer ───────────────────────────────────────────────
-                LawyerName    = lawyer.FirstName + " " + lawyer.LastName,
 
                 // ── Date & Time ──────────────────────────────────────────
                 DateTime  = booking.ScheduledDateTime,
@@ -75,20 +77,17 @@ public class GetBookingByIdQueryHandler
                     : "Pending",
 
                 // ── Case & Notes ─────────────────────────────────────────
-                Notes    = booking.IssueDescription,
                 CaseType = booking.CaseType == LegalCategory.FamilyLaw   ? "Family Law"
                     : booking.CaseType == LegalCategory.CriminalLaw ? "Criminal Law"
                     : booking.CaseType == LegalCategory.PropertyLaw ? "Property Law"
                     : booking.CaseType == LegalCategory.Cyber       ? "Cyber"
                     : "General",
 
+                Notes           = booking.IssueDescription,
                 RejectionReason = booking.RejectionReason,
             }
-        ).FirstOrDefaultAsync(cancellationToken);
+        ).ToListAsync(cancellationToken);
 
-        if (result == null)
-            throw new KeyNotFoundException($"Booking {request.BookingId} not found.");
-
-        return result;
+        return results;
     }
 }

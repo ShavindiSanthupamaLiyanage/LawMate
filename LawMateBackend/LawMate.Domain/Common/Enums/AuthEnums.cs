@@ -45,6 +45,7 @@ namespace LawMate.Domain.Common.Enums
         FamilyLaw = 1,
         CriminalLaw = 2,
         PropertyLaw = 3,
+        Cyber = 4,
     }
 
     public enum Language
@@ -159,8 +160,8 @@ namespace LawMate.Domain.Common.Enums
 
     public enum AppointmentMode
     {
-        Physical = 1,
-        Virtual = 2
+        Online = 0,
+        Physical = 1
     }
     
     public enum PaymentSource

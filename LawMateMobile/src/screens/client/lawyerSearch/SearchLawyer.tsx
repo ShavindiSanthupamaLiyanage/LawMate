@@ -8,60 +8,50 @@ import {
     Image,
     Modal,
     ScrollView,
+    ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ClientLayout from '../../../components/ClientLayout';
 import Button from '../../../components/Button';
 import { colors, spacing } from '../../../config/theme';
+import {
+    LawyerSearchService,
+    LawyerSearchDropdownsDto,
+    LawyerSearchResultDto,
+    DropdownItem,
+} from '../../../services/lawyerSearvice';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Lawyer {
-    id: string;
-    name: string;
-    barId: string;
-    casesHandled: number;
-    approved: boolean;
-    profileImage?: string;
-}
+// ─── Local Types ──────────────────────────────────────────────────────────────
 
 interface SearchFilters {
-    caseArea: string;
-    district: string;
-    name: string;
+    caseArea: DropdownItem | null;
+    district: DropdownItem | null;
+    lawyerName: DropdownItem | null;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+const EMPTY_DROPDOWNS: LawyerSearchDropdownsDto = {
+    areasOfPractice: [],
+    districts: [],
+    lawyerNames: [],
+};
 
-const CASE_AREAS = [
-    'Criminal', 'Civil', 'Family', 'Corporate',
-    'Intellectual Property', 'Labour', 'Land & Property', 'Immigration',
-];
-
-const DISTRICTS = [
-    'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
-    'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar',
-    'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee',
-    'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla',
-    'Monaragala', 'Ratnapura', 'Kegalle',
-];
-
-const MOCK_LAWYERS: Lawyer[] = [
-    { id: '1', name: 'Tharindu Bandara', barId: 'SL/2017/2346', casesHandled: 234, approved: true, profileImage: 'https://i.pravatar.cc/150?img=3' },
-    { id: '2', name: 'Tharindu Bandara', barId: 'SL/2017/2346', casesHandled: 234, approved: true, profileImage: 'https://i.pravatar.cc/150?img=3' },
-    { id: '3', name: 'Tharindu Bandara', barId: 'SL/2017/2346', casesHandled: 234, approved: true, profileImage: 'https://i.pravatar.cc/150?img=3' },
-];
+const EMPTY_FILTERS: SearchFilters = {
+    caseArea: null,
+    district: null,
+    lawyerName: null,
+};
 
 // ─── Dropdown Component ───────────────────────────────────────────────────────
 
 interface DropdownProps {
     label: string;
-    value: string;
-    options: string[];
-    onSelect: (value: string) => void;
+    selected: DropdownItem | null;
+    options: DropdownItem[];
+    loading?: boolean;
+    onSelect: (item: DropdownItem) => void;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect }) => {
+const Dropdown: React.FC<DropdownProps> = ({ label, selected, options, loading, onSelect }) => {
     const [visible, setVisible] = useState(false);
 
     return (
@@ -72,10 +62,15 @@ const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect }) 
                     style={styles.dropdownTrigger}
                     onPress={() => setVisible(true)}
                     activeOpacity={0.7}
+                    disabled={loading}
                 >
-                    <Text style={[styles.dropdownValue, !value && styles.dropdownPlaceholder]}>
-                        {value || ''}
-                    </Text>
+                    {loading ? (
+                        <ActivityIndicator size="small" color="#9E9E9E" style={{ flex: 1 }} />
+                    ) : (
+                        <Text style={[styles.dropdownValue, !selected && styles.dropdownPlaceholder]}>
+                            {selected?.label || ''}
+                        </Text>
+                    )}
                     <Text style={styles.chevron}>⌵</Text>
                 </TouchableOpacity>
             </View>
@@ -96,10 +91,10 @@ const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect }) 
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {options.map((option) => (
                                 <TouchableOpacity
-                                    key={option}
+                                    key={String(option.value)}
                                     style={[
                                         styles.modalOption,
-                                        value === option && styles.modalOptionSelected,
+                                        selected?.value === option.value && styles.modalOptionSelected,
                                     ]}
                                     onPress={() => {
                                         onSelect(option);
@@ -108,11 +103,11 @@ const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect }) 
                                 >
                                     <Text style={[
                                         styles.modalOptionText,
-                                        value === option && styles.modalOptionTextSelected,
+                                        selected?.value === option.value && styles.modalOptionTextSelected,
                                     ]}>
-                                        {option}
+                                        {option.label}
                                     </Text>
-                                    {value === option && (
+                                    {selected?.value === option.value && (
                                         <Text style={styles.modalOptionCheck}>✓</Text>
                                     )}
                                 </TouchableOpacity>
@@ -128,41 +123,54 @@ const Dropdown: React.FC<DropdownProps> = ({ label, value, options, onSelect }) 
 // ─── Lawyer Card ──────────────────────────────────────────────────────────────
 
 interface LawyerCardProps {
-    lawyer: Lawyer;
-    onPress?: (lawyer: Lawyer) => void;
+    lawyer: LawyerSearchResultDto;
+    onPress?: (lawyer: LawyerSearchResultDto) => void;
 }
 
-const LawyerCard: React.FC<LawyerCardProps> = ({ lawyer, onPress }) => (
-    <TouchableOpacity
-        style={styles.lawyerCard}
-        onPress={() => onPress?.(lawyer)}
-        activeOpacity={0.75}
-    >
-        <View style={styles.lawyerAvatar}>
-            {lawyer.profileImage ? (
-                <Image source={{ uri: lawyer.profileImage }} style={styles.avatarImage} />
-            ) : (
-                <View style={styles.avatarPlaceholder}>
-                    <Text style={styles.avatarInitials}>
-                        {lawyer.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                    </Text>
+const LawyerCard: React.FC<LawyerCardProps> = ({ lawyer, onPress }) => {
+    const imageUri = lawyer.profileImageBase64
+        ? `data:image/jpeg;base64,${lawyer.profileImageBase64}`
+        : null;
+
+    const initials = lawyer.fullName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
+
+    return (
+        <TouchableOpacity
+            style={styles.lawyerCard}
+            onPress={() => onPress?.(lawyer)}
+            activeOpacity={0.75}
+        >
+            <View style={styles.lawyerAvatar}>
+                {imageUri ? (
+                    <Image source={{ uri: imageUri }} style={styles.avatarImage} />
+                ) : (
+                    <View style={styles.avatarPlaceholder}>
+                        <Text style={styles.avatarInitials}>{initials}</Text>
+                    </View>
+                )}
+            </View>
+            <View style={styles.lawyerInfo}>
+                <Text style={styles.lawyerName}>{lawyer.fullName}</Text>
+                <Text style={styles.lawyerSubText}>{lawyer.areaOfPractice}</Text>
+                {lawyer.professionalDesignation ? (
+                    <Text style={styles.lawyerDesignation}>{lawyer.professionalDesignation}</Text>
+                ) : null}
+            </View>
+            <View style={styles.lawyerMeta}>
+                <Text style={styles.lawyerExp}>{lawyer.yearOfExperience} yrs exp</Text>
+                <Text style={styles.lawyerRating}>⭐ {lawyer.averageRating.toFixed(1)}</Text>
+                <View style={styles.verifiedBadge}>
+                    <Text style={styles.verifiedText}>Verified</Text>
                 </View>
-            )}
-        </View>
-        <View style={styles.lawyerInfo}>
-            <Text style={styles.lawyerName}>{lawyer.name}</Text>
-            <Text style={styles.lawyerBarId}>Bar ID: {lawyer.barId}</Text>
-        </View>
-        <View style={styles.lawyerMeta}>
-            <Text style={styles.lawyerCases}>{lawyer.casesHandled} Cases Handled</Text>
-            {lawyer.approved && (
-                <View style={styles.approvedBadge}>
-                    <Text style={styles.approvedText}>Approved</Text>
-                </View>
-            )}
-        </View>
-    </TouchableOpacity>
-);
+            </View>
+        </TouchableOpacity>
+    );
+};
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
@@ -172,60 +180,126 @@ interface SearchLawyerScreenProps {
 }
 
 const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) => {
-    const presetCaseArea = route?.params?.presetCaseArea ?? '';
-    const [filters, setFilters] = useState<SearchFilters>({
-        caseArea: presetCaseArea,
-        district: '',
-        name: '',
-    });
-    const [results, setResults] = useState<Lawyer[] | null>(null);
-    const [loading, setLoading] = useState(false);
+    const presetCaseAreaValue = route?.params?.presetCaseAreaValue ?? null;
 
+    // ── State ─────────────────────────────────────────────────────────────────
+    const [dropdownOptions, setDropdownOptions]   = useState<LawyerSearchDropdownsDto>(EMPTY_DROPDOWNS);
+    const [dropdownsLoading, setDropdownsLoading] = useState(true);
+    const [dropdownsError, setDropdownsError]     = useState<string | null>(null);
+
+    const [filters, setFilters]       = useState<SearchFilters>(EMPTY_FILTERS);
+    const [results, setResults]       = useState<LawyerSearchResultDto[] | null>(null);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchError, setSearchError]     = useState<string | null>(null);
+
+    // ── Load dropdowns ────────────────────────────────────────────────────────
+    const loadDropdowns = useCallback(async () => {
+        setDropdownsLoading(true);
+        setDropdownsError(null);
+        try {
+            const data = await LawyerSearchService.getDropdowns();
+            setDropdownOptions(data);
+
+            // Pre-select case area if passed as route param
+            if (presetCaseAreaValue !== null) {
+                const preset = data.areasOfPractice.find(
+                    (a) => a.value === presetCaseAreaValue
+                );
+                if (preset) setFilters((f) => ({ ...f, caseArea: preset }));
+            }
+        } catch (e: any) {
+            console.error('loadDropdowns error:', e?.message);
+            setDropdownsError('Failed to load filters. Please try again.');
+        } finally {
+            setDropdownsLoading(false);
+        }
+    }, [presetCaseAreaValue]);
+
+    // Reset & reload on every screen focus
     useFocusEffect(
         useCallback(() => {
-            const preset = route?.params?.presetCaseArea ?? '';
             setResults(null);
-            setFilters({ caseArea: preset, district: '', name: '' });
-        }, [route?.params?.presetCaseArea])
+            setSearchError(null);
+            setFilters(EMPTY_FILTERS);
+            loadDropdowns();
+        }, [loadDropdowns])
     );
 
+    // ── Search ────────────────────────────────────────────────────────────────
     const handleSearch = async () => {
-        setLoading(true);
-        await new Promise((res) => setTimeout(res, 800));
-        setResults(MOCK_LAWYERS);
-        setLoading(false);
+        setSearchLoading(true);
+        setSearchError(null);
+        try {
+            const data = await LawyerSearchService.searchLawyers({
+                areaOfPractice: filters.caseArea  !== null ? Number(filters.caseArea.value)  : undefined,
+                district:       filters.district  !== null ? Number(filters.district.value)  : undefined,
+                nameSearch:     filters.lawyerName !== null ? filters.lawyerName.label        : undefined,
+            });
+            setResults(data);
+        } catch (e: any) {
+            console.error('searchLawyers error:', e?.message);
+            setSearchError('Search failed. Please try again.');
+            setResults([]);
+        } finally {
+            setSearchLoading(false);
+        }
     };
 
-    const handleLawyerPress = (lawyer: Lawyer) => {
-        navigation?.navigate('AppointmentRequest', { lawyerId: lawyer.id });
+    const handleLawyerPress = (lawyer: LawyerSearchResultDto) => {
+        navigation?.navigate('AppointmentRequest', { lawyerId: lawyer.lawyerId });
     };
 
-    // All three dropdowns must be selected to enable the button
     const isFormFilled =
-        filters.caseArea !== '' &&
-        filters.district !== '' &&
-        filters.name !== '';
+        filters.caseArea   !== null ||
+        filters.district   !== null ||
+        filters.lawyerName !== null;
 
+    // ── Render ────────────────────────────────────────────────────────────────
     const renderContent = () => {
         if (results !== null) {
             return (
-                <FlatList
-                    data={results}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <LawyerCard lawyer={item} onPress={handleLawyerPress} />
-                    )}
-                    contentContainerStyle={styles.resultsList}
-                    showsVerticalScrollIndicator={false}
-                    ListEmptyComponent={
-                        <View style={styles.emptyState}>
-                            <Text style={styles.emptyStateText}>No lawyers found</Text>
-                            <Text style={styles.emptyStateSubText}>
-                                Try adjusting your search filters
-                            </Text>
+                <>
+                    {searchError && (
+                        <View style={styles.errorBanner}>
+                            <Text style={styles.errorBannerText}>{searchError}</Text>
                         </View>
-                    }
-                />
+                    )}
+                    <FlatList
+                        data={results}
+                        keyExtractor={(item) => item.lawyerId}
+                        renderItem={({ item }) => (
+                            <LawyerCard lawyer={item} onPress={handleLawyerPress} />
+                        )}
+                        contentContainerStyle={styles.resultsList}
+                        showsVerticalScrollIndicator={false}
+                        ListHeaderComponent={
+                            results.length > 0 ? (
+                                <Text style={styles.resultsCount}>
+                                    {results.length} lawyer{results.length !== 1 ? 's' : ''} found
+                                </Text>
+                            ) : null
+                        }
+                        ListEmptyComponent={
+                            <View style={styles.emptyState}>
+                                <Text style={styles.emptyStateText}>No lawyers found</Text>
+                                <Text style={styles.emptyStateSubText}>
+                                    Try adjusting your search filters
+                                </Text>
+                            </View>
+                        }
+                    />
+                </>
+            );
+        }
+
+        if (dropdownsError) {
+            return (
+                <View style={styles.errorState}>
+                    <Text style={styles.errorStateText}>{dropdownsError}</Text>
+                    <TouchableOpacity onPress={loadDropdowns} style={styles.retryButton}>
+                        <Text style={styles.retryText}>Retry</Text>
+                    </TouchableOpacity>
+                </View>
             );
         }
 
@@ -233,21 +307,24 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
             <View style={styles.formContainer}>
                 <Dropdown
                     label="Case Area"
-                    value={filters.caseArea}
-                    options={CASE_AREAS}
+                    selected={filters.caseArea}
+                    options={dropdownOptions.areasOfPractice}
+                    loading={dropdownsLoading}
                     onSelect={(val) => setFilters((f) => ({ ...f, caseArea: val }))}
                 />
                 <Dropdown
                     label="District"
-                    value={filters.district}
-                    options={DISTRICTS}
+                    selected={filters.district}
+                    options={dropdownOptions.districts}
+                    loading={dropdownsLoading}
                     onSelect={(val) => setFilters((f) => ({ ...f, district: val }))}
                 />
                 <Dropdown
                     label="Name"
-                    value={filters.name}
-                    options={['M.S.Fernando', 'T.Bandara', 'R.Perera', 'K.Silva']}
-                    onSelect={(val) => setFilters((f) => ({ ...f, name: val }))}
+                    selected={filters.lawyerName}
+                    options={dropdownOptions.lawyerNames}
+                    loading={dropdownsLoading}
+                    onSelect={(val) => setFilters((f) => ({ ...f, lawyerName: val }))}
                 />
             </View>
         );
@@ -257,19 +334,19 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
         <ClientLayout
             title="Search Lawyer"
             disableScroll
-            onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
+            onProfilePress={() => navigation.getParent()?.navigate('ClientProfile')}
         >
             <View style={styles.screen}>
                 <View style={styles.body}>{renderContent()}</View>
 
-                {results === null && (
+                {results === null && !dropdownsError && (
                     <View style={styles.footer}>
                         <Button
                             title="SEARCH A LAWYER"
                             variant="primary"
                             onPress={handleSearch}
-                            loading={loading}
-                            disabled={!isFormFilled}
+                            loading={searchLoading}
+                            disabled={!isFormFilled || dropdownsLoading}
                             style={styles.searchButton}
                         />
                     </View>
@@ -381,7 +458,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg ?? 20,
         paddingTop: spacing.md ?? 14,
         paddingBottom: spacing.lg ?? 20,
-        gap: 10,
+    },
+    resultsCount: {
+        fontSize: 13,
+        color: '#9E9E9E',
+        marginBottom: 10,
     },
     lawyerCard: {
         flexDirection: 'row',
@@ -426,26 +507,37 @@ const styles = StyleSheet.create({
         color: '#212121',
         marginBottom: 3,
     },
-    lawyerBarId: {
+    lawyerSubText: {
         fontSize: 12,
         color: '#9E9E9E',
     },
+    lawyerDesignation: {
+        fontSize: 11,
+        color: '#BDBDBD',
+        marginTop: 2,
+    },
     lawyerMeta: {
         alignItems: 'flex-end',
-        gap: 6,
+        gap: 4,
     },
-    lawyerCases: {
+    lawyerExp: {
         fontSize: 11,
         color: '#9E9E9E',
+        marginBottom: 2,
+    },
+    lawyerRating: {
+        fontSize: 12,
+        color: '#F9A825',
+        fontWeight: '600',
         marginBottom: 4,
     },
-    approvedBadge: {
+    verifiedBadge: {
         backgroundColor: '#E8F5E9',
         borderRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 3,
     },
-    approvedText: {
+    verifiedText: {
         color: '#43A047',
         fontSize: 11,
         fontWeight: '600',
@@ -463,6 +555,40 @@ const styles = StyleSheet.create({
     emptyStateSubText: {
         fontSize: 13,
         color: '#9E9E9E',
+    },
+    errorBanner: {
+        marginHorizontal: spacing.lg ?? 20,
+        marginTop: 10,
+        backgroundColor: '#FFEBEE',
+        borderRadius: 8,
+        padding: 12,
+    },
+    errorBannerText: {
+        color: '#C62828',
+        fontSize: 13,
+        textAlign: 'center',
+    },
+    errorState: {
+        alignItems: 'center',
+        paddingTop: 60,
+        paddingHorizontal: 20,
+    },
+    errorStateText: {
+        color: '#C62828',
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 16,
+    },
+    retryButton: {
+        backgroundColor: '#5B4BDB',
+        borderRadius: 8,
+        paddingHorizontal: 24,
+        paddingVertical: 10,
+    },
+    retryText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 14,
     },
 });
 
