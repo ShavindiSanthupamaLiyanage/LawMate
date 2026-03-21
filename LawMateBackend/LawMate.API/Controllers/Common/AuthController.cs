@@ -1,7 +1,6 @@
 ﻿using LawMate.API.Model.Common;
 using LawMate.Application.Common.Interfaces;
 using LawMate.Application.Common.Utilities;
-using LawMate.Domain.Common.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +8,11 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using LawMate.Application.Common.ResetPassword.Commands;
+using LawMate.Application.Common.ResetPassword.Queries;
+using MediatR;
 
-namespace LawMate.API.Controllers
+namespace LawMate.API.Controllers.Common
 {
     [ApiController]
     [Route("api/auth")]
@@ -18,50 +20,75 @@ namespace LawMate.API.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IApplicationDbContext _context;
+        private readonly ICurrentUserService _currentUserService;
         private readonly IAppLogger _logger;
+        private readonly IMediator _mediator;
 
-        public AuthController(IConfiguration configuration, 
-            IApplicationDbContext context, 
-            IAppLogger logger)
+        public AuthController(IConfiguration configuration,
+            IApplicationDbContext context,
+            ICurrentUserService currentUserService,
+            IAppLogger logger,
+            IMediator mediator)
         {
             _configuration = configuration;
             _context = context;
+            _currentUserService = currentUserService;
             _logger = logger;
+            _mediator = mediator;
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] AuthLoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            _logger.Info($"Login attempt | UserId: {request.UserId}");
+            try
+            {
+            _logger.Info($"Login attempt | NIC: {request.NIC }");
 
-            if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.Password))
+            if (string.IsNullOrEmpty(request.NIC ) || string.IsNullOrEmpty(request.Password))
             {
                 _logger.Warning("Login failed | Missing credentials");
-                return BadRequest("UserId and Password are required.");
+                return BadRequest("NIC and Password are required.");
+            }
+            
+            // Normalize NIC (V/X to uppercase)
+            string normalizedNic;
+            try
+            {
+                normalizedNic = NicUtil.ValidateAndNormalize(request.NIC);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
 
-            //Encrypt input password with the same key (UserId)
-            string encryptedInputPassword = CryptoUtil.Encrypt(request.Password, request.UserId);
-
-            var user = await _context.USER_DETAIL.FirstOrDefaultAsync(x =>
-                    x.UserId == request.UserId &&
-                    x.Password == encryptedInputPassword &&  // compare encrypted
-                    x.RecordStatus == 0); // active check
-
-            if (user == null)
+            var users = await _context.USER_DETAIL
+                .Where(x => x.NIC == normalizedNic && x.RecordStatus == 0)
+                .ToListAsync();
+            
+            if (users == null)
             {
-                _logger.Warning($"Login failed | Invalid credentials | UserId: {request.UserId}");
+                _logger.Warning($"Login failed | Invalid credentials | NIC: {request.NIC }");
                 return Unauthorized("Invalid UserId or Password");
+            }
+            
+            // Match password against any account
+            var matchedUser = users
+                .FirstOrDefault(u => u.Password == CryptoUtil.Encrypt(request.Password, u.UserId));
+
+            if (matchedUser == null)
+            {
+                _logger.Warning($"Login failed | Incorrect password | NIC: {normalizedNic}");
+                return Unauthorized("Invalid NIC or Password");
             }
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserId!),
+                new Claim(JwtRegisteredClaimNames.Sub, matchedUser.UserId!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, user.UserRole.ToString()),
-                new Claim("UserId", user.UserId!),
-                new Claim("Email", user.Email ?? "")
+                new Claim(ClaimTypes.Role, matchedUser.UserRole.ToString()),
+                new Claim("UserId", matchedUser.UserId!),
+                new Claim("Email", matchedUser.Email ?? "")
             };
 
             var key = new SymmetricSecurityKey(
@@ -80,18 +107,61 @@ namespace LawMate.API.Controllers
                 signingCredentials: creds
             );
 
-            _logger.Info($"Login successful | UserId: {user.UserId} | Role: {user.UserRole}");
+            _logger.Info($"Login successful | NIC: {matchedUser.NIC} | Role: {matchedUser.UserRole}");
 
-            user.LastLoginDate = DateTime.Now;
+            matchedUser.LastLoginDate = DateTime.Now;
             await _context.SaveChangesAsync(CancellationToken.None);
 
             return Ok(new
             {
                 accessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                userId = user.UserId,
-                role = user.UserRole
+                userId = matchedUser.UserId,
+                role = matchedUser.UserRole,
+                isDualAccount = matchedUser.IsDualAccount,
+                accountStatus = matchedUser.State
             });
+            
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new 
+                { 
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message,
+                    type = ex.GetType().Name
+                });
+            }
         }
 
+        [AllowAnonymous]
+        [HttpPost("request-reset-password")]
+        public async Task<IActionResult> RequestReset(
+            RequestPasswordResetCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+        
+        [AllowAnonymous]
+        [HttpGet("verify-reset-token")]
+        public async Task<IActionResult> VerifyResetToken([FromQuery] string token)
+        {
+            var isValid = await _mediator.Send(
+                new VerifyResetTokenQuery { Token = token });
+
+            if (!isValid)
+                return BadRequest("Invalid or expired token.");
+
+            return Ok("Token valid.");
+        }
+
+        [AllowAnonymous]
+        [HttpPost("reset-password-with-token")]
+        public async Task<IActionResult> ResetPasswordWithToken(
+            [FromBody] ResetPasswordWithTokenCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
     }
 }

@@ -10,13 +10,15 @@ namespace LawMate.Domain.Common.Enums
     {
         Admin = 0,
         Lawyer = 1,
-        Clinet = 2
+        Client = 2
     }
 
     public enum State
     {
-        Inactive = 0,
+        Pending = 0,
         Active = 1,
+        Inactive = 2,
+        AllVerified = 3,
     }
 
     public enum VerificationStatus
@@ -32,7 +34,9 @@ namespace LawMate.Domain.Common.Enums
         Accepted = 1,
         Verified = 2,
         Rejected = 3,
-        Suspended = 4, 
+        Suspended = 4,
+        Confirmed = 5,
+        Cancelled = 6,
     }
 
     public enum LegalCategory
@@ -41,6 +45,7 @@ namespace LawMate.Domain.Common.Enums
         FamilyLaw = 1,
         CriminalLaw = 2,
         PropertyLaw = 3,
+        Cyber = 4,
     }
 
     public enum Language
@@ -63,6 +68,7 @@ namespace LawMate.Domain.Common.Enums
     {
         Male = 1,
         Female = 2,
+        Other = 3
     }
 
     public enum Province
@@ -121,5 +127,46 @@ namespace LawMate.Domain.Common.Enums
         Criminal,
         Labour,
         Commercial
+    }
+
+    public enum PaymentStatus
+    {
+        Pending,
+        Paid,
+        Refunded,
+        Failed
+    }
+    
+    public enum ConsultationStatus
+    {
+        Scheduled,
+        InProgress,
+        Completed,
+        Cancelled,
+        NoShow
+    }
+
+    public enum MembershipType
+    {
+        Monthly = 0,
+        BiAnnual = 1,
+    }
+
+    public enum PaymentMode
+    {
+        Online = 0,
+        Physical = 1
+    }
+
+    public enum AppointmentMode
+    {
+        Online = 0,
+        Physical = 1
+    }
+    
+    public enum PaymentSource
+    {
+        Membership,
+        Booking
     }
 }

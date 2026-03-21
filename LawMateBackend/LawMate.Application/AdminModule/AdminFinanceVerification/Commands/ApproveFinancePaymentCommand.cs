@@ -1,0 +1,41 @@
+﻿using LawMate.Application.Common.Interfaces;
+using LawMate.Domain.Common.Enums;
+using LawMate.Domain.Entities.Booking;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace LawMate.Application.AdminModule.FinanceVerification.Commands;
+
+public record ApproveFinancePaymentCommand(int BookingId, string VerifiedBy, string slipNo) : IRequest<string>;
+
+public class ApproveFinancePaymentCommandHandler 
+    : IRequestHandler<ApproveFinancePaymentCommand, string>
+{
+    private readonly IApplicationDbContext _context;
+
+    public ApproveFinancePaymentCommandHandler(IApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<string> Handle(
+        ApproveFinancePaymentCommand request,
+        CancellationToken cancellationToken)
+    {
+        var payment = await _context.BOOKING_PAYMENT
+            .FirstOrDefaultAsync(x => x.BookingId == request.BookingId, cancellationToken);
+
+        if (payment == null)
+            throw new Exception("Payment not found");
+
+        payment.SlipNumber = request.slipNo;
+        payment.VerificationStatus = VerificationStatus.Verified;
+        payment.VerifiedBy = request.VerifiedBy;
+        payment.VerifiedAt = DateTime.UtcNow;
+        payment.IsPaid = true;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return "Payment approved successfully";
+    }
+}

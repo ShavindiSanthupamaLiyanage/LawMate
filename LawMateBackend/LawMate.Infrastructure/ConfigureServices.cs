@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LawMate.Application.Common.Interfaces.AdminReports;
+using LawMate.Infrastructure.Services.Reports;
 
 namespace LawMate.Infrastructure
 {
@@ -23,6 +25,14 @@ namespace LawMate.Infrastructure
             services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IAppLogger, AppLogger>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddSingleton<IEmailTemplateService, EmailTemplateService>();
+            services.AddScoped<ILawyerDetailReportService, LawyerDetailReportService>();
+            services.AddScoped<IClientDetailReportService, ClientDetailReportService>();
+            services.AddScoped<IMembershipRenewalReportService, MembershipRenewalReportService>();
+            services.AddScoped<IPlatformCommissionReportService, PlatformCommissionReportService>();
+            services.AddScoped<IMonthlyRevenueReportService, MonthlyRevenueReportService>();
+            services.AddScoped<IFinancialSummaryReportService, FinancialSummaryReportService>();
             return services;
         }
     }
