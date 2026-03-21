@@ -1,14 +1,16 @@
-import React,{useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
     View,
     Text,
-    StyleSheet,
+    StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../config/theme';
 import AdminLayout from '../../components/AdminLayout';
+import {AdminDashboardDto} from "../../interfaces/adminDashboard.interface";
+import {AdminService} from "../../services/adminDashboardService";
 
 type DonutItem = { label: string; value: number; color: string };
 
@@ -99,23 +101,66 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ name, action, time }) => (
     </View>
 );
 
+const CATEGORY_COLORS: Record<string, string> = {
+    Criminal:  '#A78BFA',
+    Civil:     '#EC4899',
+    Cyber:     '#60A5FA',
+    Family:    '#F59E0B',
+    Corporate: '#10B981',
+};
+
+const getRelativeTime = (dateString: string): string => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now.getTime() - date.getTime();
+
+    const diffMins  = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays  = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1)   return 'Just now';
+    if (diffMins < 60)  return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+};
+
 const AdminDashboard: React.FC = () => {
     const navigation = useNavigation<any>();
+    const [dashboard, setDashboard] = useState<AdminDashboardDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError]   = useState<string | null>(null);
 
-    // Sample data for charts
-    const lawyerCategories:DonutItem[] = [
-        { label: 'Criminal', value: 30, color: '#A78BFA' },
-        { label: 'Civil', value: 25, color: '#EC4899' },
-        { label: 'Cyber', value: 20, color: '#60A5FA' },
-        { label: 'Family', value: 15, color: '#F59E0B' },
-        { label: 'Corporate', value: 10, color: '#10B981' },
-    ];
+    useEffect(() => {
+        const fetchDashboard = async () => {
+            try {
+                const data = await AdminService.getDashboard();
+                setDashboard(data);
+            } catch (err: any) {
+                setError(err.message || 'Failed to load dashboard');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const recentActivities = [
-        { name: 'Sarah Miller', action: 'reported a dispute', time: '2 minutes ago' },
-        { name: 'John Doe', action: 'registered as lawyer', time: '15 minutes ago' },
-        { name: 'Emma Wilson', action: 'updated profile', time: '1 hour ago' },
-    ];
+        fetchDashboard();
+    }, []);
+
+    if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
+    if (error || !dashboard) return <Text>{error ?? 'No data'}</Text>;
+
+    // Map API data → DonutChart format
+    const lawyerCategories: DonutItem[] = dashboard.lawyerCategories.map(c => ({
+        label: c.category,
+        value: c.count,
+        color: CATEGORY_COLORS[c.category] ?? '#94A3B8',
+    }));
+
+    // Map API data → Recent activities format
+    const recentActivities = dashboard.recentActivities.map(a => ({
+        name:   a.name,
+        action: a.action,
+        time:   getRelativeTime(a.time),
+    }));
 
     return (
         <AdminLayout
@@ -135,13 +180,13 @@ const AdminDashboard: React.FC = () => {
 
                         {/* Total Lawyers */}
                         <View style={[styles.statCard, { backgroundColor: '#AFC6E9' }]}>
-                            <Text style={styles.statNumber}>1234</Text>
+                            <Text style={styles.statNumber}>{dashboard.totalLawyers.toLocaleString()}</Text>
                             <Text style={styles.statLabel}>Total Lawyers</Text>
                         </View>
 
                         {/* Total Clients */}
                         <View style={[styles.statCard, { backgroundColor: '#9FE3B4' }]}>
-                            <Text style={styles.statNumber}>5,678</Text>
+                            <Text style={styles.statNumber}>{dashboard.totalClients.toLocaleString()}</Text>
                             <Text style={styles.statLabel}>Total Clients</Text>
                         </View>
 
@@ -152,7 +197,7 @@ const AdminDashboard: React.FC = () => {
                 {/* Total Lawyers Donut Chart */}
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Total Lawyers</Text>
-                    <Text style={styles.cardSubtitle}>56,945 Active</Text>
+                    <Text style={styles.cardSubtitle}>{dashboard.activeMemberships.toLocaleString()} Active</Text>
 
                     <View style={styles.pieChartContainer}>
                         <DonutChart totalText="100%" data={lawyerCategories} />
@@ -172,7 +217,7 @@ const AdminDashboard: React.FC = () => {
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
                         <Text style={styles.cardTitle}>Revenue</Text>
-                        <Text style={styles.cardSubtitle}>56,945 Total</Text>
+                        <Text style={styles.cardSubtitle}>LKR {dashboard.totalRevenue.toLocaleString()} Total</Text>
                     </View>
 
                     <View style={styles.barChartContainer}>
@@ -184,13 +229,14 @@ const AdminDashboard: React.FC = () => {
                         </View>
 
                         <View style={styles.barsContainer}>
-                            {['Jan 2025', 'February', 'March', 'April', 'May', 'June'].map((month, index) => (
+                            {dashboard.monthlyRevenue.map((item, index) => (
                                 <View key={index} style={styles.barGroup}>
                                     <View style={styles.barPair}>
-                                        <View style={[styles.bar, styles.bar2023, { height: 40 + Math.random() * 60 }]} />
-                                        <View style={[styles.bar, styles.bar2024, { height: 50 + Math.random() * 70 }]} />
+                                        <View style={[styles.bar, styles.bar2023,
+                                            { height: Math.max(10, (item.revenue / dashboard.totalRevenue) * 130) }
+                                        ]} />
                                     </View>
-                                    <Text style={styles.xAxisLabel}>{month}</Text>
+                                    <Text style={styles.xAxisLabel}>{item.month}</Text>
                                 </View>
                             ))}
                         </View>
@@ -511,7 +557,7 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
     },
     bottomSpacer: {
-        height: 20, // Reduced from 100 since safe area handles the rest
+        height: 20,
     },
 });
 

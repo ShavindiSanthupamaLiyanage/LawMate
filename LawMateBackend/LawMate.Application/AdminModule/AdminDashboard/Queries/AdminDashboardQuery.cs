@@ -6,10 +6,8 @@ using LawMate.Domain.Common.Enums;
 
 namespace LawMate.Application.AdminModule.AdminDashboard.Queries
 {
-    // ✅ QUERY
     public record GetAdminDashboardQuery : IRequest<AdminDashboardDto>;
-
-    // ✅ QUERY HANDLER
+    
     public class GetAdminDashboardQueryHandler
         : IRequestHandler<GetAdminDashboardQuery, AdminDashboardDto>
     {
@@ -25,22 +23,19 @@ namespace LawMate.Application.AdminModule.AdminDashboard.Queries
             CancellationToken cancellationToken)
         {
             var today = DateTime.Today;
-
-            // 🔹 TOTAL USERS
+            
             var totalLawyers = await _context.USER_DETAIL
                 .CountAsync(u => u.UserRole == UserRole.Lawyer, cancellationToken);
 
             var totalClients = await _context.USER_DETAIL
                 .CountAsync(u => u.UserRole == UserRole.Client, cancellationToken);
 
-            // 🔹 MEMBERSHIPS
             var activeMemberships = await _context.MEMBERSHIP_PAYMENT
                 .CountAsync(m => m.VerificationStatus == VerificationStatus.Verified && !m.IsExpired, cancellationToken);
 
             var expiredMemberships = await _context.MEMBERSHIP_PAYMENT
                 .CountAsync(m => m.IsExpired, cancellationToken);
-
-            // 🔹 REVENUE
+            
             var bookingRevenue = await _context.BOOKING
                 .Where(b => b.PaymentStatus == PaymentStatus.Paid)
                 .SumAsync(b => (decimal?)b.Amount, cancellationToken) ?? 0;
@@ -50,8 +45,7 @@ namespace LawMate.Application.AdminModule.AdminDashboard.Queries
                 .SumAsync(m => (decimal?)m.Amount, cancellationToken) ?? 0;
 
             var totalRevenue = bookingRevenue + membershipRevenue;
-
-            // 🔹 THIS MONTH
+            
             var thisMonthBookingRevenue = await _context.BOOKING
                 .Where(b =>
                     b.PaymentStatus == PaymentStatus.Paid &&
@@ -68,8 +62,7 @@ namespace LawMate.Application.AdminModule.AdminDashboard.Queries
                 .SumAsync(m => (decimal?)m.Amount, cancellationToken) ?? 0;
 
             var thisMonthRevenue = thisMonthBookingRevenue + thisMonthMembershipRevenue;
-
-            // 🔹 CATEGORIES
+            
             var categories = await _context.LAWYER_DETAILS
                 .GroupBy(l => l.AreaOfPractice)
                 .Select(g => new LawyerCategoryDto
@@ -78,8 +71,7 @@ namespace LawMate.Application.AdminModule.AdminDashboard.Queries
                     Count = g.Count()
                 })
                 .ToListAsync(cancellationToken);
-
-            // 🔹 MONTHLY REVENUE
+            
             var monthlyRevenue = await _context.BOOKING
                 .Where(b => b.PaymentStatus == PaymentStatus.Paid)
                 .GroupBy(b => new { b.ScheduledDateTime.Year, b.ScheduledDateTime.Month })
@@ -91,7 +83,6 @@ namespace LawMate.Application.AdminModule.AdminDashboard.Queries
                 .OrderBy(x => x.Month)
                 .ToListAsync(cancellationToken);
 
-            // 🔹 ACTIVITY
             var activities = await _context.USER_DETAIL
                 .OrderByDescending(u => u.RegistrationDate)
                 .Take(5)
