@@ -86,7 +86,10 @@ const ClientChatbotScreen: React.FC = () => {
                                 style={styles.findLawyersBtn}
                                 activeOpacity={0.85}
                                 onPress={() =>
-                                    navigation.navigate('SearchLawyer', { presetCaseArea: caseArea })
+                                    navigation.navigate('Lawyers', {
+                                        screen: 'SearchLawyer',
+                                        params: { presetCaseArea: caseArea },
+                                    })
                                 }
                             >
                                 <Text style={styles.findLawyersBtnText}>Find Lawyers →</Text>

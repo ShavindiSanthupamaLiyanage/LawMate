@@ -21,7 +21,16 @@ import {
     DropdownItem,
 } from '../../../services/lawyerSearvice';
 
-// ─── Local Types ──────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Lawyer {
+    id: string;
+    name: string;
+    barId: string;
+    casesHandled: number;
+    approved: boolean;
+    profileImage?: string;
+}
 
 interface SearchFilters {
     caseArea: DropdownItem | null;
@@ -34,6 +43,22 @@ const EMPTY_DROPDOWNS: LawyerSearchDropdownsDto = {
     districts: [],
     lawyerNames: [],
 };
+// ─── Mock Data ────────────────────────────────────────────────────────────────
+
+const CASE_AREAS = [
+    'Criminal', 'Civil', 'Family', 'Corporate',
+    'Intellectual Property', 'Labour', 'Land & Property', 'Immigration',
+];
+const CASE_AREA_LABELS: Record<string, string> = {
+    Criminal: 'Criminal Law',
+    Civil: 'Civil Law / Civil Disputes',
+    Family: 'Family Law',
+    Corporate: 'Business / Commercial Law',
+    'Intellectual Property': 'Intellectual Property Law',
+    Labour: 'Employment Law',
+    'Land & Property': 'Property Law',
+    Immigration: 'Immigration Law',
+};
 
 const EMPTY_FILTERS: SearchFilters = {
     caseArea: null,
@@ -45,13 +70,17 @@ const EMPTY_FILTERS: SearchFilters = {
 
 interface DropdownProps {
     label: string;
+    value: string;
+    // onSelect: (value: string) => void;
+    getOptionLabel?: (value: string) => string;
     selected: DropdownItem | null;
     options: DropdownItem[];
     loading?: boolean;
     onSelect: (item: DropdownItem) => void;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ label, selected, options, loading, onSelect }) => {
+const Dropdown: React.FC<DropdownProps> = ({ label, selected, value, options, loading, onSelect, getOptionLabel = (option) => option,
+                                           }) => {
     const [visible, setVisible] = useState(false);
 
     return (
@@ -105,7 +134,8 @@ const Dropdown: React.FC<DropdownProps> = ({ label, selected, options, loading, 
                                         styles.modalOptionText,
                                         selected?.value === option.value && styles.modalOptionTextSelected,
                                     ]}>
-                                        {option.label}
+                                        {/*{option.label}*/}
+                                        {getOptionLabel(option)}
                                     </Text>
                                     {selected?.value === option.value && (
                                         <Text style={styles.modalOptionCheck}>✓</Text>
@@ -218,6 +248,7 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
     // Reset & reload on every screen focus
     useFocusEffect(
         useCallback(() => {
+            const preset = route?.params?.presetCaseArea ?? '';
             setResults(null);
             setSearchError(null);
             setFilters(EMPTY_FILTERS);
@@ -249,12 +280,12 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
         navigation?.navigate('AppointmentRequest', { lawyerId: lawyer.lawyerId });
     };
 
+    // All three dropdowns must be selected to enable the button
     const isFormFilled =
         filters.caseArea   !== null ||
         filters.district   !== null ||
         filters.lawyerName !== null;
 
-    // ── Render ────────────────────────────────────────────────────────────────
     const renderContent = () => {
         if (results !== null) {
             return (
