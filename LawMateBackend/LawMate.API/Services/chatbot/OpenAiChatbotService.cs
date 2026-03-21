@@ -23,6 +23,21 @@ namespace LawMate.API.Services.Chatbot
             "Not a Legal Matter"
         };
 
+        private static readonly HashSet<string> GreetingInputs = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "hi",
+            "hello",
+            "hey",
+            "good morning",
+            "good afternoon",
+            "good evening",
+            "how are you",
+            "how are you?",
+            "hiya",
+            "yo",
+            "sup"
+        };
+
         public OpenAiChatbotService(IConfiguration configuration)
         {
             var apiKey =
@@ -39,6 +54,34 @@ namespace LawMate.API.Services.Chatbot
 
         public async Task<ChatbotClassificationResponse> ClassifyIssueAsync(string issueText)
         {
+            if (string.IsNullOrWhiteSpace(issueText))
+            {
+                return new ChatbotClassificationResponse
+                {
+                    IsSmallTalk = true,
+                    ShowCategoryCard = false,
+                    AssistantMessage = "Hello! Please describe your legal issue in a few words, and I’ll help identify the most relevant type of lawyer.",
+                    Disclaimer = string.Empty,
+                    SuggestedLawyerCategory = string.Empty,
+                    ShortReason = string.Empty
+                };
+            }
+
+            var normalizedInput = issueText.Trim();
+
+            if (IsGreetingOrSmallTalk(normalizedInput))
+            {
+                return new ChatbotClassificationResponse
+                {
+                    IsSmallTalk = true,
+                    ShowCategoryCard = false,
+                    AssistantMessage = "Hello! Please describe your legal issue, and I’ll help identify the most relevant lawyer category for you.",
+                    Disclaimer = string.Empty,
+                    SuggestedLawyerCategory = string.Empty,
+                    ShortReason = string.Empty
+                };
+            }
+
             var prompt = $"""
 You are a legal issue classification assistant for a client-lawyer booking system.
 
@@ -99,8 +142,70 @@ Client issue:
                 ShortReason = parsed.short_reason?.Trim()
                     ?? "The issue is unclear or may involve more than one legal area.",
                 Disclaimer = parsed.disclaimer?.Trim()
-                    ?? "This chatbot only helps identify the most relevant lawyer category based on the information provided. It does not provide legal advice or legal conclusions."
+                    ?? "This chatbot only helps identify the most relevant lawyer category based on the information provided. It does not provide legal advice or legal conclusions.",
+                IsSmallTalk = false,
+                ShowCategoryCard = true,
+                AssistantMessage = string.Empty
             };
+        }
+
+        private static bool IsGreetingOrSmallTalk(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return true;
+
+            var normalized = input.Trim().ToLowerInvariant();
+
+            var exactMatches = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "hi",
+                "hello",
+                "hey",
+                "good morning",
+                "good afternoon",
+                "good evening",
+                "how are you",
+                "how are you?",
+                "hiya",
+                "yo",
+                "sup",
+                "thanks",
+                "thank you",
+                "bye",
+                "goodbye",
+                "can you help me",
+                "need help",
+                "help me",
+                "i need help",
+                "what can you do",
+                "who are you"
+            };
+
+            if (exactMatches.Contains(normalized))
+                return true;
+
+            var greetingKeywords = new[]
+            {
+                "hi",
+                "hello",
+                "hey",
+                "good morning",
+                "good afternoon",
+                "good evening",
+                "how are you"
+            };
+
+            foreach (var keyword in greetingKeywords)
+            {
+                if (normalized.Contains(keyword))
+                {
+                    // if message is short and mostly greeting-like, treat as small talk
+                    if (normalized.Length <= 40)
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private class OpenAiChatbotRawResponse
