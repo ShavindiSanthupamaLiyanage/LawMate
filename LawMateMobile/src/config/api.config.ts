@@ -97,6 +97,8 @@ export const ENDPOINTS = {
         UPDATE_BY_USER_ID: (userId: string) => `/clients/${userId}`,
         APPOINTMENTS: '/client/appointments',
         LAWYERS: '/client/lawyers',
+        DASHBOARD_HOME: '/client/dashboard/home',
+        DASHBOARD_ACTIVITY: '/client/dashboard/activity',
         SUSPEND: (userId: string) => `/clients/suspend/${userId}`,
 
         LAWYER_SEARCH_DROPDOWNS: '/client/lawyers/dropdowns',
