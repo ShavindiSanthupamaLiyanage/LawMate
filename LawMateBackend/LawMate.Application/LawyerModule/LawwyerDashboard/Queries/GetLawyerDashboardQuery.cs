@@ -24,7 +24,7 @@ namespace LawMate.Application.LawyerModule.LawyerDashboard.Queries
     CancellationToken cancellationToken)
 {
     // 1. total appointments
-    var totalAppointments = await _context.BOOKING
+    var totalAppointments = await _context.BOOKING_PAYMENT
         .CountAsync(b => b.LawyerId == request.LawyerId, cancellationToken);
 
     // 2. total revenue
