@@ -113,6 +113,7 @@ namespace LawMate.API.Controllers.LawyerModule
                 TransactionId = transactionId
             });
         }
+        
         [Authorize]
         [HttpGet("{userId}/profile")]
         public async Task<IActionResult> GetLawyerProfile(string userId)
@@ -130,7 +131,7 @@ namespace LawMate.API.Controllers.LawyerModule
                         : null,
                     AreaOfPractice          = lawyer.AreaOfPractice.ToString(),
                     ProfessionalDesignation = lawyer.ProfessionalDesignation,
-                    YearOfExperience        = lawyer.YearOfExperience,
+                    YearOfExperience = lawyer.YearOfExperience ?? 0,
                     AverageRating           = (double)lawyer.AverageRating,
                 };
 
