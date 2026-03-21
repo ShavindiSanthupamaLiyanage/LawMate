@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { View, Text, StyleSheet, Image, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { G, Path, Circle, Text as SvgText } from "react-native-svg";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
 import LawyerLayout from "../../../components/LawyerLayout";
 import { LawyerDashboardService, DonutItem, LawyerDashboardDto, LawyerActivityDto } from "../../../services/lawyerDashboardService";
+import { StorageService } from "../../../utils/storage";
 
-/* ----------------------------- */
-/* Donut Chart                   */
-/* ----------------------------- */
+/* -----------------------------
+   Donut Chart Functions
+------------------------------ */
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
     const angleRad = (Math.PI / 180) * angleDeg;
     return { x: cx + r * Math.cos(angleRad), y: cy + r * Math.sin(angleRad) };
@@ -72,9 +73,9 @@ const DonutChart: React.FC<{ size?: number; strokeWidth?: number; totalText: str
     );
 };
 
-/* ----------------------------- */
-/* Legend & Activity Card         */
-/* ----------------------------- */
+/* -----------------------------
+   Legend & Activity Card
+------------------------------ */
 const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }) => (
     <View style={styles.legendItem}>
         <View style={[styles.legendDot, { backgroundColor: color }]} />
@@ -101,7 +102,7 @@ const ActivityCard: React.FC<LawyerActivityDto & { status: ActivityStatus }> = (
     return (
         <View style={styles.activityCard}>
             <View style={styles.activityTopRow}>
-                <View>
+                <View style={{ flex: 1 }}>
                     <Text style={styles.activityTitle}>{title}</Text>
                     <Text style={styles.activityCaseId}>{caseNumber}</Text>
                 </View>
@@ -123,31 +124,54 @@ const ActivityCard: React.FC<LawyerActivityDto & { status: ActivityStatus }> = (
     );
 };
 
-/* ----------------------------- */
-/* Main Dashboard Component       */
-/* ----------------------------- */
-const LawyerDashboard: React.FC<{ lawyerId: string }> = ({ lawyerId }) => {
+/* -----------------------------
+   Main Dashboard Component
+------------------------------ */
+const LawyerDashboard: React.FC = () => {
     const navigation = useNavigation<any>();
-    const [dashboard, setDashboard] = useState<LawyerDashboardDto | null>(null);
+
+    // Same pattern as LawyerKnowledgeHubFeed — read userId from StorageService
+    const [lawyerId, setLawyerId] = useState<string>("");
+
+    const [dashboard, setDashboard] = useState<LawyerDashboardDto>({
+        summary: { totalAppointments: 0, totalRevenue: 0 },
+        appointmentBreakdown: [],
+        recentActivities: [],
+    });
     const [loading, setLoading] = useState(true);
 
+    // Step 1: load lawyerId from storage on mount
     useEffect(() => {
-        fetchDashboard();
+        const loadUser = async () => {
+            const userData = await StorageService.getUserData();
+            if (userData?.userId) {
+                setLawyerId(userData.userId);
+            } else {
+                setLoading(false); // no user found, stop spinner
+            }
+        };
+        loadUser();
     }, []);
 
-    const fetchDashboard = async () => {
-        try {
-            const data = await LawyerDashboardService.getDashboard(lawyerId);
-            setDashboard(data);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Step 2: fetch dashboard once lawyerId is available
+    useEffect(() => {
+        if (!lawyerId || lawyerId === "") return;
+
+        const fetchDashboard = async () => {
+            try {
+                const data = await LawyerDashboardService.getDashboard(lawyerId);
+                setDashboard(data);
+            } catch (error) {
+                console.error("LawyerDashboard fetch error:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboard();
+    }, [lawyerId]);
 
     const donutData: DonutItem[] = useMemo(() => {
-        if (!dashboard) return [];
         const colorsPalette = ["#6D7CFF", "#FF8C86", "#26C6DA", "#FFB74D", "#3F51B5"];
         return dashboard.appointmentBreakdown.map((item, idx) => ({
             label: item.category,
@@ -155,6 +179,16 @@ const LawyerDashboard: React.FC<{ lawyerId: string }> = ({ lawyerId }) => {
             color: colorsPalette[idx % colorsPalette.length],
         }));
     }, [dashboard]);
+
+    if (loading) {
+        return (
+            <LawyerLayout onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}>
+                <View style={styles.centered}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            </LawyerLayout>
+        );
+    }
 
     return (
         <LawyerLayout onProfilePress={() => navigation.getParent()?.navigate("LawyerProfile")}>
@@ -164,22 +198,22 @@ const LawyerDashboard: React.FC<{ lawyerId: string }> = ({ lawyerId }) => {
                     <LinearGradient colors={[colors.primary, "#6D49FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.heroCard}>
                         <View style={styles.heroStatsRow}>
                             <View style={[styles.heroStatTile, { backgroundColor: "#BFD9FF" }]}>
-                                <Text style={styles.heroStatNumber}>{dashboard?.summary.totalAppointments ?? 0}</Text>
+                                <Text style={styles.heroStatNumber}>{dashboard.summary.totalAppointments}</Text>
                                 <Text style={styles.heroStatLabel}>Total Appointments</Text>
                             </View>
                             <View style={[styles.heroStatTile, { backgroundColor: "#CFF7D0" }]}>
-                                <Text style={styles.heroStatNumber}>${dashboard?.summary.totalRevenue.toFixed(2) ?? 0}</Text>
+                                <Text style={styles.heroStatNumber}>${dashboard.summary.totalRevenue.toFixed(2)}</Text>
                                 <Text style={styles.heroStatLabel}>Total Earnings</Text>
                             </View>
                         </View>
                     </LinearGradient>
 
-                    {/* Total Appointments Donut */}
+                    {/* Donut chart */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Total Appointments</Text>
                         <Text style={styles.sectionSub}>Since - 2025</Text>
                         <View style={styles.card}>
-                            <DonutChart totalText={`${dashboard?.summary.totalAppointments ?? 0}`} data={donutData} />
+                            <DonutChart totalText={`${dashboard.summary.totalAppointments}`} data={donutData} />
                             <View style={styles.legend}>
                                 {donutData.map((d) => (
                                     <LegendItem key={d.label} color={d.color} label={d.label} />
@@ -191,17 +225,15 @@ const LawyerDashboard: React.FC<{ lawyerId: string }> = ({ lawyerId }) => {
                     {/* My Activity */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeaderRow}>
-                            <View>
-                                <Text style={styles.sectionTitle}>My Activity</Text>
-                            </View>
+                            <Text style={styles.sectionTitle}>My Activity</Text>
                         </View>
 
-                        {dashboard?.recentActivities.length === 0 ? (
+                        {dashboard.recentActivities.length === 0 ? (
                             <Text style={{ textAlign: "center", marginTop: spacing.md, color: colors.textSecondary }}>
                                 No activity yet
                             </Text>
                         ) : (
-                            dashboard?.recentActivities.map((act, idx) => (
+                            dashboard.recentActivities.map((act, idx) => (
                                 <ActivityCard key={idx} {...act} status={act.status as ActivityStatus} />
                             ))
                         )}
@@ -212,16 +244,16 @@ const LawyerDashboard: React.FC<{ lawyerId: string }> = ({ lawyerId }) => {
     );
 };
 
-
 /* ----------------------------- */
 /* Styles                         */
 /* ----------------------------- */
 const styles = StyleSheet.create({
+    centered: { flex: 1, justifyContent: "center", alignItems: "center" },
     body: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
     heroCard: { borderRadius: 18, padding: spacing.lg, marginBottom: spacing.lg },
     heroSmall: { color: colors.white, fontSize: fontSize.sm, opacity: 0.9 },
     heroName: { color: colors.white, fontSize: fontSize.lg, fontWeight: fontWeight.bold, marginTop: 2 },
-    heroStatsRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.xs},
+    heroStatsRow: { flexDirection: "row", gap: spacing.md, marginTop: spacing.xs },
     heroStatTile: { flex: 1, borderRadius: 14, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
     heroStatNumber: { fontSize: 22, fontWeight: fontWeight.bold, color: colors.textPrimary },
     heroStatLabel: { marginTop: 4, fontSize: fontSize.xs, color: colors.textSecondary },
