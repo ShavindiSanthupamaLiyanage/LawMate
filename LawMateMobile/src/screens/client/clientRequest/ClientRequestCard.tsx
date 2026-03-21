@@ -1,98 +1,127 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../types'; // adjust path if needed
 import { useNavigation } from '@react-navigation/native';
-interface Props {
-  request: {
-    name: string;
-    caseType: string;
-    phone: string;
-    date: string;
-    time?: string;
-    mode: string;
-    status: 'Pending' | 'Confirmed' | 'Accepted' | 'Rejected';
-    reason?: string;
-    profilePic?: string; // optional
-  };
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface CardRequest {
+  bookingId: number;
+  name: string;
+  caseType: string;
+  phone: string;
+  date: string;
+  time?: string;
+  mode: string;
+  status: 'Pending' | 'Confirmed' | 'Accepted' | 'Rejected';
+  reason?: string;
+  profilePic?: string;
 }
+
+interface Props {
+  request: CardRequest;
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'ClientAppointmentView'
 >;
 
-const RequestCard: React.FC<Props> = ({ request }) => {
-  const navigation = useNavigation<NavigationProp>(); 
+// ─── Component ───────────────────────────────────────────────────────────────
 
-  const statusMap: Record<
-  Props['request']['status'],
-  { text: string; style: any }
-> = {
-  Pending: { text: 'Pending', style: styles.pendingBadge },
-  Confirmed: { text: 'Confirmed Request', style: styles.confirmedBadge },
-  Accepted: { text: 'Accepted Request', style: styles.acceptedBadge },
-  Rejected: { text: 'Rejected Request', style: styles.rejectedBadge },
-};
+const ClientRequestCard: React.FC<Props> = ({ request }) => {
+  const navigation = useNavigation<NavigationProp>();
+
+  const statusMap: Record<CardRequest['status'], { text: string; style: any }> = {
+    Pending:   { text: 'Pending',           style: styles.pendingBadge   },
+    Confirmed: { text: 'Confirmed Request', style: styles.confirmedBadge },
+    Accepted:  { text: 'Accepted Request',  style: styles.acceptedBadge  },
+    Rejected:  { text: 'Rejected Request',  style: styles.rejectedBadge  },
+  };
 
   const { text: badgeText, style: badgeStyle } = statusMap[request.status];
 
   const handlePress = () => {
-    navigation.navigate('ClientAppointmentView', { request });
+    navigation.navigate('ClientAppointmentView', {
+      bookingId: request.bookingId,
+      request,
+    });
   };
 
-return (
-  <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-  <View style={styles.card}>
-    {/* Top Row */}
-    <View style={styles.headerRow}>
-      <Image
-        source={{ uri: request.profilePic || 'https://i.pravatar.cc/150?img=1' }}
-        style={styles.profilePic}
-      />
+  const subtitle = request.time
+    ? `${request.date}  ${request.time}`
+    : request.date;
 
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={styles.name}>{request.name}</Text>
-        <Text style={styles.time}>2 minutes ago</Text>
+  return (
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+      <View style={styles.card}>
+
+        {/* ── Top Row ──────────────────────────────────────────────────── */}
+        <View style={styles.headerRow}>
+          <Image
+            source={{
+              uri: request.profilePic ?? 'https://i.pravatar.cc/150?img=1',
+            }}
+            style={styles.profilePic}
+          />
+
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={styles.name}>{request.name}</Text>
+            <Text style={styles.time}>{subtitle}</Text>
+          </View>
+
+          <Text style={[styles.badge, badgeStyle]}>{badgeText}</Text>
+        </View>
+
+        {/* ── Detail Rows ───────────────────────────────────────────────── */}
+        <View style={styles.details}>
+          <View style={styles.detailRow}>
+            <Text style={styles.label}>Case</Text>
+            <Text style={styles.value}>{request.caseType}</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.label}>Phone</Text>
+            <Text style={styles.value}>{request.phone}</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.label}>Date & Time</Text>
+            <Text style={styles.value}>
+              {request.date}
+              {request.time ? `  ${request.time}` : ''}
+            </Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.label}>Mode</Text>
+            <Text style={styles.value}>{request.mode}</Text>
+          </View>
+        </View>
+
+        {/* ── Rejection Reason ──────────────────────────────────────────── */}
+        {request.status === 'Rejected' && request.reason ? (
+          <View style={styles.detailRow}>
+            <Text style={styles.label}>Reason</Text>
+            <Text style={styles.value}>{request.reason}</Text>
+          </View>
+        ) : null}
+
       </View>
-
-      <Text style={[styles.badge, badgeStyle]}>{badgeText}</Text>
-    </View>
-
-    {/* Details */}
-    <View style={styles.details}>
-      <View style={styles.detailRow}>
-        <Text style={styles.label}>Case</Text>
-        <Text style={styles.value}>{request.caseType}</Text>
-      </View>
-
-      <View style={styles.detailRow}>
-        <Text style={styles.label}>Phone</Text>
-        <Text style={styles.value}>{request.phone}</Text>
-      </View>
-
-      <View style={styles.detailRow}>
-        <Text style={styles.label}>Date & Time</Text>
-        <Text style={styles.value}>
-          {request.date} {request.time}
-        </Text>
-      </View>
-
-      <View style={styles.detailRow}>
-        <Text style={styles.label}>Mode</Text>
-        <Text style={styles.value}>{request.mode}</Text>
-      </View>
-    </View>
-
-    {request.status==='Rejected' &&(
-      <View style={styles.detailRow}>
-        <Text style={styles.label}>Reason</Text>
-        <Text style={styles.value}>{request.reason}</Text>
-      </View>
-    )}
-  </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
 };
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   card: {
@@ -108,30 +137,29 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
+  // header
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-
   profilePic: {
     width: 48,
     height: 48,
     borderRadius: 24,
   },
-
   name: {
     fontSize: 16,
     fontWeight: '700',
     color: '#111827',
   },
-
   time: {
     fontSize: 12,
     color: '#9CA3AF',
     marginTop: 2,
-    marginBottom:10
+    marginBottom: 10,
   },
 
+  // badge
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -139,106 +167,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-
   pendingBadge: {
     backgroundColor: '#E8F0FF',
     color: '#3d4b64',
-    paddingLeft:20,
-    paddingRight:20,
-    paddingTop:6,
-    paddingBottom:6,
-    fontSize:10,
-    borderRadius:6
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 6,
+    paddingBottom: 6,
+    fontSize: 10,
+    borderRadius: 6,
   },
-
   confirmedBadge: {
     backgroundColor: '#D1FAE5',
     color: '#065F46',
-    paddingLeft:20,
-    paddingRight:20,
-    paddingTop:6,
-    paddingBottom:6,
-    fontSize:10,
-    borderRadius:6
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 6,
+    paddingBottom: 6,
+    fontSize: 10,
+    borderRadius: 6,
   },
-
   rejectedBadge: {
     backgroundColor: '#FEE2E2',
     color: '#B91C1C',
-    paddingLeft:20,
-    paddingRight:20,
-    paddingTop:6,
-    paddingBottom:6,
-    fontSize:10,
-    borderRadius:6
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 6,
+    paddingBottom: 6,
+    fontSize: 10,
+    borderRadius: 6,
   },
-
   acceptedBadge: {
     backgroundColor: '#e2fafe',
     color: '#2d1585',
-    paddingLeft:20,
-    paddingRight:20,
-    paddingTop:6,
-    paddingBottom:6,
-    fontSize:10,
-    borderRadius:6
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 6,
+    paddingBottom: 6,
+    fontSize: 10,
+    borderRadius: 6,
   },
 
+  // details
   details: {
     marginTop: 16,
   },
-
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 10,
   },
-
   label: {
     fontSize: 14,
     color: '#6B7280',
-    marginBottom:10,
+    marginBottom: 10,
   },
-
   value: {
     fontSize: 14,
     color: '#111827',
     fontWeight: '500',
   },
-
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-
-  rejectBtn: {
-    flex: 1,
-    marginRight: 8,
-    backgroundColor: '#F87171',
-    paddingVertical: 12,
-    borderRadius: 30,
-    alignItems: 'center',
-  },
-
-  acceptBtn: {
-    flex: 1,
-    marginLeft: 8,
-    backgroundColor: '#3B82F6',
-    paddingVertical: 12,
-    borderRadius: 30,
-    alignItems: 'center',
-  },
-
-  rejectText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-
-  acceptText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
 });
 
-export default RequestCard;
+export default ClientRequestCard;

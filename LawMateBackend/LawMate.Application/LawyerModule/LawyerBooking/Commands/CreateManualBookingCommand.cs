@@ -122,10 +122,13 @@ public class CreateManualBookingCommandHandler
                 ScheduledDateTime = dto.DateTime,
                 Duration = dto.Duration,
                 IssueDescription = dto.CaseType + (string.IsNullOrEmpty(dto.Notes) ? "" : " - " + dto.Notes),
-                BookingStatus = BookingStatus.Accepted, 
+                BookingStatus = BookingStatus.Accepted,
+                PaymentMode        = dto.PaymentMode,        // ← ADD
+                Location           = dto.Location,
                 Amount = dto.Price,
                 PaymentStatus = PaymentStatus.Pending,
                 CreatedBy = currentUser,
+                CaseType          = dto.CaseType,  
                 CreatedAt = DateTime.Now
             };
 

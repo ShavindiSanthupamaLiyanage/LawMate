@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 namespace LawMate.Application.LawyerModule.LawyerBooking.Queries;
 
 public record GetLawyerAppointmentsQuery(
-    string LawyerId,
+    string    LawyerId,
     DateTime? StartDate = null,
-    DateTime? EndDate = null
+    DateTime? EndDate   = null
 ) : IRequest<List<GetAppointmentDto>>;
 
 public class GetLawyerAppointmentsQueryHandler
@@ -27,19 +27,15 @@ public class GetLawyerAppointmentsQueryHandler
         CancellationToken cancellationToken)
     {
         var query = from booking in _context.BOOKING
-                    join client in _context.USER_DETAIL on booking.ClientId equals client.UserId
+                    join client in _context.USER_DETAIL
+                        on booking.ClientId   equals client.UserId
+                    join slot in _context.TIMESLOT
+                        on booking.TimeSlotId equals slot.TimeSlotId
                     where booking.LawyerId == request.LawyerId
-                    select new
-                    {
-                        Booking = booking,
-                        Client = client
-                    };
+                    select new { Booking = booking, Client = client, Slot = slot };
 
-        // Apply date filtering if provided
         if (request.StartDate.HasValue)
-        {
             query = query.Where(x => x.Booking.ScheduledDateTime >= request.StartDate.Value);
-        }
 
         if (request.EndDate.HasValue)
         {
@@ -51,23 +47,52 @@ public class GetLawyerAppointmentsQueryHandler
             .OrderBy(x => x.Booking.ScheduledDateTime)
             .Select(x => new GetAppointmentDto
             {
-                BookingId = x.Booking.BookingId,
+                // ── IDs ──────────────────────────────────────────────────
+                BookingId     = x.Booking.BookingId,
                 AppointmentId = "APT-" + x.Booking.BookingId.ToString().PadLeft(4, '0'),
-                ClientId = x.Booking.ClientId,
-                ClientName = x.Client.FirstName + " " + x.Client.LastName,
-                Email = x.Client.Email ?? string.Empty,
+
+                // ── Client ───────────────────────────────────────────────
+                ClientId      = x.Booking.ClientId,
+                ClientName    = x.Client.FirstName + " " + x.Client.LastName,
+                Email         = x.Client.Email ?? string.Empty,
                 ContactNumber = x.Client.ContactNumber,
-                CaseType = x.Booking.IssueDescription ?? "General Consultation",
-                DateTime = x.Booking.ScheduledDateTime,
-                Duration = x.Booking.Duration,
-                Status = x.Booking.BookingStatus,
-                Mode = "Physical", 
-                Price = x.Booking.Amount,
-                Notes = x.Booking.IssueDescription,
-                PaymentStatus = x.Booking.PaymentStatus,
-                PaymentStatusDisplay = x.Booking.PaymentStatus == PaymentStatus.Paid 
-                    ? "Verified Payment" 
-                    : x.Booking.PaymentStatus.ToString()
+
+                // ── Date & Time ──────────────────────────────────────────
+                DateTime  = x.Booking.ScheduledDateTime,
+                StartTime = x.Slot.StartTime.ToString("o"),
+                EndTime   = x.Slot.EndTime.ToString("o"),
+                Duration  = (int)((x.Slot.EndTime - x.Slot.StartTime).TotalMinutes),
+
+                // ── Mode — "Physical" or "Online" string ─────────────────
+                Mode = x.Booking.Mode == AppointmentMode.Physical
+                           ? "Physical"
+                           : "Online",
+
+                // ── Payment ──────────────────────────────────────────────
+                Price                = 2000,                        // always Rs.2000
+                PaymentStatus        = x.Booking.PaymentStatus,
+                PaymentStatusDisplay = x.Booking.PaymentStatus == PaymentStatus.Paid
+                                           ? "Verified Payment"
+                                           : x.Booking.PaymentStatus.ToString(),
+
+                // ── Status ───────────────────────────────────────────────
+                Status = x.Booking.BookingStatus == BookingStatus.Pending   ? "Pending"
+                    : x.Booking.BookingStatus == BookingStatus.Accepted  ? "Accepted"
+                    : x.Booking.BookingStatus == BookingStatus.Verified  ? "Verified"
+                    : x.Booking.BookingStatus == BookingStatus.Rejected  ? "Rejected"
+                    : x.Booking.BookingStatus == BookingStatus.Suspended ? "Suspended"
+                    : x.Booking.BookingStatus == BookingStatus.Confirmed ? "Confirmed"
+                    : x.Booking.BookingStatus == BookingStatus.Cancelled ? "Cancelled"
+                    : "Pending",
+                
+                // ── CaseType enum → readable string ──────────────────────────────────
+                CaseType = x.Booking.CaseType == LegalCategory.FamilyLaw   ? "Family Law"
+                    : x.Booking.CaseType == LegalCategory.CriminalLaw ? "Criminal Law"
+                    : x.Booking.CaseType == LegalCategory.PropertyLaw ? "Property Law"
+                    : x.Booking.CaseType == LegalCategory.Cyber       ? "Cyber"
+                    : "General",
+
+                Notes  = x.Booking.IssueDescription,
             })
             .ToListAsync(cancellationToken);
 

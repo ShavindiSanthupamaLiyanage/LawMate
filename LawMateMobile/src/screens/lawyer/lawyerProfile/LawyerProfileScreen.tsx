@@ -15,7 +15,7 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import LawyerLayout from '../../../components/LawyerLayout';
 import Alert from "../../../components/Alert";
 import {AuthService} from "../../../services/authService";
-import apiClient from '../../../api/client';
+import apiClient from '../../../api/httpClient';
 import { ENDPOINTS } from '../../../config/api.config';
 import { AreaOfPracticeOptions } from '../../../enum/enumOptions';
 

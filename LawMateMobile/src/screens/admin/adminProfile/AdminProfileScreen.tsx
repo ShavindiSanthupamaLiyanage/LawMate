@@ -15,7 +15,7 @@ import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../co
 import AdminLayout from '../../../components/AdminLayout';
 import Alert from '../../../components/Alert';
 import { AuthService } from '../../../services/authService';
-import apiClient from '../../../api/client';
+import apiClient from '../../../api/httpClient';
 import { ENDPOINTS } from '../../../config/api.config';
 
 interface MenuItemProps {

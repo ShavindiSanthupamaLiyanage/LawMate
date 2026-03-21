@@ -21,15 +21,12 @@ public class AvailabilityController : ControllerBase
     /// <summary>
     /// Get all availability slots for a specific lawyer with optional date filtering
     /// </summary>
-    /// <param name="lawyerId">The lawyer's user ID</param>
-    /// <param name="startDate">Optional start date filter (inclusive)</param>
-    /// <param name="endDate">Optional end date filter (inclusive)</param>
     [Authorize]
     [HttpGet("lawyer/{lawyerId}")]
     public async Task<IActionResult> GetLawyerAvailabilitySlots(
         string lawyerId,
         [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null)
+        [FromQuery] DateTime? endDate   = null)
     {
         try
         {
@@ -41,12 +38,42 @@ public class AvailabilityController : ControllerBase
 
             return Ok(result);
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
         catch (Exception ex)
         {
             return BadRequest(new
             {
                 Message = "Failed to retrieve availability slots",
-                Error = ex.Message
+                Error   = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get a single availability slot by ID
+    /// </summary>
+    [Authorize]
+    [HttpGet("slots/{slotId:int}")]
+    public async Task<IActionResult> GetAvailabilitySlotById(int slotId)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetAvailabilitySlotByIdQuery(slotId));
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                Message = "Failed to retrieve slot",
+                Error   = ex.Message
             });
         }
     }
@@ -54,7 +81,6 @@ public class AvailabilityController : ControllerBase
     /// <summary>
     /// Create a new availability slot
     /// </summary>
-    /// <param name="request">The slot details</param>
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateAvailabilitySlot([FromBody] CreateAvailabilitySlotDto request)
@@ -68,38 +94,29 @@ public class AvailabilityController : ControllerBase
 
             return Ok(new
             {
-                Message = "Availability slot created successfully",
+                Message    = "Availability slot created successfully",
                 TimeSlotId = timeSlotId,
-                Id = timeSlotId.ToString()
+                Id         = timeSlotId.ToString()
             });
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new
-            {
-                Message = ex.Message
-            });
+            return NotFound(new { Message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new
-            {
-                Message = ex.Message
-            });
+            return BadRequest(new { Message = ex.Message });
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new
-            {
-                Message = ex.Message
-            });
+            return BadRequest(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
             return BadRequest(new
             {
                 Message = "Failed to create availability slot",
-                Error = ex.Message
+                Error   = ex.Message
             });
         }
     }
@@ -107,8 +124,6 @@ public class AvailabilityController : ControllerBase
     /// <summary>
     /// Update an existing availability slot
     /// </summary>
-    /// <param name="slotId">The time slot ID</param>
-    /// <param name="request">The updated slot details</param>
     [Authorize]
     [HttpPut("{slotId}")]
     public async Task<IActionResult> UpdateAvailabilitySlot(
@@ -120,42 +135,33 @@ public class AvailabilityController : ControllerBase
             await _mediator.Send(new UpdateAvailabilitySlotCommand
             {
                 TimeSlotId = slotId,
-                Data = request
+                Data       = request
             });
 
             return Ok(new
             {
-                Message = "Availability slot updated successfully",
+                Message    = "Availability slot updated successfully",
                 TimeSlotId = slotId
             });
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new
-            {
-                Message = ex.Message
-            });
+            return NotFound(new { Message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new
-            {
-                Message = ex.Message
-            });
+            return BadRequest(new { Message = ex.Message });
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new
-            {
-                Message = ex.Message
-            });
+            return BadRequest(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
             return BadRequest(new
             {
                 Message = "Failed to update availability slot",
-                Error = ex.Message
+                Error   = ex.Message
             });
         }
     }
@@ -163,7 +169,6 @@ public class AvailabilityController : ControllerBase
     /// <summary>
     /// Delete an availability slot (only if not booked)
     /// </summary>
-    /// <param name="slotId">The time slot ID</param>
     [Authorize]
     [HttpDelete("{slotId}")]
     public async Task<IActionResult> DeleteAvailabilitySlot(int slotId)
@@ -177,30 +182,24 @@ public class AvailabilityController : ControllerBase
 
             return Ok(new
             {
-                Message = "Availability slot deleted successfully",
+                Message    = "Availability slot deleted successfully",
                 TimeSlotId = slotId
             });
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new
-            {
-                Message = ex.Message
-            });
+            return NotFound(new { Message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new
-            {
-                Message = ex.Message
-            });
+            return BadRequest(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
             return BadRequest(new
             {
                 Message = "Failed to delete availability slot",
-                Error = ex.Message
+                Error   = ex.Message
             });
         }
     }

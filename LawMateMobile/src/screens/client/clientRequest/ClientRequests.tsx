@@ -1,59 +1,179 @@
-import React, { useState } from 'react';
-import { FlatList } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  FlatList,
+  ActivityIndicator,
+  View,
+  Text,
+  StyleSheet,
+  RefreshControl,
+} from 'react-native';
 import ClientLayout from '../../../components/ClientLayout';
-import ClientRequestTabs from './ClientRequestTabs';
+import ClientRequestTabs, { TabType } from './ClientRequestTabs';
 import ClientRequestCard from './ClientRequestCard';
-import {useNavigation} from "@react-navigation/native";
+import { useNavigation } from '@react-navigation/native';
+import { bookingService, GetAppointmentDto } from '../../../services/bookingService';
 
-type Request = {
-  id: string;
-  name: string;
-  caseType: string;
-  phone: string;
-  date: string;
-  time?: string;
-  mode: string;
-  status: 'Pending' | 'Confirmed' | 'Rejected' | 'Accepted';
-  reason?: string;
-  profilePic?: string;
-};
+// ─── helpers ─────────────────────────────────────────────────────────────────
 
-const REQUEST_DATA: Request[] = [
-  { id: '1', name: 'Gihan Perera', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending', profilePic: 'https://i.pravatar.cc/150?img=3' },
-  { id: '2', name: 'Gihan Perera', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending', profilePic: 'https://i.pravatar.cc/150?img=4' },
-  { id: '3', name: 'Gihan Perera', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending', profilePic: 'https://i.pravatar.cc/150?img=5' },
-  { id: '4', name: 'Gihan Perera', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Pending' },
-  { id: '5', name: 'Gihan Perera', caseType: 'Criminal Law', phone: '+94 77 123 4567', date: '12 Nov 2025', mode: 'Online', status: 'Confirmed', profilePic: 'https://i.pravatar.cc/150?img=28' },
-  { id: '6', name: 'Gihan Perera', caseType: 'Property Law', phone: '+94 77 123 4567', date: '10 Nov 2025', time: '10.00 PM', mode: 'Online', status: 'Accepted', profilePic: 'https://i.pravatar.cc/150?img=5' },
-  { id: '7', name: 'Gihan Perera', caseType: 'Criminal Law', phone: '+94 77 123 4567', date: '12 Nov 2025', mode: 'Online', status: 'Confirmed' },
-  { id: '8', name: 'Gihan Perera', caseType: 'Family Law', phone: '+94 77 123 4567', date: '15 Nov 2025', mode: 'Online', status: 'Rejected', reason: 'Schedule Conflict', profilePic: 'https://i.pravatar.cc/150?img=70' },
-  { id: '9', name: 'Gihan Perera', caseType: 'Family Law', phone: '+94 77 123 4567', date: '15 Nov 2025', mode: 'Online', status: 'Rejected', reason: 'Schedule Conflict' },
-];
+/** Maps any API status string → the 4 values ClientRequestCard accepts */
+function mapStatus(
+  apiStatus: string,
+): 'Pending' | 'Confirmed' | 'Accepted' | 'Rejected' {
+  switch (apiStatus) {
+    case 'Accepted':
+      return 'Accepted';
+    case 'Confirmed':
+    case 'Verified':
+      return 'Confirmed';
+    case 'Rejected':
+    case 'Cancelled':
+    case 'Suspended':
+      return 'Rejected';
+    default:
+      return 'Pending';
+  }
+}
+
+/** Converts a GetAppointmentDto to the shape ClientRequestCard expects */
+function toCardRequest(appt: GetAppointmentDto) {
+  const dateObj = new Date(appt.dateTime);
+  const dateStr = dateObj.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  let timeStr: string | undefined;
+  try {
+    timeStr = new Date(appt.startTime).toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    timeStr = undefined;
+  }
+
+  return {
+    bookingId:  appt.bookingId,
+    name:       appt.clientName,
+    caseType:   appt.caseType,
+    phone:      appt.contactNumber ?? '',
+    date:       dateStr,
+    time:       timeStr,
+    mode:       appt.mode,
+    status:     mapStatus(appt.status),
+    reason:     appt.rejectionReason,
+    profilePic: undefined as string | undefined,
+  };
+}
+
+// ─── component ───────────────────────────────────────────────────────────────
 
 const ClientRequests: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'Pending' | 'Confirmed' | 'Accepted' | 'Rejected'>('Pending');
-
-  const filteredRequests = REQUEST_DATA.filter(req => {
-    if (activeTab === 'Confirmed') {
-      return req.status === 'Confirmed' || req.status === 'Accepted';
-    }
-    return req.status === activeTab;
-  });
+  const [activeTab, setActiveTab] = useState<TabType>('Pending');
+  const [appointments, setAppointments] = useState<GetAppointmentDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const navigation = useNavigation<any>();
 
-  return (
-    <ClientLayout
+  const fetchAppointments = useCallback(async (isRefresh = false) => {
+    try {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+      setError(null);
+
+      const data = await bookingService.getClientAppointments();
+      setAppointments(data);
+    } catch (err: any) {
+      setError(err.message ?? 'Failed to load appointments');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  // ── filter by active tab ───────────────────────────────────────────────────
+  const filteredRequests = appointments.filter(appt => {
+    const s = appt.status;
+    if (activeTab === 'Pending')
+      return s === 'Pending';
+    if (activeTab === 'Confirmed')
+      return s === 'Confirmed' || s === 'Accepted' || s === 'Verified';
+    if (activeTab === 'Rejected')
+      return s === 'Rejected' || s === 'Cancelled' || s === 'Suspended';
+    return false;
+  });
+
+  // ── loading state ─────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <ClientLayout
         title="Requests"
         disableScroll
-        onProfilePress={() => navigation.getParent()?.navigate("ClientProfile")}
+        onProfilePress={() => navigation.getParent()?.navigate('ClientProfile')}
+      >
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#4F46E5" />
+          <Text style={styles.loadingText}>Loading requests…</Text>
+        </View>
+      </ClientLayout>
+    );
+  }
+
+  // ── error state ───────────────────────────────────────────────────────────
+  if (error) {
+    return (
+      <ClientLayout
+        title="Requests"
+        disableScroll
+        onProfilePress={() => navigation.getParent()?.navigate('ClientProfile')}
+      >
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.retryText} onPress={() => fetchAppointments()}>
+            Tap to retry
+          </Text>
+        </View>
+      </ClientLayout>
+    );
+  }
+
+  // ── main render ───────────────────────────────────────────────────────────
+  return (
+    <ClientLayout
+      title="Requests"
+      disableScroll
+      onProfilePress={() => navigation.getParent()?.navigate('ClientProfile')}
     >
       <FlatList
         data={filteredRequests}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => <ClientRequestCard request={item} />}
+        keyExtractor={item => item.bookingId.toString()}
+        renderItem={({ item }) => (
+          <ClientRequestCard request={toCardRequest(item)} />
+        )}
         ListHeaderComponent={
           <ClientRequestTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              No {activeTab.toLowerCase()} requests
+            </Text>
+          </View>
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => fetchAppointments(true)}
+            colors={['#4F46E5']}
+            tintColor="#4F46E5"
+          />
         }
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 50 }}
         showsVerticalScrollIndicator={false}
@@ -61,5 +181,39 @@ const ClientRequests: React.FC = () => {
     </ClientLayout>
   );
 };
+
+const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
+    gap: 12,
+  },
+  loadingText: {
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 24,
+  },
+  retryText: {
+    color: '#4F46E5',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+  },
+});
 
 export default ClientRequests;

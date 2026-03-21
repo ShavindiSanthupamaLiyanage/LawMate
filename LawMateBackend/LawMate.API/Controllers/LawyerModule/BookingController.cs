@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using LawMate.Application.LawyerModule.LawyerBooking.Commands;
 using LawMate.Application.LawyerModule.LawyerBooking.Queries;
+using LawMate.Domain.Common.Enums;
 using LawMate.Domain.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -18,45 +20,32 @@ public class BookingController : ControllerBase
         _mediator = mediator;
     }
 
-    /// <summary>
-    /// Get all appointments for a specific lawyer with optional date filtering
-    /// </summary>
-    /// <param name="lawyerId">The lawyer's user ID</param>
-    /// <param name="startDate">Optional start date filter (inclusive)</param>
-    /// <param name="endDate">Optional end date filter (inclusive)</param>
+    // ─── GET api/bookings/lawyer/{lawyerId} ───────────────────────────────────
+
     [Authorize]
     [HttpGet("lawyer/{lawyerId}")]
     public async Task<IActionResult> GetLawyerAppointments(
         string lawyerId,
         [FromQuery] DateTime? startDate = null,
-        [FromQuery] DateTime? endDate = null)
+        [FromQuery] DateTime? endDate   = null)
     {
         try
         {
             var result = await _mediator.Send(new GetLawyerAppointmentsQuery(
-                lawyerId,
-                startDate,
-                endDate
+                lawyerId, startDate, endDate
             ));
-
             return Ok(result);
         }
         catch (Exception ex)
         {
-            return BadRequest(new
-            {
-                Message = "Failed to retrieve appointments",
-                Error = ex.Message
-            });
+            return BadRequest(new { Message = "Failed to retrieve appointments", Error = ex.Message });
         }
     }
 
-    /// <summary>
-    /// Get a specific booking/appointment by ID
-    /// </summary>
-    /// <param name="bookingId">The booking ID</param>
+    // ─── GET api/bookings/{bookingId} ─────────────────────────────────────────
+
     [Authorize]
-    [HttpGet("{bookingId}")]
+    [HttpGet("{bookingId:int}")]
     public async Task<IActionResult> GetBookingById(int bookingId)
     {
         try
@@ -66,27 +55,61 @@ public class BookingController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new
-            {
-                Message = ex.Message
-            });
+            return NotFound(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
-            return BadRequest(new
-            {
-                Message = "Failed to retrieve booking",
-                Error = ex.Message
-            });
+            return BadRequest(new { Message = "Failed to retrieve booking", Error = ex.Message });
         }
     }
 
-    /// <summary>
-    /// Create a manual appointment (lawyer-initiated)
-    /// </summary>
-    /// <param name="request">The booking details</param>
+    // ─── POST api/bookings (client-initiated, slot-based) ─────────────────────
+
     [Authorize]
     [HttpPost]
+    public async Task<IActionResult> CreateBooking([FromBody] ClientCreateBookingDto request)
+    {
+        try
+        {
+            var clientId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? User.FindFirst("sub")?.Value
+                        ?? throw new UnauthorizedAccessException("Client identity not found.");
+
+            var bookingId = await _mediator.Send(new CreateClientBookingCommand
+            {
+                ClientId = clientId,
+                Data     = request,
+            });
+
+            return Ok(new
+            {
+                Message       = "Booking created successfully",
+                BookingId     = bookingId,
+                AppointmentId = $"APT-{bookingId:D4}",
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { Message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = "Failed to create booking", Error = ex.Message });
+        }
+    }
+
+    // ─── POST api/bookings/manual (lawyer-initiated, kept as-is) ─────────────
+
+    [Authorize]
+    [HttpPost("manual")]
     public async Task<IActionResult> CreateManualBooking([FromBody] CreateManualBookingDto request)
     {
         try
@@ -98,42 +121,29 @@ public class BookingController : ControllerBase
 
             return Ok(new
             {
-                Message = "Appointment created successfully",
-                BookingId = bookingId,
-                AppointmentId = $"APT-{bookingId:D4}"
+                Message       = "Appointment created successfully",
+                BookingId     = bookingId,
+                AppointmentId = $"APT-{bookingId:D4}",
             });
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new
-            {
-                Message = ex.Message
-            });
+            return NotFound(new { Message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new
-            {
-                Message = ex.Message
-            });
+            return BadRequest(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
-            return BadRequest(new
-            {
-                Message = "Failed to create appointment",
-                Error = ex.Message
-            });
+            return BadRequest(new { Message = "Failed to create appointment", Error = ex.Message });
         }
     }
 
-    /// <summary>
-    /// Update the status of a booking
-    /// </summary>
-    /// <param name="bookingId">The booking ID</param>
-    /// <param name="request">The status update details</param>
+    // ─── PATCH api/bookings/{bookingId}/status ────────────────────────────────
+
     [Authorize]
-    [HttpPatch("{bookingId}/status")]
+    [HttpPatch("{bookingId:int}/status")]
     public async Task<IActionResult> UpdateBookingStatus(
         int bookingId,
         [FromBody] UpdateBookingStatusDto request)
@@ -143,30 +153,23 @@ public class BookingController : ControllerBase
             await _mediator.Send(new UpdateBookingStatusCommand
             {
                 BookingId = bookingId,
-                Data = request
+                Data      = request,
             });
 
             return Ok(new
             {
-                Message = "Booking status updated successfully",
+                Message   = "Booking status updated successfully",
                 BookingId = bookingId,
-                NewStatus = request.Status.ToString()
+                NewStatus = request.Status.ToString(),
             });
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new
-            {
-                Message = ex.Message
-            });
+            return NotFound(new { Message = ex.Message });
         }
         catch (Exception ex)
         {
-            return BadRequest(new
-            {
-                Message = "Failed to update booking status",
-                Error = ex.Message
-            });
+            return BadRequest(new { Message = "Failed to update booking status", Error = ex.Message });
         }
     }
 }
