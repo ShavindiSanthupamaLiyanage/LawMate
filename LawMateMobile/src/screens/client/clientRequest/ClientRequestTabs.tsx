@@ -1,16 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-export type TabType = 'Pending' | 'Confirmed' | 'Accepted' | 'Rejected';
+export type TabType = 'Pending' | 'Confirmed' | 'Rejected';
+
 interface Props {
   activeTab: TabType;
   setActiveTab: React.Dispatch<React.SetStateAction<TabType>>;
 }
 
-const ClientRequestTabs: React.FC<Props> = ({
-  activeTab,
-  setActiveTab,
-}) => {
+const ClientRequestTabs: React.FC<Props> = ({ activeTab, setActiveTab }) => {
   const tabs: TabType[] = ['Pending', 'Confirmed', 'Rejected'];
 
   return (
@@ -20,6 +18,7 @@ const ClientRequestTabs: React.FC<Props> = ({
           key={tab}
           style={[styles.tab, activeTab === tab && styles.activeTab]}
           onPress={() => setActiveTab(tab)}
+          activeOpacity={0.8}
         >
           <Text
             style={[
@@ -56,6 +55,10 @@ const styles = StyleSheet.create({
   activeTab: {
     backgroundColor: '#FFFFFF',
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
   },
   tabText: {
     fontSize: 14,

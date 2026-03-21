@@ -10,7 +10,7 @@ public class SearchLawyerQuery : IRequest<List<LawyerSearchResultDto>>
 {
     public AreaOfPractice? AreaOfPractice { get; set; }
     public District?       District       { get; set; }
-    public string?         NameSearch     { get; set; } // free-text name search
+    public string?         NameSearch     { get; set; }
 }
 
 // ---------- Result DTO ----------
@@ -46,11 +46,11 @@ public class SearchLawyerQueryHandler
             join user in _context.USER_DETAIL
                 on lawyer.UserId equals user.UserId
             where lawyer.VerificationStatus == VerificationStatus.Verified
-               && user.State                == State.Active
                && user.UserRole             == UserRole.Lawyer
+               // Accept any non-Inactive state so both Pending(0) and AllVerified(3) are included
+               && user.State               != State.Inactive
             select new { lawyer, user };
 
-        // All filters are independent — any combination works
         if (request.AreaOfPractice.HasValue)
             query = query.Where(x => x.lawyer.AreaOfPractice == request.AreaOfPractice.Value);
 

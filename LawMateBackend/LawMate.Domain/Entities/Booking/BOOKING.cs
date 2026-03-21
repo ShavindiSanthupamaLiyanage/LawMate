@@ -55,4 +55,8 @@ public class BOOKING
 
     [MaxLength(500)]
     public string? RejectionReason { get; set; }
+    
+    public AppointmentMode Mode { get; set; }
+    
+    public LegalCategory CaseType { get; set; }
 }

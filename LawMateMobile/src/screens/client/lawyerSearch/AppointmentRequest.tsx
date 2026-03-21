@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -6,64 +6,93 @@ import {
     TouchableOpacity,
     FlatList,
     Image,
+    ActivityIndicator,
 } from 'react-native';
 import ClientLayout from '../../../components/ClientLayout';
 import Button from '../../../components/Button';
 import { colors, spacing } from '../../../config/theme';
+import {
+    AppointmentRequestService,
+    TimeSlotDto,
+    LawyerProfileDto,
+} from '../../../services/appointmentRequestService';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-interface TimeSlot {
-    id: string;
-    date: string;
-    time: string;
-}
+const formatSlotDate = (iso: string): string => {
+    const d = new Date(iso);
+    const day   = d.getDate();
+    const month = d.toLocaleString('en-US', { month: 'short' });
+    const year  = d.getFullYear();
+    const suffix =
+        day === 1 || day === 21 || day === 31 ? 'st'
+        : day === 2 || day === 22 ? 'nd'
+        : day === 3 || day === 23 ? 'rd'
+        : 'th';
+    return `${day}${suffix} ${month} ${year}`;
+};
 
-interface Lawyer {
-    id: string;
-    name: string;
-    barId: string;
-    casesHandled: number;
-    approved: boolean;
-    profileImage?: string;
-}
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_TIMESLOTS: TimeSlot[] = [
-    { id: '1', date: '28 th Oct 2025', time: '2.00 - 3.00 p.m' },
-    { id: '2', date: '29 th Oct 2025', time: '1.00 - 2.00 p.m' },
-    { id: '3', date: '31 th Oct 2025', time: '10.00 - 11.00 a.m' },
-    { id: '4', date: '02 th Nov 2025', time: '2.00 - 3.00 p.m' },
-    { id: '5', date: '04 th Oct 2025', time: '12.00 - 1.00 p.m' },
-];
+const formatSlotTime = (startIso: string, endIso: string): string => {
+    const fmt = (iso: string) =>
+        new Date(iso).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+    return `${fmt(startIso)} – ${fmt(endIso)}`;
+};
 
 // ─── Lawyer Summary Card ──────────────────────────────────────────────────────
 
-const LawyerSummaryCard: React.FC<{ lawyer: Lawyer }> = ({ lawyer }) => (
-    <View style={styles.lawyerCard}>
-        <View style={styles.lawyerAvatar}>
-            {lawyer.profileImage ? (
-                <Image source={{ uri: lawyer.profileImage }} style={styles.avatarImage} />
-            ) : (
-                <View style={styles.avatarPlaceholder}>
-                    <Text style={styles.avatarInitials}>
-                        {lawyer.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
-                    </Text>
+const LawyerSummaryCard: React.FC<{ lawyer: LawyerProfileDto }> = ({ lawyer }) => {
+    const imageUri = lawyer.profileImageBase64
+        ? `data:image/jpeg;base64,${lawyer.profileImageBase64}`
+        : null;
+
+    const initials = lawyer.fullName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
+
+    return (
+        <View style={styles.lawyerCard}>
+            <View style={styles.lawyerAvatar}>
+                {imageUri ? (
+                    <Image source={{ uri: imageUri }} style={styles.avatarImage} />
+                ) : (
+                    <View style={styles.avatarPlaceholder}>
+                        <Text style={styles.avatarInitials}>{initials}</Text>
+                    </View>
+                )}
+            </View>
+            <View style={styles.lawyerInfo}>
+                <Text style={styles.lawyerName}>{lawyer.fullName}</Text>
+                <Text style={styles.lawyerSubText}>{lawyer.areaOfPractice}</Text>
+                {lawyer.professionalDesignation ? (
+                    <Text style={styles.lawyerDesignation}>{lawyer.professionalDesignation}</Text>
+                ) : null}
+            </View>
+            <View style={styles.lawyerMeta}>
+                <Text style={styles.lawyerExp}>{lawyer.yearOfExperience} yrs exp</Text>
+                <Text style={styles.lawyerRating}>⭐ {lawyer.averageRating.toFixed(1)}</Text>
+                <View style={styles.verifiedBadge}>
+                    <Text style={styles.verifiedText}>Verified</Text>
                 </View>
-            )}
+            </View>
         </View>
-        <View style={styles.lawyerInfo}>
-            <Text style={styles.lawyerName}>{lawyer.name}</Text>
-            <Text style={styles.lawyerBarId}>Bar ID: {lawyer.barId}</Text>
-        </View>
-        <View style={styles.lawyerMeta}>
-            <Text style={styles.lawyerCases}>{lawyer.casesHandled} Cases Handled</Text>
-            {lawyer.approved && (
-                <View style={styles.approvedBadge}>
-                    <Text style={styles.approvedText}>Approved</Text>
-                </View>
-            )}
+    );
+};
+
+// ─── Lawyer Card Skeleton ─────────────────────────────────────────────────────
+
+const LawyerCardSkeleton: React.FC = () => (
+    <View style={[styles.lawyerCard, styles.skeletonCard]}>
+        <View style={[styles.avatarPlaceholder, styles.skeleton]} />
+        <View style={{ flex: 1, gap: 8 }}>
+            <View style={[styles.skeletonLine, { width: '60%' }]} />
+            <View style={[styles.skeletonLine, { width: '40%' }]} />
         </View>
     </View>
 );
@@ -71,7 +100,7 @@ const LawyerSummaryCard: React.FC<{ lawyer: Lawyer }> = ({ lawyer }) => (
 // ─── Time Slot Row ────────────────────────────────────────────────────────────
 
 interface TimeSlotRowProps {
-    slot: TimeSlot;
+    slot: TimeSlotDto;
     selected: boolean;
     hasSelection: boolean;
     onPress: () => void;
@@ -93,8 +122,12 @@ const TimeSlotRow: React.FC<TimeSlotRowProps> = ({ slot, selected, hasSelection,
             <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
                 {selected && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={[styles.slotDate, dimmed && styles.slotTextDimmed]}>{slot.date}</Text>
-            <Text style={[styles.slotTime, dimmed && styles.slotTextDimmed]}>{slot.time}</Text>
+            <Text style={[styles.slotDate, dimmed && styles.slotTextDimmed]}>
+                {formatSlotDate(slot.startTime)}
+            </Text>
+            <Text style={[styles.slotTime, dimmed && styles.slotTextDimmed]}>
+                {formatSlotTime(slot.startTime, slot.endTime)}
+            </Text>
         </TouchableOpacity>
     );
 };
@@ -114,29 +147,70 @@ const AppointmentRequest: React.FC<AppointmentRequestScreenProps> = ({
     navigation,
     route,
 }) => {
-    const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+    const lawyerId = route?.params?.lawyerId ?? '';
 
-    const lawyer: Lawyer = {
-        id: route?.params?.lawyerId ?? '1',
-        name: 'Tharindu Bandara',
-        barId: 'SL/2017/2346',
-        casesHandled: 234,
-        approved: true,
-        profileImage: 'https://i.pravatar.cc/150?img=3',
-    };
+    // ── State ─────────────────────────────────────────────────────────────────
+    const [lawyer, setLawyer]             = useState<LawyerProfileDto | null>(null);
+    const [slots, setSlots]               = useState<TimeSlotDto[]>([]);
+    const [lawyerLoading, setLawyerLoading] = useState(true);
+    const [slotsLoading, setSlotsLoading]   = useState(true);
+    const [lawyerError, setLawyerError]   = useState<string | null>(null);
+    const [slotsError, setSlotsError]     = useState<string | null>(null);
+    const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
+    const [continueLoading, setContinueLoading] = useState(false);
 
+    // ── Load lawyer profile ───────────────────────────────────────────────────
+    const loadLawyer = useCallback(async () => {
+        if (!lawyerId) return;
+        setLawyerLoading(true);
+        setLawyerError(null);
+        try {
+            const data = await AppointmentRequestService.getLawyerProfile(lawyerId);
+            setLawyer(data);
+        } catch (e: any) {
+            console.error('loadLawyer error:', e?.message);
+            setLawyerError('Failed to load lawyer details.');
+        } finally {
+            setLawyerLoading(false);
+        }
+    }, [lawyerId]);
+
+    // ── Load available slots ──────────────────────────────────────────────────
+    const loadSlots = useCallback(async () => {
+        if (!lawyerId) return;
+        setSlotsLoading(true);
+        setSlotsError(null);
+        try {
+            // Load slots from today onwards
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const data = await AppointmentRequestService.getAvailableSlots(lawyerId, today);
+            setSlots(data);
+        } catch (e: any) {
+            console.error('loadSlots error:', e?.message);
+            setSlotsError('Failed to load available slots.');
+        } finally {
+            setSlotsLoading(false);
+        }
+    }, [lawyerId]);
+
+    useEffect(() => {
+        loadLawyer();
+        loadSlots();
+    }, [loadLawyer, loadSlots]);
+
+    // ── Continue ──────────────────────────────────────────────────────────────
     const handleContinue = async () => {
         if (!selectedSlotId) return;
-        setLoading(true);
-        await new Promise((res) => setTimeout(res, 600));
-        setLoading(false);
+        setContinueLoading(true);
         navigation?.navigate('AppointmentForm', {
-            lawyerId: lawyer.id,
+            lawyerId,
             slotId: selectedSlotId,
         });
+        setContinueLoading(false);
     };
 
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <ClientLayout
             title="Appointment Request"
@@ -145,42 +219,77 @@ const AppointmentRequest: React.FC<AppointmentRequestScreenProps> = ({
             disableScroll
         >
             <View style={styles.screen}>
-                {/* Lawyer summary */}
+
+                {/* ── Lawyer summary ── */}
                 <View style={styles.lawyerSection}>
-                    <LawyerSummaryCard lawyer={lawyer} />
+                    {lawyerLoading ? (
+                        <LawyerCardSkeleton />
+                    ) : lawyerError ? (
+                        <View style={styles.inlineError}>
+                            <Text style={styles.inlineErrorText}>{lawyerError}</Text>
+                            <TouchableOpacity onPress={loadLawyer}>
+                                <Text style={styles.inlineRetry}>Retry</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : lawyer ? (
+                        <LawyerSummaryCard lawyer={lawyer} />
+                    ) : null}
                 </View>
 
-                {/* Time slots */}
+                {/* ── Time slots ── */}
                 <View style={styles.slotsSection}>
                     <Text style={styles.sectionTitle}>Available Time Slots</Text>
-                    <FlatList
-                        data={MOCK_TIMESLOTS}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                            <TimeSlotRow
-                                slot={item}
-                                selected={selectedSlotId === item.id}
-                                hasSelection={selectedSlotId !== null}
-                                onPress={() =>
-                                    setSelectedSlotId(
-                                        selectedSlotId === item.id ? null : item.id
-                                    )
-                                }
-                            />
-                        )}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.slotsList}
-                    />
+
+                    {slotsLoading ? (
+                        <View style={styles.centeredState}>
+                            <ActivityIndicator size="large" color="#4F3CC9" />
+                        </View>
+                    ) : slotsError ? (
+                        <View style={styles.centeredState}>
+                            <Text style={styles.errorStateText}>{slotsError}</Text>
+                            <TouchableOpacity onPress={loadSlots} style={styles.retryButton}>
+                                <Text style={styles.retryText}>Retry</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : slots.length === 0 ? (
+                        <View style={styles.centeredState}>
+                            <Text style={styles.emptyStateText}>No available slots</Text>
+                            <Text style={styles.emptyStateSubText}>
+                                This lawyer has no upcoming availability
+                            </Text>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={slots}
+                            keyExtractor={(item) => String(item.timeSlotId)}
+                            renderItem={({ item }) => (
+                                <TimeSlotRow
+                                    slot={item}
+                                    selected={selectedSlotId === item.timeSlotId}
+                                    hasSelection={selectedSlotId !== null}
+                                    onPress={() =>
+                                        setSelectedSlotId(
+                                            selectedSlotId === item.timeSlotId
+                                                ? null
+                                                : item.timeSlotId
+                                        )
+                                    }
+                                />
+                            )}
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={styles.slotsList}
+                        />
+                    )}
                 </View>
 
-                {/* Footer */}
+                {/* ── Footer ── */}
                 <View style={styles.footer}>
                     <Button
                         title="CONTINUE"
                         variant="primary"
                         onPress={handleContinue}
-                        loading={loading}
-                        disabled={selectedSlotId === null}
+                        loading={continueLoading}
+                        disabled={selectedSlotId === null || slotsLoading}
                         style={styles.continueButton}
                     />
                 </View>
@@ -197,7 +306,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background ?? '#F2F2F7',
     },
 
-    // ── Lawyer Card ──
+    // ── Lawyer card ───────────────────────────────────────────────────────────
     lawyerSection: {
         paddingHorizontal: spacing.lg ?? 20,
         paddingTop: spacing.lg ?? 20,
@@ -230,6 +339,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#D0CCF5',
         alignItems: 'center',
         justifyContent: 'center',
+        marginRight: 12,
     },
     avatarInitials: {
         color: '#5B4BDB',
@@ -245,32 +355,56 @@ const styles = StyleSheet.create({
         color: '#212121',
         marginBottom: 3,
     },
-    lawyerBarId: {
+    lawyerSubText: {
         fontSize: 12,
         color: '#9E9E9E',
     },
+    lawyerDesignation: {
+        fontSize: 11,
+        color: '#BDBDBD',
+        marginTop: 2,
+    },
     lawyerMeta: {
         alignItems: 'flex-end',
-        gap: 6,
+        gap: 4,
     },
-    lawyerCases: {
+    lawyerExp: {
         fontSize: 11,
         color: '#9E9E9E',
+        marginBottom: 2,
+    },
+    lawyerRating: {
+        fontSize: 12,
+        color: '#F9A825',
+        fontWeight: '600',
         marginBottom: 4,
     },
-    approvedBadge: {
+    verifiedBadge: {
         backgroundColor: '#E8F5E9',
         borderRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 3,
     },
-    approvedText: {
+    verifiedText: {
         color: '#43A047',
         fontSize: 11,
         fontWeight: '600',
     },
 
-    // ── Time Slots ──
+    // ── Skeleton ──────────────────────────────────────────────────────────────
+    skeletonCard: {
+        gap: 12,
+    },
+    skeleton: {
+        backgroundColor: '#E8E8E8',
+    },
+    skeletonLine: {
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#E8E8E8',
+    },
+
+    // ── Slots ─────────────────────────────────────────────────────────────────
     slotsSection: {
         flex: 1,
         paddingHorizontal: spacing.lg ?? 20,
@@ -342,7 +476,63 @@ const styles = StyleSheet.create({
         color: '#AAAAAA',
     },
 
-    // ── Footer ──
+    // ── Inline error (lawyer card area) ───────────────────────────────────────
+    inlineError: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        backgroundColor: '#FFEBEE',
+        borderRadius: 10,
+        padding: 14,
+    },
+    inlineErrorText: {
+        color: '#C62828',
+        fontSize: 13,
+    },
+    inlineRetry: {
+        color: '#5B4BDB',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+
+    // ── Centered states (slots area) ──────────────────────────────────────────
+    centeredState: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: 40,
+    },
+    errorStateText: {
+        color: '#C62828',
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 14,
+    },
+    retryButton: {
+        backgroundColor: '#5B4BDB',
+        borderRadius: 8,
+        paddingHorizontal: 24,
+        paddingVertical: 10,
+    },
+    retryText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    emptyStateText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#424242',
+        marginBottom: 6,
+    },
+    emptyStateSubText: {
+        fontSize: 13,
+        color: '#9E9E9E',
+        textAlign: 'center',
+    },
+
+    // ── Footer ────────────────────────────────────────────────────────────────
     footer: {
         paddingHorizontal: spacing.lg ?? 20,
         paddingBottom: spacing.lg ?? 20,
