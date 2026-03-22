@@ -21,17 +21,6 @@ import {
     DropdownItem,
 } from '../../../services/lawyerSearvice';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Lawyer {
-    id: string;
-    name: string;
-    barId: string;
-    casesHandled: number;
-    approved: boolean;
-    profileImage?: string;
-}
-
 interface SearchFilters {
     caseArea: DropdownItem | null;
     district: DropdownItem | null;
@@ -43,12 +32,7 @@ const EMPTY_DROPDOWNS: LawyerSearchDropdownsDto = {
     districts: [],
     lawyerNames: [],
 };
-// ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const CASE_AREAS = [
-    'Criminal', 'Civil', 'Family', 'Corporate',
-    'Intellectual Property', 'Labour', 'Land & Property', 'Immigration',
-];
 const CASE_AREA_LABELS: Record<string, string> = {
     Criminal: 'Criminal Law',
     Civil: 'Civil Law / Civil Disputes',
@@ -66,20 +50,22 @@ const EMPTY_FILTERS: SearchFilters = {
     lawyerName: null,
 };
 
-// ─── Dropdown Component ───────────────────────────────────────────────────────
-
 interface DropdownProps {
     label: string;
-    value: string;
-    // onSelect: (value: string) => void;
-    getOptionLabel?: (value: string) => string;
     selected: DropdownItem | null;
     options: DropdownItem[];
     loading?: boolean;
     onSelect: (item: DropdownItem) => void;
+    getOptionLabel?: (item: DropdownItem) => string;
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ label, selected, value, options, loading, onSelect, getOptionLabel = (option) => option,
+const Dropdown: React.FC<DropdownProps> = ({
+                                               label,
+                                               selected,
+                                               options,
+                                               loading,
+                                               onSelect,
+                                               getOptionLabel = (item) => item.label,
                                            }) => {
     const [visible, setVisible] = useState(false);
 
@@ -97,7 +83,7 @@ const Dropdown: React.FC<DropdownProps> = ({ label, selected, value, options, lo
                         <ActivityIndicator size="small" color="#9E9E9E" style={{ flex: 1 }} />
                     ) : (
                         <Text style={[styles.dropdownValue, !selected && styles.dropdownPlaceholder]}>
-                            {selected?.label || ''}
+                            {selected ? getOptionLabel(selected) : ''}
                         </Text>
                     )}
                     <Text style={styles.chevron}>⌵</Text>
@@ -130,11 +116,12 @@ const Dropdown: React.FC<DropdownProps> = ({ label, selected, value, options, lo
                                         setVisible(false);
                                     }}
                                 >
-                                    <Text style={[
-                                        styles.modalOptionText,
-                                        selected?.value === option.value && styles.modalOptionTextSelected,
-                                    ]}>
-                                        {/*{option.label}*/}
+                                    <Text
+                                        style={[
+                                            styles.modalOptionText,
+                                            selected?.value === option.value && styles.modalOptionTextSelected,
+                                        ]}
+                                    >
                                         {getOptionLabel(option)}
                                     </Text>
                                     {selected?.value === option.value && (
@@ -149,8 +136,6 @@ const Dropdown: React.FC<DropdownProps> = ({ label, selected, value, options, lo
         </>
     );
 };
-
-// ─── Lawyer Card ──────────────────────────────────────────────────────────────
 
 interface LawyerCardProps {
     lawyer: LawyerSearchResultDto;
@@ -202,40 +187,44 @@ const LawyerCard: React.FC<LawyerCardProps> = ({ lawyer, onPress }) => {
     );
 };
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
-
 interface SearchLawyerScreenProps {
     navigation?: any;
     route?: any;
 }
 
 const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) => {
-    const presetCaseAreaValue = route?.params?.presetCaseAreaValue ?? null;
+    const presetCaseArea = route?.params?.presetCaseArea ?? null;
 
-    // ── State ─────────────────────────────────────────────────────────────────
-    const [dropdownOptions, setDropdownOptions]   = useState<LawyerSearchDropdownsDto>(EMPTY_DROPDOWNS);
+    const [dropdownOptions, setDropdownOptions] = useState<LawyerSearchDropdownsDto>(EMPTY_DROPDOWNS);
     const [dropdownsLoading, setDropdownsLoading] = useState(true);
-    const [dropdownsError, setDropdownsError]     = useState<string | null>(null);
+    const [dropdownsError, setDropdownsError] = useState<string | null>(null);
 
-    const [filters, setFilters]       = useState<SearchFilters>(EMPTY_FILTERS);
-    const [results, setResults]       = useState<LawyerSearchResultDto[] | null>(null);
+    const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS);
+    const [results, setResults] = useState<LawyerSearchResultDto[] | null>(null);
     const [searchLoading, setSearchLoading] = useState(false);
-    const [searchError, setSearchError]     = useState<string | null>(null);
+    const [searchError, setSearchError] = useState<string | null>(null);
 
-    // ── Load dropdowns ────────────────────────────────────────────────────────
     const loadDropdowns = useCallback(async () => {
         setDropdownsLoading(true);
         setDropdownsError(null);
+
         try {
             const data = await LawyerSearchService.getDropdowns();
             setDropdownOptions(data);
 
-            // Pre-select case area if passed as route param
-            if (presetCaseAreaValue !== null) {
-                const preset = data.areasOfPractice.find(
-                    (a) => a.value === presetCaseAreaValue
-                );
-                if (preset) setFilters((f) => ({ ...f, caseArea: preset }));
+            if (presetCaseArea) {
+                const normalizedPreset = String(presetCaseArea).trim().toLowerCase();
+
+                const preset = data.areasOfPractice.find((a) => {
+                    const rawLabel = String(a.label).trim().toLowerCase();
+                    const displayLabel = String(CASE_AREA_LABELS[a.label] ?? a.label).trim().toLowerCase();
+
+                    return rawLabel === normalizedPreset || displayLabel === normalizedPreset;
+                });
+
+                if (preset) {
+                    setFilters((f) => ({ ...f, caseArea: preset }));
+                }
             }
         } catch (e: any) {
             console.error('loadDropdowns error:', e?.message);
@@ -243,12 +232,10 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
         } finally {
             setDropdownsLoading(false);
         }
-    }, [presetCaseAreaValue]);
+    }, [presetCaseArea]);
 
-    // Reset & reload on every screen focus
     useFocusEffect(
         useCallback(() => {
-            const preset = route?.params?.presetCaseArea ?? '';
             setResults(null);
             setSearchError(null);
             setFilters(EMPTY_FILTERS);
@@ -256,15 +243,15 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
         }, [loadDropdowns])
     );
 
-    // ── Search ────────────────────────────────────────────────────────────────
     const handleSearch = async () => {
         setSearchLoading(true);
         setSearchError(null);
+
         try {
             const data = await LawyerSearchService.searchLawyers({
-                areaOfPractice: filters.caseArea  !== null ? Number(filters.caseArea.value)  : undefined,
-                district:       filters.district  !== null ? Number(filters.district.value)  : undefined,
-                nameSearch:     filters.lawyerName !== null ? filters.lawyerName.label        : undefined,
+                areaOfPractice: filters.caseArea !== null ? Number(filters.caseArea.value) : undefined,
+                district: filters.district !== null ? Number(filters.district.value) : undefined,
+                nameSearch: filters.lawyerName !== null ? filters.lawyerName.label : undefined,
             });
             setResults(data);
         } catch (e: any) {
@@ -280,10 +267,9 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
         navigation?.navigate('AppointmentRequest', { lawyerId: lawyer.lawyerId });
     };
 
-    // All three dropdowns must be selected to enable the button
     const isFormFilled =
-        filters.caseArea   !== null ||
-        filters.district   !== null ||
+        filters.caseArea !== null ||
+        filters.district !== null ||
         filters.lawyerName !== null;
 
     const renderContent = () => {
@@ -342,6 +328,7 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
                     options={dropdownOptions.areasOfPractice}
                     loading={dropdownsLoading}
                     onSelect={(val) => setFilters((f) => ({ ...f, caseArea: val }))}
+                    getOptionLabel={(item) => CASE_AREA_LABELS[item.label] ?? item.label}
                 />
                 <Dropdown
                     label="District"
@@ -386,8 +373,6 @@ const SearchLawyer: React.FC<SearchLawyerScreenProps> = ({ navigation, route }) 
         </ClientLayout>
     );
 };
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
     screen: {
