@@ -4,6 +4,10 @@ export interface ChatbotClassificationResponse {
     suggestedLawyerCategory: string;
     shortReason: string;
     disclaimer: string;
+    isSmallTalk: boolean;
+    showCategoryCard: boolean;
+    assistantMessage: string;
+
 }
 
 // Maps chatbot categories → SearchLawyer CASE_AREAS values

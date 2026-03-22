@@ -14,16 +14,19 @@ import { useNavigation } from "@react-navigation/native";
 
 import ClientLayout from "../../../components/ClientLayout";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
-import {CATEGORY_TO_CASE_AREA, classifyLegalIssue} from "../../../services/chatbotService";
+import { CATEGORY_TO_CASE_AREA, classifyLegalIssue } from "../../../services/chatbotService";
 
 type ChatMessage = {
     id: string;
-    role: 'user' | 'assistant';
+    role: "user" | "assistant";
     text: string;
     classification?: {
         suggestedLawyerCategory: string;
         shortReason: string;
         disclaimer: string;
+        isSmallTalk?: boolean;
+        showCategoryCard?: boolean;
+        assistantMessage?: string;
     };
 };
 
@@ -39,26 +42,36 @@ const ClientChatbotScreen: React.FC = () => {
         const text = input.trim();
         if (!text || isLoading) return;
 
-        const userMsg: ChatMessage = { id: `${Date.now()}-u`, role: 'user', text };
+        const userMsg: ChatMessage = { id: `${Date.now()}-u`, role: "user", text };
         setMessages((prev) => [...prev, userMsg]);
-        setInput('');
+        setInput("");
         setIsLoading(true);
 
         try {
             const result = await classifyLegalIssue(text);
+
+            const botText =
+                result.isSmallTalk && result.assistantMessage
+                    ? result.assistantMessage
+                    : result.shortReason;
+
             const botMsg: ChatMessage = {
                 id: `${Date.now()}-a`,
-                role: 'assistant',
-                text: result.shortReason,
+                role: "assistant",
+                text: botText,
                 classification: result,
             };
+
             setMessages((prev) => [...prev, botMsg]);
         } catch {
-            setMessages((prev) => [...prev, {
-                id: `${Date.now()}-e`,
-                role: 'assistant',
-                text: 'Sorry, something went wrong. Please try again.',
-            }]);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: `${Date.now()}-e`,
+                    role: "assistant",
+                    text: "Sorry, something went wrong. Please try again.",
+                },
+            ]);
         } finally {
             setIsLoading(false);
             requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
@@ -66,28 +79,37 @@ const ClientChatbotScreen: React.FC = () => {
     };
 
     const renderItem = ({ item }: { item: ChatMessage }) => {
-        const isUser = item.role === 'user';
+        const isUser = item.role === "user";
 
-        if (!isUser && item.classification) {
-            const { suggestedLawyerCategory, shortReason, disclaimer } = item.classification;
-            const isNavigable = suggestedLawyerCategory !== 'Not a Legal Matter';
-            const caseArea = CATEGORY_TO_CASE_AREA[suggestedLawyerCategory] ?? '';
+        if (!isUser && item.classification?.showCategoryCard) {
+            const {
+                suggestedLawyerCategory,
+                shortReason,
+                disclaimer,
+            } = item.classification;
+
+            const caseArea = CATEGORY_TO_CASE_AREA[suggestedLawyerCategory] ?? "";
+            const isNavigable =
+                caseArea !== "" &&
+                suggestedLawyerCategory !== "General Consultation" &&
+                suggestedLawyerCategory !== "Not a Legal Matter";
 
             return (
-                <View style={[styles.bubbleRow, { justifyContent: 'flex-start' }]}>
+                <View style={[styles.bubbleRow, { justifyContent: "flex-start" }]}>
                     <View style={[styles.bubble, styles.botBubble, styles.classificationBubble]}>
                         <View style={styles.categoryBadge}>
                             <Text style={styles.categoryBadgeText}>{suggestedLawyerCategory}</Text>
                         </View>
                         <Text style={styles.bubbleText}>{shortReason}</Text>
                         <Text style={styles.disclaimerText}>{disclaimer}</Text>
+
                         {isNavigable && (
                             <TouchableOpacity
                                 style={styles.findLawyersBtn}
                                 activeOpacity={0.85}
                                 onPress={() =>
-                                    navigation.navigate('Lawyers', {
-                                        screen: 'SearchLawyer',
+                                    navigation.navigate("Lawyers", {
+                                        screen: "SearchLawyer",
                                         params: { presetCaseArea: caseArea },
                                     })
                                 }
@@ -101,9 +123,11 @@ const ClientChatbotScreen: React.FC = () => {
         }
 
         return (
-            <View style={[styles.bubbleRow, { justifyContent: isUser ? 'flex-end' : 'flex-start' }]}>
+            <View style={[styles.bubbleRow, { justifyContent: isUser ? "flex-end" : "flex-start" }]}>
                 <View style={[styles.bubble, isUser ? styles.userBubble : styles.botBubble]}>
-                    <Text style={[styles.bubbleText, isUser && { color: colors.white }]}>{item.text}</Text>
+                    <Text style={[styles.bubbleText, isUser && { color: colors.white }]}>
+                        {item.text}
+                    </Text>
                 </View>
             </View>
         );
@@ -115,13 +139,12 @@ const ClientChatbotScreen: React.FC = () => {
             disableScroll
             showBackButton
             onBackPress={() => navigation.goBack()}
-            onProfilePress={() => navigation.navigate('ClientProfile')}
+            onProfilePress={() => navigation.navigate("ClientProfile")}
         >
-            {/* iOS needs KAV, Android is handled by softwareKeyboardLayoutMode: resize */}
             <KeyboardAvoidingView
                 style={styles.root}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
             >
                 <FlatList
                     ref={listRef}
@@ -137,7 +160,7 @@ const ClientChatbotScreen: React.FC = () => {
                     ]}
                     ListFooterComponent={
                         isLoading ? (
-                            <View style={[styles.bubbleRow, { justifyContent: 'flex-start' }]}>
+                            <View style={[styles.bubbleRow, { justifyContent: "flex-start" }]}>
                                 <View style={[styles.bubble, styles.botBubble]}>
                                     <Text style={styles.bubbleText}>Lawly is thinking…</Text>
                                 </View>
@@ -147,7 +170,9 @@ const ClientChatbotScreen: React.FC = () => {
                     ListEmptyComponent={
                         <View style={styles.emptyState}>
                             <Text style={styles.emptyTitle}>Chatbot</Text>
-                            <Text style={styles.emptySub}>Ask questions and get guidance from Lawly.</Text>
+                            <Text style={styles.emptySub}>
+                                Ask questions and get guidance from Lawly.
+                            </Text>
                         </View>
                     }
                 />
@@ -156,6 +181,7 @@ const ClientChatbotScreen: React.FC = () => {
                     <TouchableOpacity style={styles.plusBtn} activeOpacity={0.85}>
                         <Ionicons name="add" size={22} color={colors.primary} />
                     </TouchableOpacity>
+
                     <View style={styles.inputWrap}>
                         <TextInput
                             value={input}
@@ -168,7 +194,11 @@ const ClientChatbotScreen: React.FC = () => {
                             editable={!isLoading}
                         />
                         <TouchableOpacity onPress={onSend} style={styles.sendBtn} activeOpacity={0.85}>
-                            <Ionicons name="send" size={18} color={isLoading ? colors.textSecondary : colors.primary} />
+                            <Ionicons
+                                name="send"
+                                size={18}
+                                color={isLoading ? colors.textSecondary : colors.primary}
+                            />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -176,7 +206,6 @@ const ClientChatbotScreen: React.FC = () => {
         </ClientLayout>
     );
 };
-
 
 const styles = StyleSheet.create({
     root: { flex: 1 },
@@ -271,8 +300,8 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.md,
     },
     categoryBadge: {
-        alignSelf: 'flex-start',
-        backgroundColor: colors.primary + '18',   // primary with 10% opacity
+        alignSelf: "flex-start",
+        backgroundColor: colors.primary + "18",
         borderRadius: 6,
         paddingHorizontal: 10,
         paddingVertical: 4,
@@ -285,11 +314,11 @@ const styles = StyleSheet.create({
     disclaimerText: {
         fontSize: 10,
         color: colors.textSecondary,
-        fontStyle: 'italic',
+        fontStyle: "italic",
         lineHeight: 15,
     },
     findLawyersBtn: {
-        alignSelf: 'flex-start',
+        alignSelf: "flex-start",
         marginTop: 4,
         backgroundColor: colors.primary,
         borderRadius: 8,
