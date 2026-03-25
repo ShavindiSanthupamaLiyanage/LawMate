@@ -106,9 +106,24 @@ apiClient.interceptors.response.use(
 
         // 2. 401 Unauthorized - Token expired or invalid
         if (error.response.status === 401 && originalRequest) {
-            console.log('🔐 Unauthorized - Token expired or invalid');
+            const isAuthEndpoint = originalRequest.url?.includes('/auth/');
 
-            // Clear all auth data
+            if (isAuthEndpoint) {
+                // Just return the backend's message directly (e.g. "Invalid NIC or Password")
+                const message =
+                    typeof error.response.data === 'string'
+                        ? error.response.data
+                        : (error.response.data as any)?.message || 'Invalid credentials';
+
+                return Promise.reject({
+                    message,
+                    statusCode: 401,
+                    type: 'INVALID_CREDENTIALS',
+                });
+            }
+
+            // Non-auth 401 = token expired, clear session
+            console.log('🔐 Unauthorized - Token expired or invalid');
             await StorageService.clearAll();
 
             if (navigationRef) {
