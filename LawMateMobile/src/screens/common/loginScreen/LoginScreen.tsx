@@ -117,9 +117,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             console.error('Login failed:', error);
 
             // Show error message to user
-            const errorMessage = error.message || 'Invalid NIC or password';
-            showError(errorMessage);
+            // const errorMessage = error.message || 'Invalid NIC or password';
+            // showError(errorMessage);
+            const displayMessage =
+                typeof error.data === 'string'
+                    ? error.data
+                    : error.message;
 
+            showError(displayMessage);
+            // showError(error.message || 'Invalid NIC or password');
         } finally {
             setLoading(false);
         }

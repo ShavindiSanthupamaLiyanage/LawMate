@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import {KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View} from 'react-native';
 import { colors, spacing } from '../config/theme';
 import ScreenWrapper from './ScreenWrapper';
 import TopNavbar from './TopNavbar';
 import {StorageService} from "../utils/storage";
 import {UserDetailService} from "../services/userDetailService";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
 
 interface ClientLayoutProps {
     children: React.ReactNode;
@@ -30,7 +31,7 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({
     hideRightSection,
     disableScroll,
 }) => {
-
+    const insets = useSafeAreaInsets();
     const [adminName, setAdminName] = useState<string>('');
 
     useEffect(() => {
@@ -66,9 +67,15 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({
             </View>
 
             {disableScroll ? (
-                <View style={styles.container}>
+                <KeyboardAvoidingView
+                    style={styles.container}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={
+                        Platform.OS === 'ios' ? insets.top + 60 : 60
+                    }
+                >
                     {children}
-                </View>
+                </KeyboardAvoidingView>
             ) : (
                 <ScrollView
                     style={styles.container}

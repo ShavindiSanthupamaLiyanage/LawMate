@@ -101,13 +101,11 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ name, action, time }) => (
     </View>
 );
 
-const CATEGORY_COLORS: Record<string, string> = {
-    Criminal:  '#A78BFA',
-    Civil:     '#EC4899',
-    Cyber:     '#60A5FA',
-    Family:    '#F59E0B',
-    Corporate: '#10B981',
-};
+const PALETTE = [
+    '#A78BFA', '#EC4899', '#60A5FA', '#F59E0B',
+    '#10B981', '#F97316', '#14B8A6', '#8B5CF6',
+    '#EF4444', '#3B82F6',
+];
 
 const getRelativeTime = (dateString: string): string => {
     const now = new Date();
@@ -149,10 +147,10 @@ const AdminDashboard: React.FC = () => {
     if (error || !dashboard) return <Text>{error ?? 'No data'}</Text>;
 
     // Map API data → DonutChart format
-    const lawyerCategories: DonutItem[] = dashboard.lawyerCategories.map(c => ({
+    const lawyerCategories: DonutItem[] = dashboard.lawyerCategories.map((c, index) => ({
         label: c.category,
         value: c.count,
-        color: CATEGORY_COLORS[c.category] ?? '#94A3B8',
+        color: PALETTE[index % PALETTE.length],  // cycles through palette
     }));
 
     // Map API data → Recent activities format

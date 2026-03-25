@@ -20,10 +20,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#00154f"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.LawMateMobile",
-      "softwareKeyboardLayoutMode": "resize"
+      "package": "com.anonymous.LawMateMobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
