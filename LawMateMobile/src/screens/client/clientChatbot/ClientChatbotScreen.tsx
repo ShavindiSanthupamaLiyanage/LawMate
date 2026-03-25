@@ -6,8 +6,8 @@ import {
     TextInput,
     TouchableOpacity,
     FlatList,
-    KeyboardAvoidingView,
-    Platform,
+    // KeyboardAvoidingView,
+    // Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -15,6 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import ClientLayout from "../../../components/ClientLayout";
 import { colors, spacing, fontSize, fontWeight } from "../../../config/theme";
 import { CATEGORY_TO_CASE_AREA, classifyLegalIssue } from "../../../services/chatbotService";
+// import {useSafeAreaInsets} from "react-native-safe-area-context";
 
 type ChatMessage = {
     id: string;
@@ -32,7 +33,7 @@ type ChatMessage = {
 
 const ClientChatbotScreen: React.FC = () => {
     const navigation = useNavigation<any>();
-
+    // const insets = useSafeAreaInsets();
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -134,6 +135,78 @@ const ClientChatbotScreen: React.FC = () => {
     };
 
     return (
+        // <ClientLayout
+        //     title="Chat with Lawly"
+        //     disableScroll
+        //     showBackButton
+        //     onBackPress={() => navigation.goBack()}
+        //     onProfilePress={() => navigation.navigate("ClientProfile")}
+        // >
+        //     {/*<KeyboardAvoidingView*/}
+        //     {/*    style={styles.root}*/}
+        //     {/*    behavior={Platform.OS === "ios" ? "padding" : "height"}*/}
+        //     {/*    keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}*/}
+        //     {/*>*/}
+        //     <View style={styles.root}>
+        //         <FlatList
+        //             ref={listRef}
+        //             data={messages}
+        //             keyExtractor={(m) => m.id}
+        //             renderItem={renderItem}
+        //             showsVerticalScrollIndicator={false}
+        //             keyboardShouldPersistTaps="handled"
+        //             keyboardDismissMode="on-drag"
+        //             contentContainerStyle={[
+        //                 styles.listContent,
+        //                 { flexGrow: messages.length === 0 ? 1 : 0 },
+        //             ]}
+        //             ListFooterComponent={
+        //                 isLoading ? (
+        //                     <View style={[styles.bubbleRow, { justifyContent: "flex-start" }]}>
+        //                         <View style={[styles.bubble, styles.botBubble]}>
+        //                             <Text style={styles.bubbleText}>Lawly is thinking…</Text>
+        //                         </View>
+        //                     </View>
+        //                 ) : null
+        //             }
+        //             ListEmptyComponent={
+        //                 <View style={styles.emptyState}>
+        //                     <Text style={styles.emptyTitle}>Chatbot</Text>
+        //                     <Text style={styles.emptySub}>
+        //                         Ask questions and get guidance from Lawly.
+        //                     </Text>
+        //                 </View>
+        //             }
+        //         />
+        //
+        //         <View style={styles.composerContainer}>
+        //             <TouchableOpacity style={styles.plusBtn} activeOpacity={0.85}>
+        //                 <Ionicons name="add" size={22} color={colors.primary} />
+        //             </TouchableOpacity>
+        //
+        //             <View style={styles.inputWrap}>
+        //                 <TextInput
+        //                     value={input}
+        //                     onChangeText={setInput}
+        //                     placeholder="Send a message"
+        //                     placeholderTextColor={colors.textSecondary}
+        //                     style={styles.input}
+        //                     returnKeyType="send"
+        //                     onSubmitEditing={onSend}
+        //                     editable={!isLoading}
+        //                 />
+        //                 <TouchableOpacity onPress={onSend} style={styles.sendBtn} activeOpacity={0.85}>
+        //                     <Ionicons
+        //                         name="send"
+        //                         size={18}
+        //                         color={isLoading ? colors.textSecondary : colors.primary}
+        //                     />
+        //                 </TouchableOpacity>
+        //             </View>
+        //         </View>
+        //     </View>
+        //     {/*</KeyboardAvoidingView>*/}
+        // </ClientLayout>
         <ClientLayout
             title="Chat with Lawly"
             disableScroll
@@ -141,11 +214,7 @@ const ClientChatbotScreen: React.FC = () => {
             onBackPress={() => navigation.goBack()}
             onProfilePress={() => navigation.navigate("ClientProfile")}
         >
-            <KeyboardAvoidingView
-                style={styles.root}
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-            >
+            <View style={styles.root}>
                 <FlatList
                     ref={listRef}
                     data={messages}
@@ -177,7 +246,11 @@ const ClientChatbotScreen: React.FC = () => {
                     }
                 />
 
-                <View style={styles.composerContainer}>
+                {/* Composer pinned above bottom nav */}
+                <View style={
+                    styles.composerContainer
+
+                    }>
                     <TouchableOpacity style={styles.plusBtn} activeOpacity={0.85}>
                         <Ionicons name="add" size={22} color={colors.primary} />
                     </TouchableOpacity>
@@ -202,7 +275,7 @@ const ClientChatbotScreen: React.FC = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </KeyboardAvoidingView>
+            </View>
         </ClientLayout>
     );
 };
