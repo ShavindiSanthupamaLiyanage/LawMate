@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,11 +8,120 @@ import {
     Modal,
     TextInput,
     Alert,
+    ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { colors, spacing, fontSize, fontWeight, borderRadius } from '../../../config/theme';
 import AdminLayout from '../../../components/AdminLayout';
+import apiClient from '../../../api/httpClient';
+import { AuthService } from '../../../services/authService';
+import { ENDPOINTS } from '../../../config/api.config';
+
+interface AdminApiData {
+    userId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    userRole?: number | null;
+    gender?: number | null;
+    email?: string | null;
+    nic?: string | null;
+    contactNumber?: string | null;
+    dateOfBirth?: string | null;
+    nationality?: string | null;
+}
+
+interface PersonalData {
+    name: string;
+    adminId: string;
+    role: string;
+    department: string;
+    contactNumber: string;
+    emailAddress: string;
+    nic: string;
+    dateOfBirth: string;
+    gender: string;
+    nationality: string;
+}
+
+type EditableField = 'name' | 'contactNumber' | 'emailAddress';
+
+const toRoleLabel = (role?: number | null): string => {
+    if (role === 0) {
+        return 'Admin';
+    }
+
+    if (role === 1) {
+        return 'Lawyer';
+    }
+
+    if (role === 2) {
+        return 'Client';
+    }
+
+    return '-';
+};
+
+const toGenderLabel = (gender?: number | null): string => {
+    if (gender === 1) {
+        return 'Male';
+    }
+
+    if (gender === 2) {
+        return 'Female';
+    }
+
+    return '-';
+};
+
+const formatDate = (dateValue?: string | null): string => {
+    if (!dateValue) {
+        return '-';
+    }
+
+    const parsedDate = new Date(dateValue);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return dateValue;
+    }
+
+    const day = `${parsedDate.getDate()}`.padStart(2, '0');
+    const month = `${parsedDate.getMonth() + 1}`.padStart(2, '0');
+    const year = parsedDate.getFullYear();
+
+    return `${day}/${month}/${year}`;
+};
+
+const toPersonalData = (data: AdminApiData): PersonalData => ({
+    name: `${data.firstName ?? ''} ${data.lastName ?? ''}`.trim() || '-',
+    adminId: data.userId ?? '-',
+    role: toRoleLabel(data.userRole),
+    department: '-',
+    contactNumber: data.contactNumber ?? '-',
+    emailAddress: data.email ?? '-',
+    nic: data.nic ?? '-',
+    dateOfBirth: formatDate(data.dateOfBirth),
+    gender: toGenderLabel(data.gender),
+    nationality: data.nationality ?? '-',
+});
+
+const splitFullName = (fullName: string): { firstName: string; lastName: string } => {
+    const trimmedName = fullName.trim();
+
+    if (!trimmedName) {
+        return {
+            firstName: '',
+            lastName: '',
+        };
+    }
+
+    const parts = trimmedName.split(/\s+/);
+
+    return {
+        firstName: parts[0] ?? '',
+        lastName: parts.slice(1).join(' '),
+    };
+};
 
 const EditModal: React.FC<{
     visible: boolean;
@@ -22,6 +131,10 @@ const EditModal: React.FC<{
     onSave: (value: string) => void;
 }> = ({ visible, title, value, onClose, onSave }) => {
     const [inputValue, setInputValue] = useState(value);
+
+    useEffect(() => {
+        setInputValue(value);
+    }, [value, visible]);
 
     const handleSave = () => {
         if (inputValue.trim() === '') {
@@ -91,35 +204,109 @@ const DetailRow: React.FC<DetailRowProps> = ({ label, value, onPress }) => (
 const AdminPersonalDetailsScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const [editModalVisible, setEditModalVisible] = useState(false);
-    const [editingField, setEditingField] = useState<string | null>(null);
+    const [editingField, setEditingField] = useState<EditableField | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [apiData, setApiData] = useState<AdminApiData | null>(null);
 
-    // TODO: Replace with actual API data
-    const [personalData, setPersonalData] = useState({
-        name: 'Admin User',
-        adminId: 'ADM 001234',
-        role: 'Super Admin',
-        department: 'System Administration',
-        contactNumber: '0112345678',
-        emailAddress: 'admin@lawmate.lk',
-        nic: '197856789012',
-        dateOfBirth: '20/05/1978',
-        gender: 'Male',
-        nationality: 'Sri Lankan',
+    const [personalData, setPersonalData] = useState<PersonalData>({
+        name: '-',
+        adminId: '-',
+        role: '-',
+        department: '-',
+        contactNumber: '-',
+        emailAddress: '-',
+        nic: '-',
+        dateOfBirth: '-',
+        gender: '-',
+        nationality: '-',
     });
 
-    const openEditModal = (field: string) => {
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadAdminProfile = async () => {
+            try {
+                setLoading(true);
+                setErrorMessage(null);
+
+                const currentUser = await AuthService.getCurrentUser();
+                const userId = currentUser?.userId;
+
+                if (!userId) {
+                    throw new Error('User session not found. Please log in again.');
+                }
+
+                const response = await apiClient.get<AdminApiData>(
+                    ENDPOINTS.ADMIN.GET_BY_USER_ID(userId)
+                );
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setApiData(response.data);
+                setPersonalData(toPersonalData(response.data));
+            } catch (error: any) {
+                if (isMounted) {
+                    setErrorMessage(error?.message ?? 'Failed to load personal details.');
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadAdminProfile();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const openEditModal = (field: EditableField) => {
         setEditingField(field);
         setEditModalVisible(true);
     };
 
-    const handleSaveField = (newValue: string) => {
-        if (editingField) {
-            setPersonalData(prev => ({
-                ...prev,
-                [editingField]: newValue,
-            }));
-            // TODO: Call API to update admin profile
-            // await updateAdminProfile({ [editingField]: newValue });
+    const handleSaveField = async (newValue: string) => {
+        if (!editingField || !apiData) {
+            return;
+        }
+
+        const previousPersonalData = personalData;
+        const updatedPersonalData: PersonalData = {
+            ...personalData,
+            [editingField]: newValue,
+        };
+
+        setPersonalData(updatedPersonalData);
+
+        const updatedApiData: AdminApiData = {
+            ...apiData,
+            firstName: editingField === 'name' ? splitFullName(newValue).firstName : apiData.firstName,
+            lastName: editingField === 'name' ? splitFullName(newValue).lastName : apiData.lastName,
+            contactNumber: editingField === 'contactNumber' ? newValue : apiData.contactNumber,
+            email: editingField === 'emailAddress' ? newValue : apiData.email,
+        };
+
+        try {
+            await apiClient.put(ENDPOINTS.ADMIN.UPDATE_BY_USER_ID(updatedApiData.userId), {
+                userId: updatedApiData.userId,
+                firstName: updatedApiData.firstName ?? '',
+                lastName: updatedApiData.lastName ?? '',
+                gender: updatedApiData.gender ?? undefined,
+                email: updatedApiData.email ?? '',
+                contactNumber: updatedApiData.contactNumber ?? '',
+                dateOfBirth: updatedApiData.dateOfBirth ?? undefined,
+                nationality: updatedApiData.nationality ?? '',
+            });
+
+            setApiData(updatedApiData);
+        } catch (error: any) {
+            setPersonalData(previousPersonalData);
+            Alert.alert('Update failed', error?.message ?? 'Failed to update profile. Please try again.');
         }
     };
 
@@ -137,59 +324,69 @@ const AdminPersonalDetailsScreen: React.FC = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                <View style={styles.card}>
-                    <DetailRow
-                        label="Name"
-                        value={personalData.name}
-                        onPress={() => openEditModal('name')}
-                    />
-                    <DetailRow
-                        label="Admin ID"
-                        value={personalData.adminId}
-                    />
-                    <DetailRow
-                        label="Role"
-                        value={personalData.role}
-                    />
-                    <DetailRow
-                        label="Department"
-                        value={personalData.department}
-                        onPress={() => openEditModal('department')}
-                    />
-                    <DetailRow
-                        label="Contact Number"
-                        value={personalData.contactNumber}
-                        onPress={() => openEditModal('contactNumber')}
-                    />
-                    <DetailRow
-                        label="Email Address"
-                        value={personalData.emailAddress}
-                        onPress={() => openEditModal('emailAddress')}
-                    />
-                    <DetailRow
-                        label="NIC"
-                        value={personalData.nic}
-                    />
-                    <DetailRow
-                        label="Date of Birth"
-                        value={personalData.dateOfBirth}
-                    />
-                    <DetailRow
-                        label="Gender"
-                        value={personalData.gender}
-                    />
-                    <DetailRow
-                        label="Nationality"
-                        value={personalData.nationality}
-                    />
-                </View>
+                {loading ? (
+                    <ActivityIndicator color={colors.primary} style={{ margin: 20 }} />
+                ) : errorMessage ? (
+                    <View style={styles.infoBox}>
+                        <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
+                        <Text style={styles.infoText}>{errorMessage}</Text>
+                    </View>
+                ) : (
+                    <>
+                        <View style={styles.card}>
+                            <DetailRow
+                                label="Name"
+                                value={personalData.name}
+                                onPress={() => openEditModal('name')}
+                            />
+                            <DetailRow
+                                label="Admin ID"
+                                value={personalData.adminId}
+                            />
+                            <DetailRow
+                                label="Role"
+                                value={personalData.role}
+                            />
+                            <DetailRow
+                                label="Department"
+                                value={personalData.department}
+                            />
+                            <DetailRow
+                                label="Contact Number"
+                                value={personalData.contactNumber}
+                                onPress={() => openEditModal('contactNumber')}
+                            />
+                            <DetailRow
+                                label="Email Address"
+                                value={personalData.emailAddress}
+                                onPress={() => openEditModal('emailAddress')}
+                            />
+                            <DetailRow
+                                label="NIC"
+                                value={personalData.nic}
+                            />
+                            <DetailRow
+                                label="Date of Birth"
+                                value={personalData.dateOfBirth}
+                            />
+                            <DetailRow
+                                label="Gender"
+                                value={personalData.gender}
+                            />
+                            <DetailRow
+                                label="Nationality"
+                                value={personalData.nationality}
+                            />
+                        </View>
 
-                <View style={styles.infoBox}>
-                    <Ionicons name="information-circle-outline" size={20} color={colors.info} />
-                    <Text style={styles.infoText}>
-                        Some fields are system-managed and cannot be edited. Contact IT support for assistance.
-                    </Text>
-                </View>
+                        <View style={styles.infoBox}>
+                            <Ionicons name="information-circle-outline" size={20} color={colors.info} />
+                            <Text style={styles.infoText}>
+                                Name, contact number, and email can be updated here.
+                            </Text>
+                        </View>
+                    </>
+                )}
             </ScrollView>
 
             <EditModal
