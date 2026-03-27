@@ -10,6 +10,7 @@ public class UploadPaymentSlipCommand : IRequest<int>
 {
     public int    BookingId       { get; set; }
     public string SlipImageBase64 { get; set; } = string.Empty;
+    public string? TransactionId { get; set; }
 }
 
 public class UploadPaymentSlipCommandHandler
@@ -27,6 +28,11 @@ public class UploadPaymentSlipCommandHandler
         _context            = context;
         _currentUserService = currentUserService;
         _logger             = logger;
+    }
+    
+    private static string GenerateTransactionId()
+    {
+        return $"TXN-{Guid.NewGuid().ToString("N")[..10].ToUpper()}";
     }
 
     public async Task<int> Handle(
@@ -90,6 +96,7 @@ public class UploadPaymentSlipCommandHandler
             ReceiptDocument    = imageBytes,
             CreatedBy          = clientId,
             CreatedAt          = DateTime.Now,
+            TransactionId      = GenerateTransactionId()
         };
 
         _context.BOOKING_PAYMENT.Add(payment);

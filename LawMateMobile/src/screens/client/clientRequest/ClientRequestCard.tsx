@@ -52,7 +52,7 @@ const ClientRequestCard: React.FC<Props> = ({ request }) => {
 
   const handlePress = () => {
     navigation.navigate('ClientAppointmentView', {
-      bookingId: request.bookingId,
+      // bookingId: request.bookingId,
       request,
     });
   };

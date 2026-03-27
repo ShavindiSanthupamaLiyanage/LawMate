@@ -45,6 +45,7 @@ public class GetLawyerRequestByIdQueryHandler
                 Location          = b.Location,
                 Status            = b.BookingStatus,
                 RejectionReason   = b.RejectionReason,
+                Mode              = b.Mode,
             }
         ).FirstOrDefaultAsync(ct);
     }

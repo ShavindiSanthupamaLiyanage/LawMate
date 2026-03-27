@@ -91,7 +91,9 @@ namespace LawMate.Application.AdminModule.AdminDashboard.Queries
                     Name = u.FirstName + " " + u.LastName,
                     Action = u.UserRole == UserRole.Lawyer
                         ? "registered as lawyer"
-                        : "registered as client",
+                        : u.UserRole == UserRole.Client
+                            ? "registered as client"
+                            : "registered as admin",
                     Time = u.RegistrationDate ?? DateTime.Now
                 })
                 .ToListAsync(cancellationToken);

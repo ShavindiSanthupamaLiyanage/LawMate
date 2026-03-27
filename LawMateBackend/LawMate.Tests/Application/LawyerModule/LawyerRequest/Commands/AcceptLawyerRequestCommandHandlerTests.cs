@@ -26,7 +26,7 @@ namespace LawMate.Tests.Application.LawyerModule.LawyerRequest.Commands
 
             var handler = new AcceptLawyerRequestCommandHandler(context);
 
-            var command = new AcceptLawyerRequestCommand(1, "L1");
+            var command = new AcceptLawyerRequestCommand(1, "L1", "Teams Link");
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -48,7 +48,7 @@ namespace LawMate.Tests.Application.LawyerModule.LawyerRequest.Commands
 
             var handler = new AcceptLawyerRequestCommandHandler(context);
 
-            var command = new AcceptLawyerRequestCommand(999, "L1");
+            var command = new AcceptLawyerRequestCommand(999, "L1", null);
 
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -75,7 +75,7 @@ namespace LawMate.Tests.Application.LawyerModule.LawyerRequest.Commands
         
             var handler = new AcceptLawyerRequestCommandHandler(context);
         
-            var command = new AcceptLawyerRequestCommand(1, "L1");
+            var command = new AcceptLawyerRequestCommand(5, "L1", null);
         
             // Act
             var result = await handler.Handle(command, CancellationToken.None);
@@ -102,7 +102,7 @@ namespace LawMate.Tests.Application.LawyerModule.LawyerRequest.Commands
         
             var handler = new AcceptLawyerRequestCommandHandler(context);
         
-            var command = new AcceptLawyerRequestCommand(1, "L2"); 
+            var command = new AcceptLawyerRequestCommand(2, "L2", null);
         
             // Act
             var result = await handler.Handle(command, CancellationToken.None);

@@ -57,7 +57,7 @@ const AppointmentView: React.FC = () => {
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [cancelReason, setCancelReason]             = useState('');
   const [rejectReason, setRejectReason]             = useState('');
-
+  const [location, setLocation] = useState('');
   const [toastVisible, setToastVisible]         = useState(false);
   const [toastMessage, setToastMessage]         = useState('');
   const [toastType, setToastType]               = useState<'success' | 'error'>('success');
@@ -69,6 +69,7 @@ const AppointmentView: React.FC = () => {
       setError(null);
       const data = await lawyerRequestService.getById(bookingId);
       setAppointment(data);
+      setLocation(data.location ?? '');
     } catch (err: any) {
       setError(err.message ?? 'Failed to load appointment');
     } finally {
@@ -91,7 +92,7 @@ const AppointmentView: React.FC = () => {
   const handleAccept = async () => {
     try {
       setActionLoading(true);
-      await lawyerRequestService.accept(bookingId);
+      await lawyerRequestService.accept(bookingId, location.trim());
       showToast('Appointment accepted successfully!', 'success');
       await fetchDetail();
     } catch (err: any) {
@@ -211,8 +212,8 @@ const AppointmentView: React.FC = () => {
               <Text style={styles.cardTitle}>Appointment Info</Text>
               <InfoRow label="Date"     value={dateStr} />
               <InfoRow label="Time"     value={timeStr} />
-              <InfoRow label="Mode"     value={modeLabel(appointment.paymentMode)} />
-              <InfoRow label="Location" value={appointment.location ?? '-'} />
+              <InfoRow label="Mode" value={modeLabel(appointment.mode)} />
+              {/*<InfoRow label="Location" value={appointment.location ?? '-'} />*/}
               <View style={styles.row}>
                 <Text style={styles.label}>Status</Text>
                 <View style={[styles.statusBadge, { backgroundColor: bgColor }]}>
@@ -221,6 +222,33 @@ const AppointmentView: React.FC = () => {
                   </Text>
                 </View>
               </View>
+
+              <View style={styles.row}>
+                <Text style={styles.label}>Location</Text>
+                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                  {isPending ? (
+                      <>
+                        <TextInput
+                            style={[
+                              styles.locationInput,
+                              !location.trim() && styles.locationInputError,
+                            ]}
+                            // placeholder="Enter location (required)"
+                            placeholderTextColor="#EF4444"
+                            value={location}
+                            onChangeText={setLocation}
+                            textAlign="right"
+                        />
+                        {!location.trim() && (
+                            <Text style={styles.locationRequired}>* Location is required to accept</Text>
+                        )}
+                      </>
+                  ) : (
+                      <Text style={styles.value}>{appointment.location ?? '-'}</Text>
+                  )}
+                </View>
+              </View>
+
               {(isRejected || isCancelled) && appointment.rejectionReason ? (
                 <InfoRow label="Reason" value={appointment.rejectionReason} />
               ) : null}
@@ -233,16 +261,19 @@ const AppointmentView: React.FC = () => {
               <ActivityIndicator size="small" color="#4F46E5" />
             </View>
           )}
-
           {isPending && !actionLoading && (
-            <View style={styles.bottomActions}>
-              <TouchableOpacity style={styles.rejectBtn} onPress={() => setRejectModalVisible(true)}>
-                <Text style={styles.btnText}>REJECT</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.acceptBtn} onPress={handleAccept}>
-                <Text style={styles.btnText}>ACCEPT</Text>
-              </TouchableOpacity>
-            </View>
+              <View style={styles.bottomActions}>
+                <TouchableOpacity style={styles.rejectBtn} onPress={() => setRejectModalVisible(true)}>
+                  <Text style={styles.btnText}>REJECT</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.acceptBtn, !location.trim() && styles.acceptBtnDisabled]}
+                    onPress={handleAccept}
+                    disabled={!location.trim()}
+                >
+                  <Text style={styles.btnText}>ACCEPT</Text>
+                </TouchableOpacity>
+              </View>
           )}
 
           {(isAccepted || isConfirmed) && !actionLoading && (
@@ -571,6 +602,27 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     marginHorizontal: 5,
+  },
+  locationInput: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#D1D5DB',
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111',
+    minWidth: 160,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+  },
+  locationInputError: {
+    borderBottomColor: '#EF4444',
+  },
+  locationRequired: {
+    color: '#EF4444',
+    fontSize: 11,
+    marginTop: 4,
+  },
+  acceptBtnDisabled: {
+    backgroundColor: '#9CA3AF',
   },
 });
 

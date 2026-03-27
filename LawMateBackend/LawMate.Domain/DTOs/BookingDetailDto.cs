@@ -26,4 +26,5 @@ public class BookingDetailDto
     public string? Location { get; set; }
     public BookingStatus Status { get; set; }
     public string? RejectionReason { get; set; }
+    public AppointmentMode Mode { get; set; } 
 }
