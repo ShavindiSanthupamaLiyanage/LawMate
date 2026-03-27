@@ -20,6 +20,7 @@ export interface BookingDetailDto {
     location?:         string | null;
     status:            number;   // BookingStatus enum int
     rejectionReason?:  string | null;
+    mode: number;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -47,26 +48,34 @@ export const lawyerRequestService = {
      * Fetches full detail for one booking.
      */
     getById: async (bookingId: number): Promise<BookingDetailDto> => {
+        console.log('[lawyerRequestService] getById called with bookingId:', bookingId);
         const token = await getToken();
         const res   = await fetch(`${BASE()}/${bookingId}`, {
             method:  'GET',
             headers: buildHeaders(token),
         });
+        console.log('[lawyerRequestService] getById response status:', res.status);
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
+            console.error('[lawyerRequestService] getById error:', err);
             throw new Error((err as any)?.message ?? `Failed to load booking (${res.status})`);
         }
-        return res.json();
+        const data = await res.json();
+        console.log('[lawyerRequestService] getById raw response data:', JSON.stringify(data, null, 2));
+        console.log('[lawyerRequestService] mode field value:', data.mode);
+        console.log('[lawyerRequestService] paymentMode field value:', data.paymentMode);
+        return data;
     },
 
     /**
      * POST /api/lawyer/requests/:bookingId/accept
      */
-    accept: async (bookingId: number): Promise<void> => {
+    accept: async (bookingId: number, location: string): Promise<void> => {
         const token = await getToken();
         const res   = await fetch(`${BASE()}/${bookingId}/accept`, {
             method:  'POST',
             headers: buildHeaders(token),
+            body:    JSON.stringify(location),    // ← send location to backend
         });
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));

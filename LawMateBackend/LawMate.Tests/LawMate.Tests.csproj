@@ -34,6 +34,11 @@
     <ItemGroup>
       <Folder Include="Application\AdminModule\UserManagement\Commands\" />
       <Folder Include="Application\Common\ResetPassword\Queries\" />
+      <Folder Include="TestResults\bb9f350a-7304-48aa-a923-0431bee71b3a\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="TestResults\bb9f350a-7304-48aa-a923-0431bee71b3a\coverage.cobertura.xml" />
     </ItemGroup>
 
 </Project>

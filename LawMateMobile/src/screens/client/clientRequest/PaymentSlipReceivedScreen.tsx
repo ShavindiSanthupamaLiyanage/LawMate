@@ -1,9 +1,7 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import ClientLayout from '../../../components/ClientLayout';
-import Button from '../../../components/Button';
 
 type ClientRequestsStackParamList = {
   ClientRequestsList: undefined;
@@ -17,9 +15,14 @@ type NavigationProp = NativeStackNavigationProp<ClientRequestsStackParamList, 'P
 
 const PaymentSlipReceivedScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.navigate('ClientRequestsList');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <ClientLayout title="FIXIO - Get Started" hideRightSection>
       <View style={styles.container}>
         <Text style={styles.title}>Payment Slip{'\n'}Received</Text>
 
@@ -34,15 +37,8 @@ const PaymentSlipReceivedScreen: React.FC = () => {
           receive an email after the review is completed. Once verified, you can
           continue with LawMate.
         </Text>
-
-        <Button
-          title="FINISH"
-          onPress={() => navigation.navigate('ClientRequestsList')}
-          variant="primary"
-          style={styles.button}
-        />
       </View>
-    </ClientLayout>
+    // </ClientLayout>
   );
 };
 

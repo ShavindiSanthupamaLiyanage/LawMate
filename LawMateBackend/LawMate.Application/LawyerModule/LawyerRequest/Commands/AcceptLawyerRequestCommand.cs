@@ -7,7 +7,8 @@ namespace LawMate.Application.LawyerModule.LawyerRequest.Commands;
 
 public record AcceptLawyerRequestCommand(
     int BookingId,
-    string LawyerId
+    string LawyerId,
+    string? Location
 ) : IRequest<bool>;
 
 public class AcceptLawyerRequestCommandHandler
@@ -32,6 +33,7 @@ public class AcceptLawyerRequestCommandHandler
         booking.BookingStatus = BookingStatus.Accepted;
         booking.ModifiedBy    = request.LawyerId;
         booking.ModifiedAt    = DateTime.UtcNow;
+        booking.Location = request.Location;
 
         await _db.SaveChangesAsync(ct);
         return true;

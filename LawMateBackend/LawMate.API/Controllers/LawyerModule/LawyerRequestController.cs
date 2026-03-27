@@ -79,12 +79,13 @@ public class LawyerRequestController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AcceptRequest(
         int bookingId,
+        [FromBody] string? location,
         CancellationToken ct = default)
     {
         if (LawyerId is null) return Unauthorized401();
 
         var success = await _mediator.Send(
-            new AcceptLawyerRequestCommand(bookingId, LawyerId), ct);
+            new AcceptLawyerRequestCommand(bookingId, LawyerId, location), ct);
 
         if (!success)
             return NotFound(new { message = "Pending booking not found or already processed." });
