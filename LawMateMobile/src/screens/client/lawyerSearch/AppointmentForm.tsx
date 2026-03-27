@@ -7,7 +7,6 @@ import {
     TextInput,
     ScrollView,
     Modal,
-    ActivityIndicator,
 } from 'react-native';
 import ClientLayout from '../../../components/ClientLayout';
 import Button from '../../../components/Button';
@@ -324,17 +323,17 @@ const AppointmentFormScreen: React.FC<Props> = ({ navigation, route }) => {
                 />
 
                 {/* Location — Physical only */}
-                {form.mode === 'Physical' && (
-                    <FieldWrapper label="Location">
-                        <TextInput
-                            style={styles.inputRow}
-                            value={form.location}
-                            onChangeText={(v) => set('location', v)}
-                            placeholder="Meeting location"
-                            placeholderTextColor="#BDBDBD"
-                        />
-                    </FieldWrapper>
-                )}
+                {/*{form.mode === 'Physical' && (*/}
+                {/*    <FieldWrapper label="Location">*/}
+                {/*        <TextInput*/}
+                {/*            style={styles.inputRow}*/}
+                {/*            value={form.location}*/}
+                {/*            onChangeText={(v) => set('location', v)}*/}
+                {/*            placeholder="Meeting location"*/}
+                {/*            placeholderTextColor="#BDBDBD"*/}
+                {/*        />*/}
+                {/*    </FieldWrapper>*/}
+                {/*)}*/}
 
                 {/* Submit error */}
                 {submitError ? (
